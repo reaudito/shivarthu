@@ -22,7 +22,7 @@ fn test_positive_externality_post() {
 			downvotes_count: 0,
 		});
 		assert_eq!(post, post_compare);
-		//    assert_ok!(TemplateModule::apply_jurors_positive_externality(Origin::signed(1), 2, 60));
+		//    assert_ok!(TemplateModule::apply_jurors(Origin::signed(1), 2, 60));
 	});
 }
 
@@ -68,7 +68,7 @@ fn test_appying_jurors() {
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(4), 1, 1000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
 	});
 }
 
@@ -79,11 +79,11 @@ fn test_change_period() {
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(4), 1, 1000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(5), 1, 2000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(6), 1, 3000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(7), 1, 4000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(8), 1, 5000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(5), 1, 2000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(6), 1, 3000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(7), 1, 4000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(8), 1, 5000));
 		System::set_block_number(1298080);
 		assert_ok!(TemplateModule::pass_period(RuntimeOrigin::signed(4), 1));
 	})
@@ -96,14 +96,14 @@ fn test_draw_jurors_period() {
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(4), 1, 1000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(5), 1, 2000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(6), 1, 3000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(7), 1, 4000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(8), 1, 5000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(5), 1, 2000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(6), 1, 3000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(7), 1, 4000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(8), 1, 5000));
 		System::set_block_number(1298080);
 		assert_ok!(TemplateModule::pass_period(RuntimeOrigin::signed(4), 1));
-		assert_ok!(TemplateModule::draw_jurors_positive_externality(RuntimeOrigin::signed(8), 1, 5));
+		assert_ok!(TemplateModule::draw_jurors(RuntimeOrigin::signed(8), 1, 5));
 	})
 }
 
@@ -116,16 +116,16 @@ fn test_drawn_jurors() {
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		let balance = Balances::free_balance(4);
 		assert_eq!(300000, balance);
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(4), 1, 1000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
 		let balance = Balances::free_balance(4);
 		assert_eq!(299000, balance);
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(5), 1, 2000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(6), 1, 3000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(7), 1, 4000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(8), 1, 5000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(5), 1, 2000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(6), 1, 3000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(7), 1, 4000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(8), 1, 5000));
 		System::set_block_number(1298080);
 		assert_ok!(TemplateModule::pass_period(RuntimeOrigin::signed(4), 1));
-		assert_ok!(TemplateModule::draw_jurors_positive_externality(RuntimeOrigin::signed(8), 1, 5));
+		assert_ok!(TemplateModule::draw_jurors(RuntimeOrigin::signed(8), 1, 5));
 		let data = TemplateModule::get_drawn_jurors(1);
 		assert_eq!(data, [(4, 1000), (5, 2000), (6, 3000), (7, 4000), (8, 5000)]);
 		// println!("drawn jurors {:?}",data);
@@ -141,16 +141,16 @@ fn test_commit_and_incentives_vote() {
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		let balance = Balances::free_balance(4);
 		assert_eq!(300000, balance);
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(4), 1, 1000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
 		let balance = Balances::free_balance(4);
 		assert_eq!(299000, balance);
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(5), 1, 2000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(6), 1, 3000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(7), 1, 4000));
-		assert_ok!(TemplateModule::apply_jurors_positive_externality(RuntimeOrigin::signed(8), 1, 5000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(5), 1, 2000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(6), 1, 3000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(7), 1, 4000));
+		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(8), 1, 5000));
 		System::set_block_number(1298080);
 		assert_ok!(TemplateModule::pass_period(RuntimeOrigin::signed(4), 1));
-		assert_ok!(TemplateModule::draw_jurors_positive_externality(RuntimeOrigin::signed(8), 1, 5));
+		assert_ok!(TemplateModule::draw_jurors(RuntimeOrigin::signed(8), 1, 5));
 
 		let data = TemplateModule::get_drawn_jurors(1);
 		assert_eq!(data, [(4, 1000), (5, 2000), (6, 3000), (7, 4000), (8, 5000)]);

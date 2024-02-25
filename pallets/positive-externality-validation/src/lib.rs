@@ -275,7 +275,7 @@ pub mod pallet {
 
 		#[pallet::call_index(4)]
 		#[pallet::weight(0)]
-		pub fn apply_jurors_positive_externality(
+		pub fn apply_jurors(
 			origin: OriginFor<T>,
 			user_to_calculate: T::AccountId,
 			stake: BalanceOf<T>,
@@ -325,7 +325,7 @@ pub mod pallet {
 
 		#[pallet::call_index(6)]
 		#[pallet::weight(0)]
-		pub fn draw_jurors_positive_externality(
+		pub fn draw_jurors(
 			origin: OriginFor<T>,
 			user_to_calculate: T::AccountId,
 			iterations: u64,

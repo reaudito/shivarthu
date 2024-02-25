@@ -111,7 +111,7 @@ fn schelling_game_test() {
 			let balance = Balances::free_balance(29);
 			assert_eq!(300000, balance);
 			for j in 4..30 {
-				assert_ok!(ProjectTips::apply_jurors_project_tips(RuntimeOrigin::signed(j), 1, j * 100));
+				assert_ok!(ProjectTips::apply_jurors(RuntimeOrigin::signed(j), 1, j * 100));
 			}
 	
 			let balance = Balances::free_balance(29);

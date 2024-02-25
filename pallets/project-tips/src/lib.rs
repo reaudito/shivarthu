@@ -228,7 +228,7 @@ pub mod pallet {
 
 		#[pallet::call_index(2)]
 		#[pallet::weight(0)]
-		pub fn apply_jurors_project_tips(
+		pub fn apply_jurors(
 			origin: OriginFor<T>,
 			project_id: ProjectId,
 			stake: BalanceOf<T>,
