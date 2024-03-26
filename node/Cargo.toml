@@ -70,6 +70,12 @@ profile-validation-runtime-api = {path="../pallets/profile-validation/profile-va
 profile-validation-rpc = { path="../pallets/profile-validation/profile-validation-rpc", default-features = false}
 
 
+# Department funding rpc
+department-funding-runtime-api = {path="../pallets/department-funding/department-funding-runtime-api", default-features = false}
+department-funding-rpc= { path="../pallets/department-funding/department-funding-rpc", default-features = false}
+
+
+
 [build-dependencies]
 substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 

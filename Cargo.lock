@@ -1524,6 +1524,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "department-funding-rpc"
+version = "0.1.0"
+dependencies = [
+ "department-funding-runtime-api",
+ "jsonrpsee",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
+name = "department-funding-runtime-api"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "sp-api",
+]
+
+[[package]]
 name = "der"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4492,6 +4513,8 @@ name = "node-template"
 version = "4.0.0-dev"
 dependencies = [
  "clap",
+ "department-funding-rpc",
+ "department-funding-runtime-api",
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "frame-system",
