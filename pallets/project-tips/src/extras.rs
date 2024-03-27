@@ -91,4 +91,94 @@ impl<T: Config> Pallet<T> {
 			},
 		}
 	}
+
+
+	// Block code start
+
+	pub fn get_evidence_period_end_block(project_id: ProjectId) -> Option<u32> {
+		let now = <frame_system::Pallet<T>>::block_number();
+
+		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
+
+            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+
+
+		let phase_data = Self::get_phase_data();
+
+		let result = T::SchellingGameSharedSource::get_evidence_period_end_block_helper_link(
+			key, phase_data, now,
+		);
+		result
+
+
+	}
+
+	
+	pub fn get_staking_period_end_block(project_id: ProjectId) -> Option<u32> {
+		let now = <frame_system::Pallet<T>>::block_number();
+		
+		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
+
+            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+
+		let phase_data = Self::get_phase_data();
+
+		let result = T::SchellingGameSharedSource::get_staking_period_end_block_helper_link(
+			key, phase_data, now,
+		);
+		result
+	}
+
+	pub fn get_drawing_period_end(project_id: ProjectId) -> (u64, u64, bool) {
+		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
+
+            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+		let phase_data = Self::get_phase_data();
+
+		let result =
+			T::SchellingGameSharedSource::get_drawing_period_end_helper_link(key, phase_data);
+		result
+	}
+
+	pub fn get_commit_period_end_block(project_id: ProjectId) -> Option<u32> {
+		let now = <frame_system::Pallet<T>>::block_number();
+		
+		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
+
+            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+
+		let phase_data = Self::get_phase_data();
+
+		let result = T::SchellingGameSharedSource::get_commit_period_end_block_helper_link(
+			key, phase_data, now,
+		);
+		result
+	}
+
+	pub fn get_vote_period_end_block(project_id: ProjectId) -> Option<u32> {
+		let now = <frame_system::Pallet<T>>::block_number();
+
+		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
+
+            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+
+		let phase_data = Self::get_phase_data();
+
+		let result = T::SchellingGameSharedSource::get_vote_period_end_block_helper_link(
+			key, phase_data, now,
+		);
+		result
+	}
+
+	pub fn selected_as_juror(project_id: ProjectId, who: T::AccountId) -> bool {
+		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
+
+            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+
+		let result = T::SchellingGameSharedSource::selected_as_juror_helper_link(key, who);
+		result
+	}
+
+	// Block code end
+
 }

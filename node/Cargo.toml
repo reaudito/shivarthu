@@ -74,6 +74,14 @@ profile-validation-rpc = { path="../pallets/profile-validation/profile-validatio
 department-funding-runtime-api = {path="../pallets/department-funding/department-funding-runtime-api", default-features = false}
 department-funding-rpc= { path="../pallets/department-funding/department-funding-rpc", default-features = false}
 
+# Postive exterality rpc
+positive-externality-runtime-api = {path="../pallets/positive-externality/positive-externality-runtime-api", default-features = false}
+positive-externality-rpc= { path="../pallets/positive-externality/positive-externality-rpc", default-features = false}
+
+# Project tip rpc
+project-tips-runtime-api = {path="../pallets/project-tips/project-tips-runtime-api", default-features = false}
+project-tips-rpc= { path="../pallets/project-tips/project-tips-rpc", default-features = false}
+
 
 
 [build-dependencies]

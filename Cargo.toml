@@ -7,7 +7,7 @@ members = [
     "pallets/shared-storage",
     "pallets/spaces",
     "pallets/profile-validation",
-    "pallets/positive-externality-validation",
+    "pallets/positive-externality",
     "pallets/support",
     "pallets/election",
     "pallets/department-funding",

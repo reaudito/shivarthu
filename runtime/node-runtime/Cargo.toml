@@ -62,7 +62,7 @@ profile-validation = {default-features=false, path="../../pallets/profile-valida
 # profile-validation-runtime-api = {default-features=false, path="../pallets/profile-validation/profile-validation-runtime-api"}
 shared-storage = {default-features=false, path="../../pallets/shared-storage"}
 profile-validation-runtime-api = {default-features=false, path="../../pallets/profile-validation/profile-validation-runtime-api"}
-positive-externality-validation = {default-features = false, path="../../pallets/positive-externality-validation"}
+positive-externality = {default-features = false, path="../../pallets/positive-externality"}
 department-funding = {default-features = false, path="../../pallets/department-funding"}
 project-tips = {default-features = false, path="../../pallets/project-tips"}
 
@@ -113,7 +113,7 @@ std = [
 	"profile-validation/std",
 	# "shared-storage/std",
 	"profile-validation-runtime-api/std",
-	"positive-externality-validation/std",
+	"positive-externality/std",
 	"shared-storage/std",
 ]
 runtime-benchmarks = [

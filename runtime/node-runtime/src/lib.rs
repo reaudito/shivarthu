@@ -306,9 +306,9 @@ impl shared_storage::Config for Runtime {
 	type WeightInfo = shared_storage::weights::SubstrateWeight<Runtime>;
 }
 
-impl positive_externality_validation::Config for Runtime {
+impl positive_externality::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = positive_externality_validation::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = positive_externality::weights::SubstrateWeight<Runtime>;
 	type SharedStorageSource = SharedStorage;
 	type Currency = Balances;
 	type SchellingGameSharedSource = SchellingGameShared;
@@ -352,7 +352,7 @@ construct_runtime!(
 		SchellingGameShared: schelling_game_shared,
 		ProfileValidation: profile_validation,
 		SharedStorage: shared_storage,
-		PositiveExternalityValidation: positive_externality_validation,
+		PositiveExternality: positive_externality,
 		DepartmentFunding: department_funding,
 		ProjectTips: project_tips,
 	}

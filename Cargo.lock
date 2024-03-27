@@ -4524,8 +4524,12 @@ dependencies = [
  "node-template-runtime",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
+ "positive-externality-rpc",
+ "positive-externality-runtime-api",
  "profile-validation-rpc",
  "profile-validation-runtime-api",
+ "project-tips-rpc",
+ "project-tips-runtime-api",
  "sc-basic-authorship",
  "sc-cli",
  "sc-client-api",
@@ -4579,7 +4583,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
- "positive-externality-validation",
+ "positive-externality",
  "profile-validation",
  "profile-validation-runtime-api",
  "project-tips",
@@ -5447,7 +5451,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "767eb9f07d4a5ebcb39bbf2d452058a93c011373abf6832e24194a1c3f004794"
 
 [[package]]
-name = "positive-externality-validation"
+name = "positive-externality"
 version = "4.0.0-dev"
 dependencies = [
  "frame-benchmarking",
@@ -5467,6 +5471,27 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+]
+
+[[package]]
+name = "positive-externality-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee",
+ "positive-externality-runtime-api",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
+name = "positive-externality-runtime-api"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "sp-api",
 ]
 
 [[package]]
@@ -5657,6 +5682,27 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+]
+
+[[package]]
+name = "project-tips-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee",
+ "project-tips-runtime-api",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
+name = "project-tips-runtime-api"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "sp-api",
 ]
 
 [[package]]
