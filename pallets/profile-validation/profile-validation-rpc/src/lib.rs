@@ -9,6 +9,7 @@ use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::traits::Block as BlockT;
 use std::sync::Arc;
+
 type ChallengePostId = u64;
 
 #[rpc(client, server)]
@@ -21,6 +22,7 @@ pub trait ProfileValidationApi<BlockHash, AccountId> {
 		limit: u16,
 		at: Option<BlockHash>,
 	) -> RpcResult<Vec<ChallengePostId>>;
+
 	#[method(name = "profilevalidation_evidenceperiodendblock")]
 	fn get_evidence_period_end_block(
 		&self,
@@ -75,7 +77,6 @@ impl<C, M> ProfileValidation<C, M> {
 	}
 }
 
-
 /// Error type of this RPC api.
 pub enum Error {
 	/// The transaction was not decodable.
@@ -93,8 +94,8 @@ impl From<Error> for i32 {
 	}
 }
 
-
-impl<C, Block, AccountId> ProfileValidationApiServer<<Block as BlockT>::Hash, AccountId> for ProfileValidation<C, Block>
+impl<C, Block, AccountId> ProfileValidationApiServer<<Block as BlockT>::Hash, AccountId>
+	for ProfileValidation<C, Block>
 where
 	Block: BlockT,
 	AccountId: Codec,
@@ -117,16 +118,17 @@ where
 
 		let runtime_api_result =
 			api.get_challengers_evidence(at, profile_user_account, offset, limit);
-			fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-				CallError::Custom(ErrorObject::owned(
-					Error::RuntimeError.into(),
-					desc,
-					Some(error.to_string()),
-				))
-			}
-			let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		fn map_err(error: impl ToString, desc: &'static str) -> CallError {
+			CallError::Custom(ErrorObject::owned(
+				Error::RuntimeError.into(),
+				desc,
+				Some(error.to_string()),
+			))
+		}
+		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
+		Ok(res)
 	}
+
 	fn get_evidence_period_end_block(
 		&self,
 		profile_user_account: AccountId,
@@ -146,7 +148,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 	fn get_staking_period_end_block(
 		&self,
@@ -167,7 +169,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 	fn get_drawing_period_end(
 		&self,
@@ -188,7 +190,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 
 	fn get_commit_period_end_block(
@@ -210,7 +212,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 
 	fn get_vote_period_end_block(
@@ -232,7 +234,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 
 	fn selected_as_juror(
@@ -255,6 +257,6 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 }

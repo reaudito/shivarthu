@@ -35,7 +35,7 @@ use pallet_support::{
 	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, PositiveExternalityPostId,
 	WhoAndWhen, WhoAndWhenOf,
 };
-use schelling_game_shared::types::{Period, RangePoint, SchellingGameType, PhaseData};
+use schelling_game_shared::types::{Period, PhaseData, RangePoint, SchellingGameType};
 use schelling_game_shared_link::SchellingGameSharedLink;
 use shared_storage_link::SharedStorageLink;
 use sortition_sum_game::types::SumTreeName;
@@ -43,7 +43,6 @@ type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balance;
 pub type BlockNumberOf<T> = <T as frame_system::Config>::BlockNumber;
 pub type SumTreeNameType<T> = SumTreeName<AccountIdOf<T>, BlockNumberOf<T>>;
-
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
@@ -57,7 +56,9 @@ pub mod pallet {
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_timestamp::Config + schelling_game_shared::Config {
+	pub trait Config:
+		frame_system::Config + pallet_timestamp::Config + schelling_game_shared::Config
+	{
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Type representing the weight of this pallet
@@ -131,7 +132,6 @@ pub mod pallet {
 	pub type ValidationPositiveExternalityBlock<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, BlockNumberOf<T>, ValueQuery>;
 
-
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/
 	#[pallet::event]
@@ -161,7 +161,6 @@ pub mod pallet {
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
 		pub fn create_positive_externality_post(
@@ -393,7 +392,6 @@ pub mod pallet {
 			choice: i64,
 			salt: Vec<u8>,
 		) -> DispatchResult {
-
 			let who = ensure_signed(origin)?;
 
 			ensure!(choice <= 5 && choice >= 1, Error::<T>::ChoiceOutOfRange);

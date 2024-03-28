@@ -58,8 +58,6 @@ impl<T: Config> Pallet<T> {
 			.collect::<Vec<T::AccountId>>()
 	}
 
-	
-
 	pub(super) fn remove_and_replace_member(
 		who: &T::AccountId,
 		slash: bool,

@@ -1,7 +1,7 @@
+use super::*;
 use frame_support::pallet_prelude::*;
 use frame_support::sp_std::prelude::*;
 use scale_info::TypeInfo;
-use super::*;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, MaxEncodedLen, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Debug))]
@@ -11,7 +11,7 @@ pub enum Period {
 	Drawing, // Jurors can be drawn. Pass after all disputes have jurors or `maxDrawingTime` passes.
 	Commit,  // Jurors commit a hashed vote. This is skipped for courts without hidden votes.
 	Vote,    // Jurors reveal/cast their vote depending on whether the court has hidden votes or not.
-	Appeal,  // The dispute can be appealed.	
+	Appeal,  // The dispute can be appealed.
 	Execution, // Tokens are redistributed and the ruling is executed.
 }
 
@@ -25,7 +25,6 @@ pub enum SchellingGameType {
 	PositiveExternality,
 	DepartmentScore,
 }
-
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
@@ -42,7 +41,6 @@ pub struct PhaseData<T: Config> {
 	pub min_juror_stake: BalanceOf<T>,
 	pub juror_incentives: (u64, u64), // (looser burn, winner mint)
 }
-
 
 // #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, MaxEncodedLen, TypeInfo)]
 // #[cfg_attr(feature = "std", derive(Debug))]
@@ -85,9 +83,8 @@ pub enum RevealedVote {
 pub enum WinningDecision {
 	WinnerYes,
 	WinnerNo,
-	Draw
+	Draw,
 }
-
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, MaxEncodedLen, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Debug))]
@@ -97,10 +94,8 @@ pub struct ScoreCommitVote {
 	pub revealed_vote: Option<i64>,
 }
 
-
-
 /// RangePoint enum to determine whether score values are from
-/// 1) ZeroToTen: 0 to 10 
+/// 1) ZeroToTen: 0 to 10
 /// 2) MinusTenToPlusTen: -10 to +10
 /// 3) ZeroToFive: 0 to 5
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, MaxEncodedLen, TypeInfo)]

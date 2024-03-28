@@ -9,7 +9,6 @@ pub const TIME_FOR_STAKING_FUNDING_STATUS_FAILED: u64 = (3 * 30 * 24 * 60 * 60) 
 
 pub const TIME_FOR_STAKING_FUNDING_STATUS_PASSED: u64 = (6 * 30 * 24 * 60 * 60) / 6; // 6 months time
 
-
 #[derive(Encode, Decode, Clone, Copy, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub enum TippingName {
 	SmallTipper,
@@ -29,13 +28,12 @@ pub struct TippingValue<Balance> {
 #[scale_info(skip_type_params(T))]
 pub struct DepartmentRequiredFund<T: Config> {
 	pub created: WhoAndWhenOf<T>,
-    pub department_required_fund_id: DepartmentRequiredFundId,
+	pub department_required_fund_id: DepartmentRequiredFundId,
 	pub department_id: DepartmentId,
 	pub tipping_name: TippingName,
 	pub funding_needed: BalanceOf<T>,
 	pub creator: T::AccountId,
 }
-
 
 #[derive(Encode, Decode, Clone, Copy, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub enum FundingStatus {
@@ -49,7 +47,3 @@ pub struct DepartmentFundingStatus<BlockNumber, FundingStatus> {
 	pub block_number: BlockNumber,
 	pub status: FundingStatus,
 }
-
-
-
-

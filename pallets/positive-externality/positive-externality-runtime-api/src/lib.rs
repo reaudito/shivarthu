@@ -2,14 +2,12 @@
 
 // use frame_support::sp_std::{vec::Vec};
 //  or
-use frame_support::sp_std::{prelude::*};
+use frame_support::sp_std::prelude::*;
 use sp_api::codec::Codec;
-type ChallengePostId = u64;
-
 
 sp_api::decl_runtime_apis! {
 	pub trait PositiveExternalityApi<AccountId> where AccountId: Codec {
-		fn get_challengers_evidence(user_to_calculate: AccountId, offset: u64, limit: u16) -> Vec<ChallengePostId>;
+
 		fn get_evidence_period_end_block(user_to_calculate: AccountId) -> Option<u32>;
 		fn get_staking_period_end_block(user_to_calculate: AccountId) -> Option<u32>;
 		fn get_drawing_period_end(user_to_calculate: AccountId) -> (u64, u64, bool);

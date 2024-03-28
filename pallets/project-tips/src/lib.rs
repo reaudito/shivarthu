@@ -241,7 +241,12 @@ pub mod pallet {
 
 			let phase_data = Self::get_phase_data();
 
-			T::SchellingGameSharedSource::apply_jurors_helper_link(key, phase_data, who.clone(), stake)?;
+			T::SchellingGameSharedSource::apply_jurors_helper_link(
+				key,
+				phase_data,
+				who.clone(),
+				stake,
+			)?;
 			Self::deposit_event(Event::ApplyJurors { project_id, block_number, account: who });
 
 			Ok(())
@@ -249,10 +254,7 @@ pub mod pallet {
 
 		#[pallet::call_index(3)]
 		#[pallet::weight(0)]
-		pub fn pass_period(
-			origin: OriginFor<T>,
-			project_id: ProjectId,
-		) -> DispatchResult {
+		pub fn pass_period(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
 			let block_number = Self::get_block_number_of_schelling_game(project_id)?;
@@ -289,10 +291,7 @@ pub mod pallet {
 		// Stop drawn juror to unstake ✔️
 		#[pallet::call_index(5)]
 		#[pallet::weight(0)]
-		pub fn unstaking(
-			origin: OriginFor<T>,
-			project_id: ProjectId,
-		) -> DispatchResult {
+		pub fn unstaking(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			let block_number = Self::get_block_number_of_schelling_game(project_id)?;
 			let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };

@@ -37,7 +37,6 @@ impl<T: Config> Pallet<T> {
 		let mut users_that_downvoted = down_vote_details.downvote_users;
 		let dv = down_vote_details.downvote.checked_add(1).ok_or("overflow")?;
 
-
 		match users_that_downvoted.binary_search(&who) {
 			Ok(_) => Err(Error::<T>::UserAlreadyDownVoted.into()),
 			Err(index) => {

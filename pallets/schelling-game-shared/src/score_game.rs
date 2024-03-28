@@ -99,7 +99,6 @@ impl<T: Config> Pallet<T> {
 			.collect::<Vec<(_, _)>>();
 		reveal_votes.sort_by(|a, b| a.0.cmp(&b.0));
 
-		
 		// println!("reveal votes, {:?}",reveal_votes);
 		let mut winners = vec![];
 		for juror in drawn_jurors {
@@ -109,8 +108,8 @@ impl<T: Config> Pallet<T> {
 					let account_n_vote = &reveal_votes[index];
 					if let Some(i) = account_n_vote.1 {
 						// println!("vote {:?}", i);
-						if i*1000 >= new_mean.checked_sub(incentives_range).unwrap()
-							&&  i*1000  <= new_mean.checked_add(incentives_range).unwrap()
+						if i * 1000 >= new_mean.checked_sub(incentives_range).unwrap()
+							&& i * 1000 <= new_mean.checked_add(incentives_range).unwrap()
 						{
 							// get incentives
 							winners.push((juror.0.clone(), juror.1.clone()));
@@ -150,14 +149,13 @@ impl<T: Config> Pallet<T> {
 		<DrawnJurors<T>>::remove(&key);
 
 		// Remove UnstakedJurors (all jurors can be returned their incentives at a time)
-	
 
 		// Remove ScoreVoteCommits
 		<ScoreVoteCommits<T>>::remove_prefix(key.clone(), None); // Deprecated: Use clear_prefix instead
-		// let reveal_votes_iterator2 = <ScoreVoteCommits<T>>::iter_prefix(&key);
-		// reveal_votes_iterator2.for_each(|(account_id, _)|{
-		// 	<ScoreVoteCommits<T>>::remove(key.clone(), account_id);
-		// });
+														 // let reveal_votes_iterator2 = <ScoreVoteCommits<T>>::iter_prefix(&key);
+														 // reveal_votes_iterator2.for_each(|(account_id, _)|{
+														 // 	<ScoreVoteCommits<T>>::remove(key.clone(), account_id);
+														 // });
 
 		// Remove RevealScoreValues
 		<RevealScoreValues<T>>::remove(&key);
@@ -165,12 +163,10 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-   
-   pub(super) fn get_mean_value(key: SumTreeNameType<T>) -> i64 {
-	  let value = 	<IncentiveMeanRevealScore<T>>::get(key.clone());
-	  value
-   }
-
+	pub(super) fn get_mean_value(key: SumTreeNameType<T>) -> i64 {
+		let value = <IncentiveMeanRevealScore<T>>::get(key.clone());
+		value
+	}
 
 	/// Calculate the mean of integer
 	pub(super) fn mean_integer(data: &Vec<i64>) -> Option<i64> {

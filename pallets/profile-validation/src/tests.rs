@@ -451,7 +451,6 @@ fn test_draw_juror() {
 			challenge_content.clone()
 		));
 
-
 		assert_ok!(ProfileValidation::apply_jurors(RuntimeOrigin::signed(5), 1, 100));
 		assert_ok!(ProfileValidation::apply_jurors(RuntimeOrigin::signed(6), 1, 500));
 		assert_ok!(ProfileValidation::apply_jurors(RuntimeOrigin::signed(7), 1, 1000));
@@ -465,9 +464,5 @@ fn test_draw_juror() {
 		assert_ok!(ProfileValidation::draw_jurors(RuntimeOrigin::signed(5), 1, 6));
 
 		// assert_ok!(ProfileValidation::draw_jurors(RuntimeOrigin::signed(5), 1, 5));
-
-
-
-
 	})
 }

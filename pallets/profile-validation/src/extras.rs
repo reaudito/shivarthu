@@ -53,7 +53,19 @@ impl<T: Config> ChallengeEvidencePost<T> {
 
 impl<T: Config> Pallet<T> {
 	pub(super) fn get_phase_data() -> PhaseData<T> {
-		T::SchellingGameSharedSource::create_phase_with_all_data(10, 100, 100, 100, 100, 100, 100, 5, 5, 100, (100, 100))
+		T::SchellingGameSharedSource::create_phase_with_all_data(
+			10,
+			100,
+			100,
+			100,
+			100,
+			100,
+			100,
+			5,
+			5,
+			100,
+			(100, 100),
+		)
 		// T::SchellingGameSharedSource::create_phase_data(100, 5, 3, 100, (100, 100))
 	}
 
@@ -72,7 +84,7 @@ impl<T: Config> Pallet<T> {
 		input.saturated_into::<BalanceOf<T>>()
 	}
 
-	pub(super) fn balance_to_u64_saturated(input:  BalanceOf<T>) -> u64 {
+	pub(super) fn balance_to_u64_saturated(input: BalanceOf<T>) -> u64 {
 		input.saturated_into::<u64>()
 	}
 
@@ -109,11 +121,8 @@ impl<T: Config> Pallet<T> {
 			key, phase_data, now,
 		);
 		result
-
-
 	}
 
-	
 	pub fn get_staking_period_end_block(profile_user_account: T::AccountId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
 		let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
@@ -189,7 +198,7 @@ impl<T: Config> Pallet<T> {
 		result
 	}
 
-	pub fn profile_fund_required(profile_user_account: T::AccountId) ->  Option<u64> {
+	pub fn profile_fund_required(profile_user_account: T::AccountId) -> Option<u64> {
 		let registration_fee = Self::profile_registration_challenge_fees();
 		let total_funded = Self::total_fund_for_profile_collected(profile_user_account);
 		let registration_fee_u64 = Self::balance_to_u64_saturated(registration_fee);

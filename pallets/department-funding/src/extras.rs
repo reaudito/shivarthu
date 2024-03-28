@@ -158,17 +158,18 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	pub fn get_evidence_period_end_block(department_required_fund_id: DepartmentRequiredFundId) -> Option<u32> {
+	pub fn get_evidence_period_end_block(
+		department_required_fund_id: DepartmentRequiredFundId,
+	) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		let block_number =
-        Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
+			Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
 
-    let key = SumTreeName::DepartmentRequiredFund {
-        department_required_fund_id,
-        block_number: block_number.clone(),
-    };
-
+		let key = SumTreeName::DepartmentRequiredFund {
+			department_required_fund_id,
+			block_number: block_number.clone(),
+		};
 
 		let phase_data = Self::get_phase_data();
 
@@ -176,24 +177,22 @@ impl<T: Config> Pallet<T> {
 			key, phase_data, now,
 		);
 		result
-
-
 	}
-
 
 	// End block code start
 
-	
-	pub fn get_staking_period_end_block(department_required_fund_id: DepartmentRequiredFundId) -> Option<u32> {
+	pub fn get_staking_period_end_block(
+		department_required_fund_id: DepartmentRequiredFundId,
+	) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		
-		let block_number =
-        Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
 
-    let key = SumTreeName::DepartmentRequiredFund {
-        department_required_fund_id,
-        block_number: block_number.clone(),
-    };
+		let block_number =
+			Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
+
+		let key = SumTreeName::DepartmentRequiredFund {
+			department_required_fund_id,
+			block_number: block_number.clone(),
+		};
 
 		let phase_data = Self::get_phase_data();
 
@@ -203,14 +202,16 @@ impl<T: Config> Pallet<T> {
 		result
 	}
 
-	pub fn get_drawing_period_end(department_required_fund_id: DepartmentRequiredFundId) -> (u64, u64, bool) {
+	pub fn get_drawing_period_end(
+		department_required_fund_id: DepartmentRequiredFundId,
+	) -> (u64, u64, bool) {
 		let block_number =
-        Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
+			Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
 
-    let key = SumTreeName::DepartmentRequiredFund {
-        department_required_fund_id,
-        block_number: block_number.clone(),
-    };
+		let key = SumTreeName::DepartmentRequiredFund {
+			department_required_fund_id,
+			block_number: block_number.clone(),
+		};
 		let phase_data = Self::get_phase_data();
 
 		let result =
@@ -218,16 +219,18 @@ impl<T: Config> Pallet<T> {
 		result
 	}
 
-	pub fn get_commit_period_end_block(department_required_fund_id: DepartmentRequiredFundId) -> Option<u32> {
+	pub fn get_commit_period_end_block(
+		department_required_fund_id: DepartmentRequiredFundId,
+	) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		
-		let block_number =
-        Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
 
-    let key = SumTreeName::DepartmentRequiredFund {
-        department_required_fund_id,
-        block_number: block_number.clone(),
-    };
+		let block_number =
+			Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
+
+		let key = SumTreeName::DepartmentRequiredFund {
+			department_required_fund_id,
+			block_number: block_number.clone(),
+		};
 
 		let phase_data = Self::get_phase_data();
 
@@ -237,16 +240,18 @@ impl<T: Config> Pallet<T> {
 		result
 	}
 
-	pub fn get_vote_period_end_block(department_required_fund_id: DepartmentRequiredFundId) -> Option<u32> {
+	pub fn get_vote_period_end_block(
+		department_required_fund_id: DepartmentRequiredFundId,
+	) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		let block_number =
-        Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
+			Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
 
-    let key = SumTreeName::DepartmentRequiredFund {
-        department_required_fund_id,
-        block_number: block_number.clone(),
-    };
+		let key = SumTreeName::DepartmentRequiredFund {
+			department_required_fund_id,
+			block_number: block_number.clone(),
+		};
 
 		let phase_data = Self::get_phase_data();
 
@@ -256,19 +261,21 @@ impl<T: Config> Pallet<T> {
 		result
 	}
 
-	pub fn selected_as_juror(department_required_fund_id: DepartmentRequiredFundId, who: T::AccountId) -> bool {
+	pub fn selected_as_juror(
+		department_required_fund_id: DepartmentRequiredFundId,
+		who: T::AccountId,
+	) -> bool {
 		let block_number =
-        Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
+			Self::get_block_number_of_schelling_game(department_required_fund_id).unwrap();
 
-    let key = SumTreeName::DepartmentRequiredFund {
-        department_required_fund_id,
-        block_number: block_number.clone(),
-    };
+		let key = SumTreeName::DepartmentRequiredFund {
+			department_required_fund_id,
+			block_number: block_number.clone(),
+		};
 
 		let result = T::SchellingGameSharedSource::selected_as_juror_helper_link(key, who);
 		result
 	}
 
 	// End block code end
-
 }

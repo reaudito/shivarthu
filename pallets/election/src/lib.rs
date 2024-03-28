@@ -175,7 +175,10 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Event documentation should end with an array that provides descriptive names for event
 		/// parameters. [something, who]
-		SomethingStored { something: u32, who: T::AccountId },
+		SomethingStored {
+			something: u32,
+			who: T::AccountId,
+		},
 		EmptyTerm,
 		/// Note that old members and runners-up are also candidates.
 		CandidateSlashed {
@@ -220,7 +223,6 @@ pub mod pallet {
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-
 		#[pallet::call_index(0)]
 		#[pallet::weight(Weight::from_parts(10_000, u64::MAX) + T::DbWeight::get().writes(1))]
 		// We get scores of the who for score schelling game pallet 🟩
@@ -252,7 +254,6 @@ pub mod pallet {
 
 			Ok(None.into())
 		}
-        
 
 		/// Submit oneself for candidacy. A fixed amount of deposit is recorded.
 		///
@@ -269,7 +270,7 @@ pub mod pallet {
 		/// # <weight>
 		/// The number of current candidates must be provided as witness data.
 		/// # </weight>
-		/// 
+		///
 		#[pallet::call_index(1)]
 		#[pallet::weight(Weight::from_parts(10_000, u64::MAX) + T::DbWeight::get().writes(1))]
 		pub fn submit_candidacy(
@@ -484,6 +485,5 @@ pub mod pallet {
 
 			Ok(())
 		}
-
 	}
 }

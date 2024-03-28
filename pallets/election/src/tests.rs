@@ -1,7 +1,6 @@
 use crate::{mock::*, Error, Event};
 use frame_support::{assert_noop, assert_ok};
 
-
 #[test]
 fn simple_candidate_submission_should_work() {
 	new_test_ext().execute_with(|| {

@@ -5,9 +5,6 @@ use scale_info::TypeInfo;
 
 pub const PROJECT_ID: ProjectId = 1;
 
-
-
-
 #[derive(Encode, Decode, Clone, Copy, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub enum TippingName {
 	SmallTipper,
@@ -33,6 +30,3 @@ pub struct Project<T: Config> {
 	pub funding_needed: BalanceOf<T>,
 	pub project_leader: T::AccountId,
 }
-
-
-

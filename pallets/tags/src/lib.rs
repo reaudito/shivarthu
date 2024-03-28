@@ -19,15 +19,13 @@ pub use weights::*;
 mod extras;
 mod types;
 
-
 use frame_support::sp_std::prelude::*;
 
 type DepartmentId = u128;
 type DownVoteNum = u8;
 use frame_support::pallet_prelude::{DispatchResult, *};
 use frame_system::pallet_prelude::*;
-use types::{DownVoteDetails};
-
+use types::DownVoteDetails;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -56,7 +54,6 @@ pub mod pallet {
 	// https://docs.substrate.io/main-docs/build/runtime-storage/#declaring-storage-items
 	pub type Something<T> = StorageValue<_, u32>;
 
-
 	/// Department tags
 	#[pallet::storage]
 	#[pallet::getter(fn department_tags)]
@@ -66,7 +63,7 @@ pub mod pallet {
 	/// Down vote a tag
 	#[pallet::storage]
 	#[pallet::getter(fn downvote_details_of_tag)]
-	pub(super) type DownVoteDetailsTags<T:Config> = StorageDoubleMap<
+	pub(super) type DownVoteDetailsTags<T: Config> = StorageDoubleMap<
 		_,
 		Blake2_128Concat,
 		DepartmentId,
@@ -88,7 +85,6 @@ pub mod pallet {
 	pub type DownVoteThreshold<T> =
 		StorageValue<_, DownVoteNum, ValueQuery, DefaultDownVoteThreshold>;
 
-
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/
 	#[pallet::event]
@@ -96,7 +92,10 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Event documentation should end with an array that provides descriptive names for event
 		/// parameters. [something, who]
-		SomethingStored { something: u32, who: T::AccountId },
+		SomethingStored {
+			something: u32,
+			who: T::AccountId,
+		},
 
 		TagInserted(DepartmentId, Vec<u8>), // Tag inserted
 		TagRemoved(DepartmentId, Vec<u8>),
@@ -119,7 +118,7 @@ pub mod pallet {
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-				/// Create tag
+		/// Create tag
 		/// [] Check who belongs to department representative
 		/// [] Limit the length of tag
 		#[pallet::call_index(0)]
@@ -148,7 +147,7 @@ pub mod pallet {
 		/// [] Check tags exsts in Tags
 		/// [✓] Check user has not downvoted again
 		/// [✓] Delete tag if it reaches maximum downvote
-		
+
 		#[pallet::call_index(1)]
 		#[pallet::weight(Weight::from_parts(10_000, u64::MAX) + T::DbWeight::get().writes(1))]
 		pub fn donwvote_tag(
@@ -157,7 +156,7 @@ pub mod pallet {
 			tag: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			Self::ensure_tag_exists(departmentid,tag.clone())?;
+			Self::ensure_tag_exists(departmentid, tag.clone())?;
 			let dv = Self::ensure_user_not_downvoted_then_downvote(departmentid, who, tag.clone())?;
 			let threshold = DownVoteThreshold::<T>::get();
 
@@ -167,9 +166,6 @@ pub mod pallet {
 
 			Ok(())
 		}
-        // Remove down vote
-
-		
-		
+		// Remove down vote
 	}
 }

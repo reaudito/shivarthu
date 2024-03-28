@@ -97,7 +97,6 @@ pub mod pallet {
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		
 		#[pallet::call_index(0)]
 		#[pallet::weight(Weight::from_parts(10_000, u64::MAX) + T::DbWeight::get().writes(1))]
 		pub fn fun_ubi(origin: OriginFor<T>) -> DispatchResult {

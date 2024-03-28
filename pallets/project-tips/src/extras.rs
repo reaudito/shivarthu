@@ -92,7 +92,6 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-
 	// Block code start
 
 	pub fn get_evidence_period_end_block(project_id: ProjectId) -> Option<u32> {
@@ -100,8 +99,7 @@ impl<T: Config> Pallet<T> {
 
 		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
 
-            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
-
+		let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
 
 		let phase_data = Self::get_phase_data();
 
@@ -109,17 +107,14 @@ impl<T: Config> Pallet<T> {
 			key, phase_data, now,
 		);
 		result
-
-
 	}
 
-	
 	pub fn get_staking_period_end_block(project_id: ProjectId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		
+
 		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
 
-            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+		let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
 
 		let phase_data = Self::get_phase_data();
 
@@ -132,7 +127,7 @@ impl<T: Config> Pallet<T> {
 	pub fn get_drawing_period_end(project_id: ProjectId) -> (u64, u64, bool) {
 		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
 
-            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+		let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
 		let phase_data = Self::get_phase_data();
 
 		let result =
@@ -142,10 +137,10 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_commit_period_end_block(project_id: ProjectId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		
+
 		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
 
-            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+		let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
 
 		let phase_data = Self::get_phase_data();
 
@@ -160,7 +155,7 @@ impl<T: Config> Pallet<T> {
 
 		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
 
-            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+		let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
 
 		let phase_data = Self::get_phase_data();
 
@@ -173,12 +168,11 @@ impl<T: Config> Pallet<T> {
 	pub fn selected_as_juror(project_id: ProjectId, who: T::AccountId) -> bool {
 		let block_number = Self::get_block_number_of_schelling_game(project_id).unwrap();
 
-            let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
+		let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };
 
 		let result = T::SchellingGameSharedSource::selected_as_juror_helper_link(key, who);
 		result
 	}
 
 	// Block code end
-
 }

@@ -17,7 +17,7 @@ pub mod weights;
 pub use weights::*;
 mod extras;
 
-use frame_support::sp_std::{prelude::*};
+use frame_support::sp_std::prelude::*;
 use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
@@ -54,13 +54,12 @@ pub mod pallet {
 	#[pallet::getter(fn approved_citizen_address)]
 	pub type ApprovedCitizenAddress<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>; // Its set, add element through binary_search
 
-
 	#[pallet::storage]
 	#[pallet::getter(fn positive_externality_score)]
-	pub type PositiveExternalityScore<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Score, ValueQuery>;
+	pub type PositiveExternalityScore<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, Score, ValueQuery>;
 
 	// Keep winning representatives of department in shared storage
-
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {

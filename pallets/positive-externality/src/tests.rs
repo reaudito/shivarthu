@@ -1,7 +1,7 @@
+use crate::types::PositiveExternalityPost;
 use crate::{mock::*, Error, Event};
 use frame_support::{assert_noop, assert_ok};
 use pallet_support::{Content, WhoAndWhen};
-use crate::types::PositiveExternalityPost;
 
 #[test]
 fn test_positive_externality_post() {
@@ -43,7 +43,10 @@ fn test_adding_positive_externality_stake() {
 #[test]
 fn test_setting_positive_externality_validation() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(TemplateModule::set_validate_positive_externality(RuntimeOrigin::signed(1), true));
+		assert_ok!(TemplateModule::set_validate_positive_externality(
+			RuntimeOrigin::signed(1),
+			true
+		));
 		let value = TemplateModule::validate_positive_externality(1);
 		assert_eq!(value, true);
 	});
@@ -52,7 +55,10 @@ fn test_setting_positive_externality_validation() {
 #[test]
 fn test_applying_for_staking_period() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(TemplateModule::set_validate_positive_externality(RuntimeOrigin::signed(1), true));
+		assert_ok!(TemplateModule::set_validate_positive_externality(
+			RuntimeOrigin::signed(1),
+			true
+		));
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
@@ -64,7 +70,10 @@ fn test_applying_for_staking_period() {
 #[test]
 fn test_appying_jurors() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(TemplateModule::set_validate_positive_externality(RuntimeOrigin::signed(1), true));
+		assert_ok!(TemplateModule::set_validate_positive_externality(
+			RuntimeOrigin::signed(1),
+			true
+		));
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
@@ -75,7 +84,10 @@ fn test_appying_jurors() {
 #[test]
 fn test_change_period() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(TemplateModule::set_validate_positive_externality(RuntimeOrigin::signed(1), true));
+		assert_ok!(TemplateModule::set_validate_positive_externality(
+			RuntimeOrigin::signed(1),
+			true
+		));
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
@@ -92,7 +104,10 @@ fn test_change_period() {
 #[test]
 fn test_draw_jurors_period() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(TemplateModule::set_validate_positive_externality(RuntimeOrigin::signed(1), true));
+		assert_ok!(TemplateModule::set_validate_positive_externality(
+			RuntimeOrigin::signed(1),
+			true
+		));
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
@@ -110,7 +125,10 @@ fn test_draw_jurors_period() {
 #[test]
 fn test_drawn_jurors() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(TemplateModule::set_validate_positive_externality(RuntimeOrigin::signed(1), true));
+		assert_ok!(TemplateModule::set_validate_positive_externality(
+			RuntimeOrigin::signed(1),
+			true
+		));
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
@@ -135,7 +153,10 @@ fn test_drawn_jurors() {
 #[test]
 fn test_commit_and_incentives_vote() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(TemplateModule::set_validate_positive_externality(RuntimeOrigin::signed(1), true));
+		assert_ok!(TemplateModule::set_validate_positive_externality(
+			RuntimeOrigin::signed(1),
+			true
+		));
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));

@@ -16,8 +16,8 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
-pub mod types;
 mod extras;
+pub mod types;
 
 use crate::types::{SortitionSumTree, SumTreeName};
 use frame_support::sp_std::{collections::btree_map::BTreeMap, vec::Vec};
@@ -85,7 +85,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// An example dispatchable that takes a singles value as a parameter, writes the value to
 		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
-		
+
 		/// An example dispatchable that may throw a custom error.
 		#[pallet::call_index(1)]
 		#[pallet::weight(T::WeightInfo::cause_error())]

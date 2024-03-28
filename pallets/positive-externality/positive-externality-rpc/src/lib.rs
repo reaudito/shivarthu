@@ -9,18 +9,9 @@ use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::traits::Block as BlockT;
 use std::sync::Arc;
-type ChallengePostId = u64;
 
 #[rpc(client, server)]
 pub trait PositiveExternalityApi<BlockHash, AccountId> {
-	#[method(name = "positiveexternality_challengerevidence")]
-	fn get_challengers_evidence(
-		&self,
-		user_to_calculate: AccountId,
-		offset: u64,
-		limit: u16,
-		at: Option<BlockHash>,
-	) -> RpcResult<Vec<ChallengePostId>>;
 	#[method(name = "positiveexternality_evidenceperiodendblock")]
 	fn get_evidence_period_end_block(
 		&self,
@@ -75,7 +66,6 @@ impl<C, M> PositiveExternality<C, M> {
 	}
 }
 
-
 /// Error type of this RPC api.
 pub enum Error {
 	/// The transaction was not decodable.
@@ -93,8 +83,8 @@ impl From<Error> for i32 {
 	}
 }
 
-
-impl<C, Block, AccountId> PositiveExternalityApiServer<<Block as BlockT>::Hash, AccountId> for PositiveExternality<C, Block>
+impl<C, Block, AccountId> PositiveExternalityApiServer<<Block as BlockT>::Hash, AccountId>
+	for PositiveExternality<C, Block>
 where
 	Block: BlockT,
 	AccountId: Codec,
@@ -103,30 +93,6 @@ where
 	C: HeaderBackend<Block>,
 	C::Api: PositiveExternalityRuntimeApi<Block, AccountId>,
 {
-	fn get_challengers_evidence(
-		&self,
-		user_to_calculate: AccountId,
-		offset: u64,
-		limit: u16,
-		at: Option<Block::Hash>,
-	) -> RpcResult<Vec<ChallengePostId>> {
-		let api = self.client.runtime_api();
-		let at = at.unwrap_or_else(||
-			// If the block hash is not supplied assume the best block.
-			self.client.info().best_hash);
-
-		let runtime_api_result =
-			api.get_challengers_evidence(at, user_to_calculate, offset, limit);
-			fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-				CallError::Custom(ErrorObject::owned(
-					Error::RuntimeError.into(),
-					desc,
-					Some(error.to_string()),
-				))
-			}
-			let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
-	}
 	fn get_evidence_period_end_block(
 		&self,
 		user_to_calculate: AccountId,
@@ -146,7 +112,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 	fn get_staking_period_end_block(
 		&self,
@@ -167,7 +133,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 	fn get_drawing_period_end(
 		&self,
@@ -188,7 +154,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 
 	fn get_commit_period_end_block(
@@ -210,7 +176,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 
 	fn get_vote_period_end_block(
@@ -232,7 +198,7 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 
 	fn selected_as_juror(
@@ -255,6 +221,6 @@ where
 			))
 		}
 		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
-			Ok(res)
+		Ok(res)
 	}
 }

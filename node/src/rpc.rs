@@ -37,12 +37,17 @@ where
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: profile_validation_runtime_api::ProfileValidationApi<Block, AccountId>,
+	C::Api: department_funding_runtime_api::DepartmentFundingApi<Block, AccountId>,
+	C::Api: positive_externality_runtime_api::PositiveExternalityApi<Block, AccountId>,
+	C::Api: project_tips_runtime_api::ProjectTipsApi<Block, AccountId>,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + 'static,
-
 {
+	use department_funding_rpc::DepartmentFundingApiServer;
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
+	use positive_externality_rpc::PositiveExternalityApiServer;
 	use profile_validation_rpc::ProfileValidationApiServer;
+	use project_tips_rpc::ProjectTipsApiServer;
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcModule::new(());
@@ -51,6 +56,9 @@ where
 	module.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 	module.merge(profile_validation_rpc::ProfileValidation::new(client.clone()).into_rpc())?;
+	module.merge(department_funding_rpc::DepartmentFunding::new(client.clone()).into_rpc())?;
+	module.merge(positive_externality_rpc::PositiveExternality::new(client.clone()).into_rpc())?;
+	module.merge(project_tips_rpc::ProjectTips::new(client.clone()).into_rpc())?;
 
 	// Extend this RPC with a custom API by using the following syntax.
 	// `YourRpcStruct` should have a reference to a client, which is needed

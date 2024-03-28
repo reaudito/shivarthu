@@ -1,11 +1,14 @@
 use crate as pallet_template;
-use frame_support::{parameter_types, traits::{ConstU16, ConstU64, GenesisBuild}};
+use frame_support::{
+	parameter_types,
+	traits::{ConstU16, ConstU64, GenesisBuild},
+};
+use frame_support_test::TestRandomness;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use frame_support_test::TestRandomness;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -54,22 +57,20 @@ impl frame_system::Config for Test {
 	type AccountData = pallet_balances::AccountData<u64>; // New code
 }
 
-
 impl shared_storage::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 }
 parameter_types! {
-    pub const MinimumPeriod: u64 = 5;
+	pub const MinimumPeriod: u64 = 5;
 }
 
 impl pallet_timestamp::Config for Test {
-    type Moment = u64;
-    type OnTimestampSet = ();
-    type MinimumPeriod = MinimumPeriod;
-    type WeightInfo = ();
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
 }
-
 
 impl pallet_balances::Config for Test {
 	type MaxLocks = ();

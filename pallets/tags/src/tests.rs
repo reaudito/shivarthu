@@ -1,4 +1,4 @@
-use crate::{mock::*, Error, Event, types::DownVoteDetails};
+use crate::{mock::*, types::DownVoteDetails, Error, Event};
 use frame_support::{assert_noop, assert_ok};
 
 #[test]
@@ -54,7 +54,11 @@ fn downvote_remove_tag() {
 		let down_vote_threshold = TemplateModule::downvote_threshold();
 		assert_ok!(TemplateModule::add_tag(RuntimeOrigin::signed(1), 1, tag.clone()));
 		for x in 1..down_vote_threshold {
-			assert_ok!(TemplateModule::donwvote_tag(RuntimeOrigin::signed(x.into()), 1, tag.clone()));
+			assert_ok!(TemplateModule::donwvote_tag(
+				RuntimeOrigin::signed(x.into()),
+				1,
+				tag.clone()
+			));
 			let downvote_details = TemplateModule::downvote_details_of_tag(1, tag.clone());
 			assert_eq!(downvote_details.downvote, x);
 			// println!("x={}", x);

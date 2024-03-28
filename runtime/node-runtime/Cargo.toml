@@ -65,6 +65,9 @@ profile-validation-runtime-api = {default-features=false, path="../../pallets/pr
 positive-externality = {default-features = false, path="../../pallets/positive-externality"}
 department-funding = {default-features = false, path="../../pallets/department-funding"}
 project-tips = {default-features = false, path="../../pallets/project-tips"}
+positive-externality-runtime-api = {default-features=false, path="../../pallets/positive-externality/positive-externality-runtime-api"}
+department-funding-runtime-api = {default-features=false, path="../../pallets/department-funding/department-funding-runtime-api"}
+project-tips-runtime-api = {default-features=false, path="../../pallets/project-tips/project-tips-runtime-api"}
 
 
 [build-dependencies]
@@ -113,6 +116,9 @@ std = [
 	"profile-validation/std",
 	# "shared-storage/std",
 	"profile-validation-runtime-api/std",
+	"positive-externality-runtime-api/std",
+	"department-funding-runtime-api/std",
+	"project-tips-runtime-api/std",
 	"positive-externality/std",
 	"shared-storage/std",
 ]

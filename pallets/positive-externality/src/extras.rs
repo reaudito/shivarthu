@@ -27,7 +27,6 @@ impl<T: Config> PositiveExternalityPost<T> {
 }
 
 impl<T: Config> Pallet<T> {
-
 	pub(super) fn get_phase_data() -> PhaseData<T> {
 		T::SchellingGameSharedSource::create_phase_data(50, 5, 3, 100, (100, 100))
 	}
@@ -75,13 +74,12 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		let pe_block_number =
-    <ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+			<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
 
-    let key = SumTreeName::PositiveExternality {
-        user_address: user_to_calculate,
-        block_number: pe_block_number.clone(),
-    };
-
+		let key = SumTreeName::PositiveExternality {
+			user_address: user_to_calculate,
+			block_number: pe_block_number.clone(),
+		};
 
 		let phase_data = Self::get_phase_data();
 
@@ -89,21 +87,18 @@ impl<T: Config> Pallet<T> {
 			key, phase_data, now,
 		);
 		result
-
-
 	}
 
-	
 	pub fn get_staking_period_end_block(user_to_calculate: T::AccountId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		
-		let pe_block_number =
-    <ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
 
-    let key = SumTreeName::PositiveExternality {
-        user_address: user_to_calculate,
-        block_number: pe_block_number.clone(),
-    };
+		let pe_block_number =
+			<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+
+		let key = SumTreeName::PositiveExternality {
+			user_address: user_to_calculate,
+			block_number: pe_block_number.clone(),
+		};
 
 		let phase_data = Self::get_phase_data();
 
@@ -115,12 +110,12 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_drawing_period_end(user_to_calculate: T::AccountId) -> (u64, u64, bool) {
 		let pe_block_number =
-    <ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+			<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
 
-    let key = SumTreeName::PositiveExternality {
-        user_address: user_to_calculate,
-        block_number: pe_block_number.clone(),
-    };
+		let key = SumTreeName::PositiveExternality {
+			user_address: user_to_calculate,
+			block_number: pe_block_number.clone(),
+		};
 		let phase_data = Self::get_phase_data();
 
 		let result =
@@ -130,14 +125,14 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_commit_period_end_block(user_to_calculate: T::AccountId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		
-		let pe_block_number =
-    <ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
 
-    let key = SumTreeName::PositiveExternality {
-        user_address: user_to_calculate,
-        block_number: pe_block_number.clone(),
-    };
+		let pe_block_number =
+			<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+
+		let key = SumTreeName::PositiveExternality {
+			user_address: user_to_calculate,
+			block_number: pe_block_number.clone(),
+		};
 
 		let phase_data = Self::get_phase_data();
 
@@ -151,12 +146,12 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		let pe_block_number =
-    <ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+			<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
 
-    let key = SumTreeName::PositiveExternality {
-        user_address: user_to_calculate,
-        block_number: pe_block_number.clone(),
-    };
+		let key = SumTreeName::PositiveExternality {
+			user_address: user_to_calculate,
+			block_number: pe_block_number.clone(),
+		};
 
 		let phase_data = Self::get_phase_data();
 
@@ -168,12 +163,12 @@ impl<T: Config> Pallet<T> {
 
 	pub fn selected_as_juror(user_to_calculate: T::AccountId, who: T::AccountId) -> bool {
 		let pe_block_number =
-    <ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+			<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
 
-    let key = SumTreeName::PositiveExternality {
-        user_address: user_to_calculate,
-        block_number: pe_block_number.clone(),
-    };
+		let key = SumTreeName::PositiveExternality {
+			user_address: user_to_calculate,
+			block_number: pe_block_number.clone(),
+		};
 
 		let result = T::SchellingGameSharedSource::selected_as_juror_helper_link(key, who);
 		result

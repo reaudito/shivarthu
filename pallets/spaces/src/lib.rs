@@ -16,22 +16,17 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
-
 pub mod extras;
 pub mod types;
-
-
 
 use frame_support::sp_std::prelude::*;
 // use scale_info::prelude::format;
 use crate::types::RESERVED_SPACE_COUNT;
 
-
 use frame_support::pallet_prelude::{DispatchResult, *};
 use frame_system::pallet_prelude::*;
 use pallet_support::{Content, SpaceId};
 use types::Space;
-
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -45,7 +40,7 @@ pub mod pallet {
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_timestamp::Config{
+	pub trait Config: frame_system::Config + pallet_timestamp::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Type representing the weight of this pallet
@@ -61,21 +56,19 @@ pub mod pallet {
 	pub type Something<T> = StorageValue<_, u32>;
 
 	#[pallet::type_value]
-    pub fn DefaultForNextSpaceId() -> SpaceId {
-        RESERVED_SPACE_COUNT + 1
-    }
+	pub fn DefaultForNextSpaceId() -> SpaceId {
+		RESERVED_SPACE_COUNT + 1
+	}
 
 	/// The next space id.
-    #[pallet::storage]
-    #[pallet::getter(fn next_space_id)]
-    pub type NextSpaceId<T: Config> = StorageValue<_, SpaceId, ValueQuery, DefaultForNextSpaceId>;
+	#[pallet::storage]
+	#[pallet::getter(fn next_space_id)]
+	pub type NextSpaceId<T: Config> = StorageValue<_, SpaceId, ValueQuery, DefaultForNextSpaceId>;
 
 	/// Get the details of a space by its' id.
-    #[pallet::storage]
-    #[pallet::getter(fn space_by_id)]
-    pub type SpaceById<T: Config> = StorageMap<_, Twox64Concat, SpaceId, Space<T>>;
-
-
+	#[pallet::storage]
+	#[pallet::getter(fn space_by_id)]
+	pub type SpaceById<T: Config> = StorageMap<_, Twox64Concat, SpaceId, Space<T>>;
 
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/

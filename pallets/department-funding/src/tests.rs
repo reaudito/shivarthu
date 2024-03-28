@@ -7,7 +7,6 @@ fn it_works_for_default_value() {
 		// Go past genesis block so events get deposited
 		System::set_block_number(1);
 		// Dispatch a signed extrinsic.
-	
 	});
 }
 
@@ -15,6 +14,5 @@ fn it_works_for_default_value() {
 fn correct_error_for_none_value() {
 	new_test_ext().execute_with(|| {
 		// Ensure the expected error is thrown when no value is present.
-		
 	});
 }

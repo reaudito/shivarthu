@@ -95,7 +95,7 @@ impl<T: Config> PhaseData<T> {
 		let commit_length = commit_length.saturated_into::<BlockNumberOf<T>>();
 		let vote_length = vote_length.saturated_into::<BlockNumberOf<T>>();
 		let appeal_length = appeal_length.saturated_into::<BlockNumberOf<T>>();
-	
+
 		let min_juror_stake = min_juror_stake.saturated_into::<BalanceOf<T>>();
 		PhaseData {
 			evidence_length,

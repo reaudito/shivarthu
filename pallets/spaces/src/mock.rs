@@ -1,5 +1,8 @@
 use crate as pallet_template;
-use frame_support::{parameter_types, traits::{ConstU16, ConstU64}};
+use frame_support::{
+	parameter_types,
+	traits::{ConstU16, ConstU64},
+};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -55,14 +58,14 @@ impl pallet_template::Config for Test {
 }
 
 parameter_types! {
-    pub const MinimumPeriod: u64 = 5;
+	pub const MinimumPeriod: u64 = 5;
 }
 
 impl pallet_timestamp::Config for Test {
-    type Moment = u64;
-    type OnTimestampSet = ();
-    type MinimumPeriod = MinimumPeriod;
-    type WeightInfo = ();
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
 }
 
 // Build genesis storage according to the mock runtime.

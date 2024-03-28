@@ -10,6 +10,9 @@ pub trait SortitionSumGameLink {
 		key: Self::SumTreeName,
 		citizen_id: Self::AccountId,
 	) -> Result<Option<u64>, DispatchError>;
-	fn draw_link(key: Self::SumTreeName, draw_number: u64) -> Result<Self::AccountId, DispatchError>;
+	fn draw_link(
+		key: Self::SumTreeName,
+		draw_number: u64,
+	) -> Result<Self::AccountId, DispatchError>;
 	fn remove_tree_link(key: Self::SumTreeName) -> DispatchResult;
 }

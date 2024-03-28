@@ -349,7 +349,7 @@ pub mod pallet {
 			amount_to_fund: BalanceOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			    
+
 			// Ensure that the `profile_user_account`` exists in `GetCitizenId` storage.
 			Self::ensure_account_id_has_profile(profile_user_account.clone())?;
 
@@ -361,11 +361,10 @@ pub mod pallet {
 
 			// Calculate the required fund by subtracting the total funded from the registration fee.
 			let required_fund = registration_fee.checked_sub(&total_funded).expect("Overflow");
-			
+
 			// Check if the amount_to_fund is less than or equal to the required fund.
 			if amount_to_fund <= required_fund {
 				if amount_to_fund == required_fund {
-
 					// If the funded amount matches the required amount, update variables required for profile validation.
 					let now = <frame_system::Pallet<T>>::block_number();
 					let key = SumTreeName::ProfileValidation {

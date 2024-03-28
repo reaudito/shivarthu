@@ -12,7 +12,7 @@ impl<T: Config> SharedStorageLink for Pallet<T> {
 		Self::get_approved_citizen_count()
 	}
 
-	fn set_positive_externality_link(address: Self::AccountId, score: i64)-> DispatchResult {
+	fn set_positive_externality_link(address: Self::AccountId, score: i64) -> DispatchResult {
 		Self::set_positive_externality(address, score)
 	}
 }
@@ -33,7 +33,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub(super) fn set_positive_externality(address: T::AccountId, score: Score) -> DispatchResult {
-		PositiveExternalityScore::<T>::insert(address,score);
+		PositiveExternalityScore::<T>::insert(address, score);
 		Ok(())
 	}
 }

@@ -1,5 +1,9 @@
 use crate as pallet_template;
-use frame_support::{parameter_types,dispatch::DispatchResultWithPostInfo, traits::{ConstU16, ConstU64}};
+use frame_support::{
+	dispatch::DispatchResultWithPostInfo,
+	parameter_types,
+	traits::{ConstU16, ConstU64},
+};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -129,7 +133,6 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	t.into()
 }
 
-
 pub(super) fn candidate_ids(departmentid: u128) -> Vec<u64> {
 	Elections::candidates(departmentid)
 		.into_iter()
@@ -141,7 +144,10 @@ pub(super) fn balances(who: &u64) -> (u64, u64) {
 	(Balances::free_balance(who), Balances::reserved_balance(who))
 }
 
-pub(super) fn submit_candidacy(origin: RuntimeOrigin, departmentid: u128) -> DispatchResultWithPostInfo {
+pub(super) fn submit_candidacy(
+	origin: RuntimeOrigin,
+	departmentid: u128,
+) -> DispatchResultWithPostInfo {
 	Elections::submit_candidacy(
 		origin,
 		departmentid,
@@ -165,9 +171,11 @@ pub(super) fn vote(
 	Elections::vote(origin, departmentid, votes, score)
 }
 
-
 pub(super) fn runners_up_ids(departmentid: u128) -> Vec<u64> {
-	Elections::runners_up(departmentid).into_iter().map(|r| r.who).collect::<Vec<_>>()
+	Elections::runners_up(departmentid)
+		.into_iter()
+		.map(|r| r.who)
+		.collect::<Vec<_>>()
 }
 
 pub(super) fn members_ids(departmentid: u128) -> Vec<u64> {

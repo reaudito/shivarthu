@@ -4566,6 +4566,7 @@ name = "node-template-runtime"
 version = "4.0.0-dev"
 dependencies = [
  "department-funding",
+ "department-funding-runtime-api",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -4584,9 +4585,11 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
  "positive-externality",
+ "positive-externality-runtime-api",
  "profile-validation",
  "profile-validation-runtime-api",
  "project-tips",
+ "project-tips-runtime-api",
  "scale-info",
  "schelling-game-shared",
  "shared-storage",

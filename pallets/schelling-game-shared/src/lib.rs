@@ -11,8 +11,6 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-
-
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 pub mod weights;
@@ -20,9 +18,9 @@ pub use weights::*;
 
 mod extras;
 mod functions;
-pub mod types;
 mod score_game;
 mod share_link;
+pub mod types;
 
 use crate::types::{
 	CommitVote, Period, PhaseData, RangePoint, RevealedVote, SchellingGameType, ScoreCommitVote,
@@ -95,7 +93,6 @@ pub mod pallet {
 
 	#[pallet::storage]
 	pub type Nonce<T> = StorageValue<_, u64, ValueQuery>;
-
 
 	#[pallet::storage]
 	#[pallet::getter(fn get_period)]

@@ -1,5 +1,3 @@
 use crate::*;
 
-impl<T: Config> Pallet<T> {
-	
-}
+impl<T: Config> Pallet<T> {}

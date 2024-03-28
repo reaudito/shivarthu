@@ -50,7 +50,6 @@ impl frame_system::Config for Test {
 	type AccountData = pallet_balances::AccountData<u64>; // New code
 }
 
-
 impl shared_storage::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
