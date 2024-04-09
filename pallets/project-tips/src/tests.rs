@@ -1,11 +1,12 @@
 use crate::types::TippingName;
 use crate::{mock::*, Error, Event};
 use frame_support::{assert_noop, assert_ok};
+use pallet_support::Content;
 use schelling_game_shared::types::Period;
 use sortition_sum_game::types::SumTreeName;
 
 #[test]
-fn check_create_project_function() {
+fn check_balance_on_staking() {
 	new_test_ext().execute_with(|| {
 		// Go past genesis block so events get deposited
 		System::set_block_number(1);
@@ -14,17 +15,53 @@ fn check_create_project_function() {
 		let max_tipping_value = tipping_value.max_tipping_value;
 		let stake_required = tipping_value.stake_required;
 		let funding_needed = max_tipping_value - 100;
-		let balance = Balances::free_balance(1);
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
 		assert_ok!(ProjectTips::create_project(
 			RuntimeOrigin::signed(1),
 			2,
+			content.clone(),
 			tipping_name,
 			funding_needed
 		));
 
+		System::assert_last_event(Event::ProjectCreated { account: 1, project_id: 1 }.into());
+
+		let balance = Balances::free_balance(1);
+
+		assert_ok!(ProjectTips::apply_staking(RuntimeOrigin::signed(1), 1));
+
 		let after_balance = Balances::free_balance(1);
 
 		assert_eq!(after_balance, balance - stake_required);
+	});
+}
+
+#[test]
+fn check_create_project_function() {
+	new_test_ext().execute_with(|| {
+		System::set_block_number(1);
+		let tipping_name = TippingName::SmallTipper;
+		let tipping_value = ProjectTips::value_of_tipping_name(tipping_name);
+		let max_tipping_value = tipping_value.max_tipping_value;
+		let funding_needed = max_tipping_value - 100;
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
+		assert_ok!(ProjectTips::create_project(
+			RuntimeOrigin::signed(1),
+			2,
+			content.clone(),
+			tipping_name,
+			funding_needed
+		));
+
+
 
 		System::assert_last_event(Event::ProjectCreated { account: 1, project_id: 1 }.into());
 
@@ -35,7 +72,7 @@ fn check_create_project_function() {
 		let funding_needed = max_tipping_value + 100;
 
 		assert_noop!(
-			ProjectTips::create_project(RuntimeOrigin::signed(1), 2, tipping_name, funding_needed),
+			ProjectTips::create_project(RuntimeOrigin::signed(1), 2, content, tipping_name, funding_needed),
 			Error::<Test>::FundingMoreThanTippingValue
 		);
 	});
@@ -46,7 +83,7 @@ fn check_apply_staking_period_function() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_noop!(
-			ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 2),
+			ProjectTips::apply_staking(RuntimeOrigin::signed(1), 2),
 			Error::<Test>::ProjectDontExists
 		);
 
@@ -54,26 +91,32 @@ fn check_apply_staking_period_function() {
 		let tipping_value = ProjectTips::value_of_tipping_name(tipping_name);
 		let max_tipping_value = tipping_value.max_tipping_value;
 		let funding_needed = max_tipping_value - 100;
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
 		assert_ok!(ProjectTips::create_project(
 			RuntimeOrigin::signed(1),
 			2,
+			content,
 			tipping_name,
 			funding_needed
 		));
 
 		assert_noop!(
-			ProjectTips::apply_staking_period(RuntimeOrigin::signed(3), 1),
+			ProjectTips::apply_staking(RuntimeOrigin::signed(3), 1),
 			Error::<Test>::ProjectCreatorDontMatch
 		);
 
-		assert_ok!(ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 1));
+		assert_ok!(ProjectTips::apply_staking(RuntimeOrigin::signed(1), 1));
 
 		System::assert_last_event(
 			Event::StakinPeriodStarted { project_id: 1, block_number: 1 }.into(),
 		);
 		System::set_block_number(5);
 		assert_noop!(
-			ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 1),
+			ProjectTips::apply_staking(RuntimeOrigin::signed(1), 1),
 			Error::<Test>::ProjectIdStakingPeriodAlreadySet
 		);
 	});
@@ -88,19 +131,26 @@ fn schelling_game_test() {
 		let max_tipping_value = tipping_value.max_tipping_value;
 		let stake_required = tipping_value.stake_required;
 		let funding_needed = max_tipping_value - 100;
-		let balance = Balances::free_balance(1);
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
 		assert_ok!(ProjectTips::create_project(
 			RuntimeOrigin::signed(1),
 			2,
+			content,
 			tipping_name,
 			funding_needed
 		));
 
+		let balance = Balances::free_balance(1);
+
+		assert_ok!(ProjectTips::apply_staking(RuntimeOrigin::signed(1), 1));
+
 		let after_balance = Balances::free_balance(1);
 
 		assert_eq!(after_balance, balance - stake_required);
-
-		assert_ok!(ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 1));
 
 		let phase_data = ProjectTips::get_phase_data();
 

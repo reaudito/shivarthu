@@ -171,46 +171,64 @@ pub mod pallet {
 		pub fn create_project(
 			origin: OriginFor<T>,
 			department_id: DepartmentId,
+			content: Content,
 			tipping_name: TippingName,
 			funding_needed: BalanceOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			let new_project_id = Self::next_project_id();
 			let tipping_value = Self::value_of_tipping_name(tipping_name);
 			let max_tipping_value = tipping_value.max_tipping_value;
-			let stake_required = tipping_value.stake_required;
-			let new_project_id = Self::next_project_id();
+			ensure!(
+				funding_needed <= max_tipping_value,
+				Error::<T>::FundingMoreThanTippingValue
+			);
 			let new_project: Project<T> = Project::new(
 				new_project_id,
 				department_id,
+				content,
 				tipping_name,
 				funding_needed,
 				who.clone(),
 			);
-			ensure!(funding_needed <= max_tipping_value, Error::<T>::FundingMoreThanTippingValue);
-			// Check user has done kyc
-			let _ = <T as pallet::Config>::Currency::withdraw(
-				&who,
-				stake_required,
-				WithdrawReasons::TRANSFER,
-				ExistenceRequirement::AllowDeath,
-			)?;
+
 			Projects::insert(new_project_id, new_project);
 			NextProjectId::<T>::mutate(|n| {
 				*n += 1;
 			});
 
 			Self::deposit_event(Event::ProjectCreated { account: who, project_id: new_project_id });
+
 			Ok(())
 		}
+
+	
 
 		// Check update and discussion time over, only project creator can apply staking period
 		#[pallet::call_index(1)]
 		#[pallet::weight(0)]
-		pub fn apply_staking_period(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
+		pub fn apply_staking(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			Self::ensure_user_is_project_creator_and_project_exists(project_id, who)?;
+			Self::ensure_user_is_project_creator_and_project_exists(project_id, who.clone())?;
 			Self::ensure_staking_period_set_once_project_id(project_id)?;
+			match <Projects<T>>::get(project_id) {
+				Some(project) => {
+					let tipping_name = project.tipping_name;
+					let tipping_value = Self::value_of_tipping_name(tipping_name);
+					let stake_required = tipping_value.stake_required;
+					
+					let _ = <T as pallet::Config>::Currency::withdraw(
+						&who,
+						stake_required,
+						WithdrawReasons::TRANSFER,
+						ExistenceRequirement::AllowDeath,
+					)?;
+				},
+
+				None => Err(Error::<T>::ProjectDontExists)?,
+			}
 
 			let now = <frame_system::Pallet<T>>::block_number();
 

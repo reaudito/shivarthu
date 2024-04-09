@@ -26,6 +26,7 @@ pub struct Project<T: Config> {
 	pub created: WhoAndWhenOf<T>,
 	pub project_id: ProjectId,
 	pub department_id: DepartmentId,
+	pub content: Content,
 	pub tipping_name: TippingName,
 	pub funding_needed: BalanceOf<T>,
 	pub project_leader: T::AccountId,

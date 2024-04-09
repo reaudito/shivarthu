@@ -4,6 +4,7 @@ impl<T: Config> Project<T> {
 	pub fn new(
 		project_id: ProjectId,
 		department_id: DepartmentId,
+		content: Content,
 		tipping_name: TippingName,
 		funding_needed: BalanceOf<T>,
 		project_leader: T::AccountId,
@@ -12,6 +13,7 @@ impl<T: Config> Project<T> {
 			created: new_who_and_when::<T>(project_leader.clone()),
 			project_id,
 			department_id,
+			content,
 			tipping_name,
 			funding_needed,
 			project_leader,
@@ -28,7 +30,7 @@ impl<T: Config> Pallet<T> {
 		project_id: ProjectId,
 		user: T::AccountId,
 	) -> DispatchResult {
-		let project_option: Option<Project<T>> = Projects::get(project_id);
+		let project_option: Option<Project<T>> = <Projects<T>>::get(project_id);
 		match project_option {
 			Some(project) => {
 				let project_leader = project.project_leader;
