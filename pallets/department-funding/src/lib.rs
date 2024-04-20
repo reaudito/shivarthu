@@ -186,6 +186,7 @@ pub mod pallet {
 		pub fn create_department_required_fund(
 			origin: OriginFor<T>,
 			department_id: DepartmentId,
+			content: Content,
 			tipping_name: TippingName,
 			funding_needed: BalanceOf<T>,
 		) -> DispatchResult {
@@ -197,6 +198,7 @@ pub mod pallet {
 			let new_department_fund: DepartmentRequiredFund<T> = DepartmentRequiredFund::new(
 				new_department_fund_id,
 				department_id,
+				content,
 				tipping_name,
 				funding_needed,
 				who.clone(),

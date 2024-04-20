@@ -8,7 +8,7 @@ use sp_api::codec::Codec;
 type ProjectId = u64;
 
 sp_api::decl_runtime_apis! {
-	pub trait ProjectTipsApi<AccountId> where AccountId: Codec {
+	pub trait ProjectTipsApi<AccountId> where AccountId: Codec{
 
 		fn get_evidence_period_end_block(project_id: ProjectId) -> Option<u32>;
 		fn get_staking_period_end_block(project_id: ProjectId) -> Option<u32>;

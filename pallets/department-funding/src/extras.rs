@@ -5,6 +5,7 @@ impl<T: Config> DepartmentRequiredFund<T> {
 	pub fn new(
 		department_required_fund_id: DepartmentRequiredFundId,
 		department_id: DepartmentId,
+		content: Content,
 		tipping_name: TippingName,
 		funding_needed: BalanceOf<T>,
 		creator: T::AccountId,
@@ -12,6 +13,7 @@ impl<T: Config> DepartmentRequiredFund<T> {
 		DepartmentRequiredFund {
 			created: new_who_and_when::<T>(creator.clone()),
 			department_required_fund_id,
+			content,
 			department_id,
 			tipping_name,
 			funding_needed,

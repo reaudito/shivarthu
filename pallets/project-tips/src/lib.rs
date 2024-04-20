@@ -208,7 +208,7 @@ pub mod pallet {
 		// Check update and discussion time over, only project creator can apply staking period
 		#[pallet::call_index(1)]
 		#[pallet::weight(0)]
-		pub fn apply_staking(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
+		pub fn apply_staking_period(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			Self::ensure_user_is_project_creator_and_project_exists(project_id, who.clone())?;

@@ -69,7 +69,7 @@ impl<T: Config> Pallet<T> {
 		input.saturated_into::<BlockNumberOf<T>>()
 	}
 
-	pub(super) fn value_of_tipping_name(tipping: TippingName) -> TippingValue<BalanceOf<T>> {
+	pub fn value_of_tipping_name(tipping: TippingName) -> TippingValue<BalanceOf<T>> {
 		match tipping {
 			TippingName::SmallTipper => TippingValue {
 				max_tipping_value: 10_000u64.saturated_into::<BalanceOf<T>>(),

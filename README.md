@@ -128,6 +128,10 @@ cd shivarthu_client
 trunk serve
 ```
 
+### Substrate explorer
+
+<https://paritytech.github.io/subxt-explorer/#/>
+
 ### Multi-Node Local Testnet
 
 If you want to see the multi-node consensus algorithm in action, refer to

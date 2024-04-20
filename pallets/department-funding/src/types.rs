@@ -30,6 +30,7 @@ pub struct DepartmentRequiredFund<T: Config> {
 	pub created: WhoAndWhenOf<T>,
 	pub department_required_fund_id: DepartmentRequiredFundId,
 	pub department_id: DepartmentId,
+	pub content: Content,
 	pub tipping_name: TippingName,
 	pub funding_needed: BalanceOf<T>,
 	pub creator: T::AccountId,

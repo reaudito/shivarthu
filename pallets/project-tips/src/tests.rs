@@ -32,7 +32,7 @@ fn check_balance_on_staking() {
 
 		let balance = Balances::free_balance(1);
 
-		assert_ok!(ProjectTips::apply_staking(RuntimeOrigin::signed(1), 1));
+		assert_ok!(ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 1));
 
 		let after_balance = Balances::free_balance(1);
 
@@ -83,7 +83,7 @@ fn check_apply_staking_period_function() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_noop!(
-			ProjectTips::apply_staking(RuntimeOrigin::signed(1), 2),
+			ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 2),
 			Error::<Test>::ProjectDontExists
 		);
 
@@ -105,18 +105,18 @@ fn check_apply_staking_period_function() {
 		));
 
 		assert_noop!(
-			ProjectTips::apply_staking(RuntimeOrigin::signed(3), 1),
+			ProjectTips::apply_staking_period(RuntimeOrigin::signed(3), 1),
 			Error::<Test>::ProjectCreatorDontMatch
 		);
 
-		assert_ok!(ProjectTips::apply_staking(RuntimeOrigin::signed(1), 1));
+		assert_ok!(ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 1));
 
 		System::assert_last_event(
 			Event::StakinPeriodStarted { project_id: 1, block_number: 1 }.into(),
 		);
 		System::set_block_number(5);
 		assert_noop!(
-			ProjectTips::apply_staking(RuntimeOrigin::signed(1), 1),
+			ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 1),
 			Error::<Test>::ProjectIdStakingPeriodAlreadySet
 		);
 	});
@@ -146,7 +146,7 @@ fn schelling_game_test() {
 
 		let balance = Balances::free_balance(1);
 
-		assert_ok!(ProjectTips::apply_staking(RuntimeOrigin::signed(1), 1));
+		assert_ok!(ProjectTips::apply_staking_period(RuntimeOrigin::signed(1), 1));
 
 		let after_balance = Balances::free_balance(1);
 
