@@ -170,7 +170,10 @@ pub mod pallet {
 			let creator = ensure_signed(origin)?;
 
 			ensure_content_is_valid(content.clone())?;
-			T::SharedStorageSource::check_citizen_is_approved_link(creator.clone())?;
+
+			// Citizen approved To comment out in production, citizen approved in added in profile validation
+
+			// T::SharedStorageSource::check_citizen_is_approved_link(creator.clone())?;
 
 			let new_post_id = Self::next_positive_externality_post_id();
 
@@ -206,6 +209,7 @@ pub mod pallet {
 			let stake = PositiveExternalityStakeBalance::<T>::get(&who);
 			let total_balance = stake.saturating_add(deposit);
 			PositiveExternalityStakeBalance::<T>::insert(&who, total_balance);
+			
 
 			// emit event
 			Ok(())

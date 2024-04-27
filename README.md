@@ -132,6 +132,10 @@ trunk serve
 
 <https://paritytech.github.io/subxt-explorer/#/>
 
+### Chain Specification
+
+./target/release/node-template build-spec > chain_spec.json
+
 ### Multi-Node Local Testnet
 
 If you want to see the multi-node consensus algorithm in action, refer to
