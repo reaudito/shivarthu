@@ -134,7 +134,20 @@ trunk serve
 
 ### Chain Specification
 
+```bash
 ./target/release/node-template build-spec > chain_spec.json
+```
+
+### Raw Chain Spec
+
+Generating a Raw JSON Chain Specification File
+
+One final step before deploying the Tanssi appchain is converting the JSON specification file to a raw format, which is a compact, less-readable version of the same file, required to initialize a node.
+
+```bash
+./target/release/node-template build-spec --chain=chain_spec.json --raw > raw_chain_spec.json
+```
+
 
 ### Multi-Node Local Testnet
 
