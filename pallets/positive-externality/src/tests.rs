@@ -1,4 +1,4 @@
-use crate::types::PositiveExternalityPost;
+use crate::types::Post;
 use crate::{mock::*, Error, Event};
 use frame_support::{assert_noop, assert_ok};
 use pallet_support::{Content, WhoAndWhen};
@@ -10,8 +10,8 @@ fn test_positive_externality_post() {
 			RuntimeOrigin::signed(1),
 			Content::None
 		));
-		let post = TemplateModule::positive_externality_post_by_id(1);
-		let post_compare = Some(PositiveExternalityPost {
+		let post = TemplateModule::post_by_id(1);
+		let post_compare = Some(Post {
 			id: 1,
 			created: WhoAndWhen { account: 1, block: 0, time: 0 },
 			edited: false,
@@ -35,7 +35,7 @@ fn test_adding_positive_externality_stake() {
 		//    assert_eq!(post, post_compare);
 
 		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
-		let stake = TemplateModule::positive_externality_user_stake(1);
+		let stake = TemplateModule::user_stake(1);
 		assert_eq!(stake, 10000);
 	});
 }
@@ -47,7 +47,7 @@ fn test_setting_positive_externality_validation() {
 			RuntimeOrigin::signed(1),
 			true
 		));
-		let value = TemplateModule::validate_positive_externality(1);
+		let value = TemplateModule::validate(1);
 		assert_eq!(value, true);
 	});
 }

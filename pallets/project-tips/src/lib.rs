@@ -32,7 +32,7 @@ use frame_support::{
 	PalletId,
 };
 use pallet_support::{
-	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, PositiveExternalityPostId,
+	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content,
 	WhoAndWhen, WhoAndWhenOf,
 };
 use schelling_game_shared::types::{Period, PhaseData, RangePoint, SchellingGameType};

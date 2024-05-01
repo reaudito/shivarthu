@@ -18,7 +18,7 @@ pub use weights::*;
 
 mod extras;
 pub mod types;
-pub use types::{PositiveExternalityPost, FIRST_POST_ID};
+pub use types::{Post, FIRST_POST_ID};
 
 use frame_support::sp_runtime::traits::Saturating;
 use frame_support::sp_runtime::SaturatedConversion;
@@ -32,7 +32,7 @@ use frame_support::{
 	PalletId,
 };
 use pallet_support::{
-	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, PositiveExternalityPostId,
+	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, PostId,
 	WhoAndWhen, WhoAndWhenOf,
 };
 use schelling_game_shared::types::{Period, PhaseData, RangePoint, SchellingGameType};
@@ -87,49 +87,49 @@ pub mod pallet {
 	pub type Something<T> = StorageValue<_, u32>;
 
 	#[pallet::type_value]
-	pub fn DefaultForNextPositiveExternalityPostId() -> PositiveExternalityPostId {
+	pub fn DefaultForNextPostId() -> PostId {
 		FIRST_POST_ID
 	}
 
 	/// The next post id.
 	#[pallet::storage]
-	#[pallet::getter(fn next_positive_externality_post_id)]
-	pub type NextPositiveExternalityPostId<T: Config> = StorageValue<
+	#[pallet::getter(fn next_post_id)]
+	pub type NextPostId<T: Config> = StorageValue<
 		_,
-		PositiveExternalityPostId,
+		PostId,
 		ValueQuery,
-		DefaultForNextPositiveExternalityPostId,
+		DefaultForNextPostId,
 	>;
 
 	/// Get the details of a post by its' id.
 	#[pallet::storage]
-	#[pallet::getter(fn positive_externality_post_by_id)]
-	pub type PositiveExternalityPostById<T: Config> =
-		StorageMap<_, Twox64Concat, PositiveExternalityPostId, PositiveExternalityPost<T>>;
+	#[pallet::getter(fn post_by_id)]
+	pub type PostById<T: Config> =
+		StorageMap<_, Twox64Concat, PostId, Post<T>>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn positive_externality_evidence)]
-	pub type PositiveExternalityEvidence<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, Vec<PositiveExternalityPostId>, ValueQuery>;
+	#[pallet::getter(fn evidence)]
+	pub type Evidence<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, Vec<PostId>, ValueQuery>;
 
 	#[pallet::type_value]
-	pub fn MinimumPositiveExternalityStake<T: Config>() -> BalanceOf<T> {
+	pub fn MinimumStake<T: Config>() -> BalanceOf<T> {
 		10000u128.saturated_into::<BalanceOf<T>>()
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn positive_externality_user_stake)]
-	pub type PositiveExternalityStakeBalance<T: Config> =
+	#[pallet::getter(fn user_stake)]
+	pub type StakeBalance<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn validate_positive_externality)]
-	pub type ValidatePositiveExternality<T: Config> =
+	#[pallet::getter(fn validate)]
+	pub type Validate<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, bool, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn validation_positive_externality_block_number)]
-	pub type ValidationPositiveExternalityBlock<T: Config> =
+	#[pallet::getter(fn validation_block)]
+	pub type ValidationBlock<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, BlockNumberOf<T>, ValueQuery>;
 
 	// Pallets use events to inform users when important changes are made.
@@ -175,15 +175,15 @@ pub mod pallet {
 
 			// T::SharedStorageSource::check_citizen_is_approved_link(creator.clone())?;
 
-			let new_post_id = Self::next_positive_externality_post_id();
+			let new_post_id = Self::next_post_id();
 
-			let new_post: PositiveExternalityPost<T> =
-				PositiveExternalityPost::new(new_post_id, creator.clone(), content.clone());
+			let new_post: Post<T> =
+				Post::new(new_post_id, creator.clone(), content.clone());
 
-			PositiveExternalityEvidence::<T>::mutate(creator, |ids| ids.push(new_post_id));
+			Evidence::<T>::mutate(creator, |ids| ids.push(new_post_id));
 
-			PositiveExternalityPostById::insert(new_post_id, new_post);
-			NextPositiveExternalityPostId::<T>::mutate(|n| {
+			PostById::insert(new_post_id, new_post);
+			NextPostId::<T>::mutate(|n| {
 				*n += 1;
 			});
 
@@ -206,9 +206,9 @@ pub mod pallet {
 				WithdrawReasons::TRANSFER,
 				ExistenceRequirement::AllowDeath,
 			)?;
-			let stake = PositiveExternalityStakeBalance::<T>::get(&who);
+			let stake = StakeBalance::<T>::get(&who);
 			let total_balance = stake.saturating_add(deposit);
-			PositiveExternalityStakeBalance::<T>::insert(&who, total_balance);
+			StakeBalance::<T>::insert(&who, total_balance);
 			
 
 			// emit event
@@ -224,7 +224,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 			// Check user has done kyc
 
-			ValidatePositiveExternality::<T>::insert(&who, value);
+			Validate::<T>::insert(&who, value);
 			// emit event
 			Ok(())
 		}
@@ -241,7 +241,7 @@ pub mod pallet {
 			Self::ensure_min_stake_positive_externality(user_to_calculate.clone())?;
 
 			let pe_block_number =
-				<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+				<ValidationBlock<T>>::get(user_to_calculate.clone());
 			let now = <frame_system::Pallet<T>>::block_number();
 			let three_month_number = (3 * 30 * 24 * 60 * 60) / 6;
 			let three_month_block = Self::u64_to_block_saturated(three_month_number);
@@ -260,7 +260,7 @@ pub mod pallet {
 			// let game_type = SchellingGameType::PositiveExternality;
 
 			if storage_main_block > pe_block_number {
-				<ValidationPositiveExternalityBlock<T>>::insert(
+				<ValidationBlock<T>>::insert(
 					user_to_calculate.clone(),
 					storage_main_block,
 				);
@@ -289,7 +289,7 @@ pub mod pallet {
 			Self::ensure_min_stake_positive_externality(user_to_calculate.clone())?;
 
 			let pe_block_number =
-				<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+				<ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -312,7 +312,7 @@ pub mod pallet {
 			let _who = ensure_signed(origin)?;
 
 			let pe_block_number =
-				<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+				<ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -336,7 +336,7 @@ pub mod pallet {
 			let _who = ensure_signed(origin)?;
 
 			let pe_block_number =
-				<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+				<ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -357,7 +357,7 @@ pub mod pallet {
 		pub fn unstaking(origin: OriginFor<T>, user_to_calculate: T::AccountId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			let pe_block_number =
-				<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+				<ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -377,7 +377,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			let pe_block_number =
-				<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+				<ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -401,7 +401,7 @@ pub mod pallet {
 			ensure!(choice <= 5 && choice >= 1, Error::<T>::ChoiceOutOfRange);
 
 			let pe_block_number =
-				<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+				<ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -420,7 +420,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 			let pe_block_number =
-				<ValidationPositiveExternalityBlock<T>>::get(user_to_calculate.clone());
+				<ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate.clone(),

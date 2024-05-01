@@ -10,8 +10,8 @@ pub const FIRST_POST_ID: u64 = 1;
 /// Information about a post's owner, its' related space, content, and visibility.
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
-pub struct PositiveExternalityPost<T: Config> {
-	pub id: PositiveExternalityPostId,
+pub struct Post<T: Config> {
+	pub id: PostId,
 
 	pub created: WhoAndWhenOf<T>,
 

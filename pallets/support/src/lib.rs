@@ -9,7 +9,6 @@ use sp_std::{collections::btree_set::BTreeSet, vec, vec::Vec};
 
 pub type SpaceId = u64;
 pub type PostId = u64;
-pub type PositiveExternalityPostId = u64;
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub struct WhoAndWhen<AccountId, BlockNumber, Moment> {
