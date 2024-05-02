@@ -122,10 +122,16 @@ pub mod pallet {
 	pub type StakeBalance<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
+	
+	#[pallet::type_value]
+	pub fn DefaultValidate<T: Config>() -> bool {
+			true
+		}
+
 	#[pallet::storage]
 	#[pallet::getter(fn validate)]
 	pub type Validate<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, bool, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, bool, ValueQuery, DefaultValidate<T>>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn validation_block)]
@@ -192,30 +198,8 @@ pub mod pallet {
 			Ok(())
 		}
 
+
 		#[pallet::call_index(1)]
-		#[pallet::weight(0)]
-		pub fn add_positive_externality_stake(
-			origin: OriginFor<T>,
-			deposit: BalanceOf<T>,
-		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-			// Check user has done kyc
-			let _ = <T as pallet::Config>::Currency::withdraw(
-				&who,
-				deposit,
-				WithdrawReasons::TRANSFER,
-				ExistenceRequirement::AllowDeath,
-			)?;
-			let stake = StakeBalance::<T>::get(&who);
-			let total_balance = stake.saturating_add(deposit);
-			StakeBalance::<T>::insert(&who, total_balance);
-			
-
-			// emit event
-			Ok(())
-		}
-
-		#[pallet::call_index(2)]
 		#[pallet::weight(0)]
 		pub fn set_validate_positive_externality(
 			origin: OriginFor<T>,
@@ -229,7 +213,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(3)]
+		#[pallet::call_index(2)]
 		#[pallet::weight(0)]
 		pub fn apply_staking_period(
 			origin: OriginFor<T>,
@@ -238,7 +222,19 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			Self::ensure_validation_on_positive_externality(user_to_calculate.clone())?;
-			Self::ensure_min_stake_positive_externality(user_to_calculate.clone())?;
+
+			let stake = MinimumStake::<T>::get();
+
+			let _ = <T as pallet::Config>::Currency::withdraw(
+				&who,
+				stake,
+				WithdrawReasons::TRANSFER,
+				ExistenceRequirement::AllowDeath,
+			)?;
+
+			StakeBalance::<T>::insert(&user_to_calculate, stake);
+
+
 
 			let pe_block_number =
 				<ValidationBlock<T>>::get(user_to_calculate.clone());
@@ -276,7 +272,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(4)]
+		#[pallet::call_index(3)]
 		#[pallet::weight(0)]
 		pub fn apply_jurors(
 			origin: OriginFor<T>,
@@ -303,7 +299,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(5)]
+		#[pallet::call_index(4)]
 		#[pallet::weight(0)]
 		pub fn pass_period(
 			origin: OriginFor<T>,
@@ -326,7 +322,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(6)]
+		#[pallet::call_index(5)]
 		#[pallet::weight(0)]
 		pub fn draw_jurors(
 			origin: OriginFor<T>,
@@ -352,7 +348,7 @@ pub mod pallet {
 
 		// Unstaking
 		// Stop drawn juror to unstake ✔️
-		#[pallet::call_index(7)]
+		#[pallet::call_index(6)]
 		#[pallet::weight(0)]
 		pub fn unstaking(origin: OriginFor<T>, user_to_calculate: T::AccountId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -368,7 +364,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(8)]
+		#[pallet::call_index(7)]
 		#[pallet::weight(0)]
 		pub fn commit_vote(
 			origin: OriginFor<T>,
@@ -388,7 +384,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(9)]
+		#[pallet::call_index(8)]
 		#[pallet::weight(0)]
 		pub fn reveal_vote(
 			origin: OriginFor<T>,
@@ -412,7 +408,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(10)]
+		#[pallet::call_index(9)]
 		#[pallet::weight(0)]
 		pub fn get_incentives(
 			origin: OriginFor<T>,

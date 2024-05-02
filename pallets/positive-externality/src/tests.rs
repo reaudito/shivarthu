@@ -26,19 +26,6 @@ fn test_positive_externality_post() {
 	});
 }
 
-#[test]
-fn test_adding_positive_externality_stake() {
-	new_test_ext().execute_with(|| {
-		// 	assert_ok!(TemplateModule::create_positive_externality_post(Origin::signed(1), Content::None));
-		//    let post = TemplateModule::positive_externality_post_by_id(1);
-		//    let post_compare = Some(PositiveExternalityPost { id: 1, created: WhoAndWhen { account: 1, block: 0, time: 0 }, edited: false, owner: 1, content: Content::None, hidden: false, upvotes_count: 0, downvotes_count: 0 });
-		//    assert_eq!(post, post_compare);
-
-		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
-		let stake = TemplateModule::user_stake(1);
-		assert_eq!(stake, 10000);
-	});
-}
 
 #[test]
 fn test_setting_positive_externality_validation() {
@@ -59,7 +46,6 @@ fn test_applying_for_staking_period() {
 			RuntimeOrigin::signed(1),
 			true
 		));
-		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		System::set_block_number(1298000 + 1298000);
@@ -74,7 +60,6 @@ fn test_appying_jurors() {
 			RuntimeOrigin::signed(1),
 			true
 		));
-		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
@@ -88,7 +73,6 @@ fn test_change_period() {
 			RuntimeOrigin::signed(1),
 			true
 		));
-		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
@@ -108,7 +92,6 @@ fn test_draw_jurors_period() {
 			RuntimeOrigin::signed(1),
 			true
 		));
-		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
@@ -129,7 +112,6 @@ fn test_drawn_jurors() {
 			RuntimeOrigin::signed(1),
 			true
 		));
-		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		let balance = Balances::free_balance(4);
@@ -157,7 +139,6 @@ fn test_commit_and_incentives_vote() {
 			RuntimeOrigin::signed(1),
 			true
 		));
-		assert_ok!(TemplateModule::add_positive_externality_stake(RuntimeOrigin::signed(1), 10000));
 		System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		let balance = Balances::free_balance(4);
