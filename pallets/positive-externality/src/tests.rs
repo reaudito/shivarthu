@@ -26,7 +26,6 @@ fn test_positive_externality_post() {
 	});
 }
 
-
 #[test]
 fn test_setting_positive_externality_validation() {
 	new_test_ext().execute_with(|| {
@@ -60,7 +59,7 @@ fn test_appying_jurors() {
 			RuntimeOrigin::signed(1),
 			true
 		));
-		System::set_block_number(1298000);
+		// System::set_block_number(1298000);
 		assert_ok!(TemplateModule::apply_staking_period(RuntimeOrigin::signed(2), 1));
 		assert_ok!(TemplateModule::apply_jurors(RuntimeOrigin::signed(4), 1, 1000));
 	});

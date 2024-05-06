@@ -32,8 +32,8 @@ use frame_support::{
 	PalletId,
 };
 use pallet_support::{
-	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, PostId,
-	WhoAndWhen, WhoAndWhenOf,
+	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, PostId, WhoAndWhen,
+	WhoAndWhenOf,
 };
 use schelling_game_shared::types::{Period, PhaseData, RangePoint, SchellingGameType};
 use schelling_game_shared_link::SchellingGameSharedLink;
@@ -94,18 +94,12 @@ pub mod pallet {
 	/// The next post id.
 	#[pallet::storage]
 	#[pallet::getter(fn next_post_id)]
-	pub type NextPostId<T: Config> = StorageValue<
-		_,
-		PostId,
-		ValueQuery,
-		DefaultForNextPostId,
-	>;
+	pub type NextPostId<T: Config> = StorageValue<_, PostId, ValueQuery, DefaultForNextPostId>;
 
 	/// Get the details of a post by its' id.
 	#[pallet::storage]
 	#[pallet::getter(fn post_by_id)]
-	pub type PostById<T: Config> =
-		StorageMap<_, Twox64Concat, PostId, Post<T>>;
+	pub type PostById<T: Config> = StorageMap<_, Twox64Concat, PostId, Post<T>>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn evidence)]
@@ -122,11 +116,10 @@ pub mod pallet {
 	pub type StakeBalance<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
-	
 	#[pallet::type_value]
 	pub fn DefaultValidate<T: Config>() -> bool {
-			true
-		}
+		true
+	}
 
 	#[pallet::storage]
 	#[pallet::getter(fn validate)]
@@ -183,8 +176,7 @@ pub mod pallet {
 
 			let new_post_id = Self::next_post_id();
 
-			let new_post: Post<T> =
-				Post::new(new_post_id, creator.clone(), content.clone());
+			let new_post: Post<T> = Post::new(new_post_id, creator.clone(), content.clone());
 
 			Evidence::<T>::mutate(creator, |ids| ids.push(new_post_id));
 
@@ -197,7 +189,6 @@ pub mod pallet {
 
 			Ok(())
 		}
-
 
 		#[pallet::call_index(1)]
 		#[pallet::weight(0)]
@@ -234,10 +225,9 @@ pub mod pallet {
 
 			StakeBalance::<T>::insert(&user_to_calculate, stake);
 
-
-
-			let pe_block_number =
-				<ValidationBlock<T>>::get(user_to_calculate.clone());
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
+			// println!("{:?}", pe_block_number);
+			let zero_block_number = Self::u64_to_block_saturated(0);
 			let now = <frame_system::Pallet<T>>::block_number();
 			let three_month_number = (3 * 30 * 24 * 60 * 60) / 6;
 			let three_month_block = Self::u64_to_block_saturated(three_month_number);
@@ -254,12 +244,10 @@ pub mod pallet {
 			};
 
 			// let game_type = SchellingGameType::PositiveExternality;
+			// || pe_block_number == zero_block_number
 
-			if storage_main_block > pe_block_number {
-				<ValidationBlock<T>>::insert(
-					user_to_calculate.clone(),
-					storage_main_block,
-				);
+			if storage_main_block > pe_block_number || pe_block_number == zero_block_number {
+				<ValidationBlock<T>>::insert(user_to_calculate.clone(), storage_main_block);
 				// check what if called again
 				T::SchellingGameSharedSource::set_to_staking_period_pe_link(key.clone(), now)?;
 				T::SchellingGameSharedSource::create_tree_helper_link(key, 3)?;
@@ -284,8 +272,7 @@ pub mod pallet {
 			Self::ensure_validation_on_positive_externality(user_to_calculate.clone())?;
 			Self::ensure_min_stake_positive_externality(user_to_calculate.clone())?;
 
-			let pe_block_number =
-				<ValidationBlock<T>>::get(user_to_calculate.clone());
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -307,8 +294,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
-			let pe_block_number =
-				<ValidationBlock<T>>::get(user_to_calculate.clone());
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -331,8 +317,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
-			let pe_block_number =
-				<ValidationBlock<T>>::get(user_to_calculate.clone());
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -352,8 +337,7 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn unstaking(origin: OriginFor<T>, user_to_calculate: T::AccountId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let pe_block_number =
-				<ValidationBlock<T>>::get(user_to_calculate.clone());
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -372,8 +356,7 @@ pub mod pallet {
 			vote_commit: [u8; 32],
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let pe_block_number =
-				<ValidationBlock<T>>::get(user_to_calculate.clone());
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -396,8 +379,7 @@ pub mod pallet {
 
 			ensure!(choice <= 5 && choice >= 1, Error::<T>::ChoiceOutOfRange);
 
-			let pe_block_number =
-				<ValidationBlock<T>>::get(user_to_calculate.clone());
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate,
@@ -415,8 +397,7 @@ pub mod pallet {
 			user_to_calculate: T::AccountId,
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
-			let pe_block_number =
-				<ValidationBlock<T>>::get(user_to_calculate.clone());
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
 				user_address: user_to_calculate.clone(),
