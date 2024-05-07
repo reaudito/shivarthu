@@ -119,7 +119,7 @@ impl<T: Config> Pallet<T> {
 		department_required_fund_id: DepartmentRequiredFundId,
 	) -> Result<BlockNumberOf<T>, DispatchError> {
 		let block_number_option =
-			<ValidationDepartmentRequiredFundsBlock<T>>::get(department_required_fund_id);
+			<ValidationBlock<T>>::get(department_required_fund_id);
 		let block_number = match block_number_option {
 			Some(block_number) => block_number,
 			None => Err(Error::<T>::BlockDepartmentRequiredFundIdNotExists)?,

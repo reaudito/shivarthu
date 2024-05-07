@@ -108,7 +108,7 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_evidence_period_end_block(profile_user_account: T::AccountId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+		let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 		let key = SumTreeName::ProfileValidation {
 			citizen_address: profile_user_account.clone(),
@@ -125,7 +125,7 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_staking_period_end_block(profile_user_account: T::AccountId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+		let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 		let key = SumTreeName::ProfileValidation {
 			citizen_address: profile_user_account.clone(),
@@ -141,7 +141,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn get_drawing_period_end(profile_user_account: T::AccountId) -> (u64, u64, bool) {
-		let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+		let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 		let key = SumTreeName::ProfileValidation {
 			citizen_address: profile_user_account.clone(),
@@ -156,7 +156,7 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_commit_period_end_block(profile_user_account: T::AccountId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+		let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 		let key = SumTreeName::ProfileValidation {
 			citizen_address: profile_user_account.clone(),
@@ -172,7 +172,7 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_vote_period_end_block(profile_user_account: T::AccountId) -> Option<u32> {
 		let now = <frame_system::Pallet<T>>::block_number();
-		let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+		let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 		let key = SumTreeName::ProfileValidation {
 			citizen_address: profile_user_account.clone(),
@@ -187,7 +187,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn selected_as_juror(profile_user_account: T::AccountId, who: T::AccountId) -> bool {
-		let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+		let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 		let key = SumTreeName::ProfileValidation {
 			citizen_address: profile_user_account.clone(),

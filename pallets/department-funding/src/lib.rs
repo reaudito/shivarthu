@@ -123,8 +123,8 @@ pub mod pallet {
 		StorageMap<_, Twox64Concat, DepartmentRequiredFundId, bool, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn validation_department_required_funds_block_number)]
-	pub type ValidationDepartmentRequiredFundsBlock<T: Config> =
+	#[pallet::getter(fn validation_block)]
+	pub type ValidationBlock<T: Config> =
 		StorageMap<_, Blake2_128Concat, DepartmentRequiredFundId, BlockNumberOf<T>>;
 
 	#[pallet::storage]
@@ -245,7 +245,7 @@ pub mod pallet {
 				department_required_fund_id,
 				block_number: now.clone(),
 			};
-			ValidationDepartmentRequiredFundsBlock::<T>::insert(
+			ValidationBlock::<T>::insert(
 				department_required_fund_id,
 				now.clone(),
 			);

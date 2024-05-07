@@ -116,8 +116,8 @@ pub mod pallet {
 	// 	StorageMap<_, Twox64Concat, DepartmentId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn validation_project_block_number)]
-	pub type ValidationProjectBlock<T: Config> =
+	#[pallet::getter(fn validation_block)]
+	pub type ValidationBlock<T: Config> =
 		StorageMap<_, Blake2_128Concat, ProjectId, BlockNumberOf<T>>;
 
 	// Pallets use events to inform users when important changes are made.
@@ -234,7 +234,7 @@ pub mod pallet {
 
 			let key = SumTreeName::ProjectTips { project_id, block_number: now.clone() };
 
-			<ValidationProjectBlock<T>>::insert(project_id, now.clone());
+			<ValidationBlock<T>>::insert(project_id, now.clone());
 			// check what if called again, its done with `ensure_staking_period_set_once_project_id`
 			T::SchellingGameSharedSource::set_to_staking_period_pe_link(key.clone(), now.clone())?;
 			T::SchellingGameSharedSource::create_tree_helper_link(key, 3)?;

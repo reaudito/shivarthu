@@ -43,7 +43,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn ensure_staking_period_set_once_project_id(project_id: ProjectId) -> DispatchResult {
-		let block_number_option = <ValidationProjectBlock<T>>::get(project_id);
+		let block_number_option = <ValidationBlock<T>>::get(project_id);
 		match block_number_option {
 			Some(_block) => Err(Error::<T>::ProjectIdStakingPeriodAlreadySet)?,
 			None => Ok(()),
@@ -53,7 +53,7 @@ impl<T: Config> Pallet<T> {
 	pub fn get_block_number_of_schelling_game(
 		project_id: ProjectId,
 	) -> Result<BlockNumberOf<T>, DispatchError> {
-		let block_number_option = <ValidationProjectBlock<T>>::get(project_id);
+		let block_number_option = <ValidationBlock<T>>::get(project_id);
 		let block_number = match block_number_option {
 			Some(block_number) => block_number,
 			None => Err(Error::<T>::BlockNumberProjectIdNotExists)?,

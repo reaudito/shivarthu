@@ -171,8 +171,8 @@ pub mod pallet {
 		StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn profile_validation_blocknumber)]
-	pub type ProfileValidationBlock<T: Config> =
+	#[pallet::getter(fn validation_block)]
+	pub type ValidationBlock<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, BlockNumberOf<T>, ValueQuery>;
 
 	#[pallet::storage]
@@ -317,7 +317,7 @@ pub mod pallet {
 		///
 		/// ## Storage
 		///
-		/// - `ProfileValidationBlock`:  Stores the block number to be used for the profile's validation when `amount_to_fund` equals `required_fund`.
+		/// - `ValidationBlock`:  Stores the block number to be used for the profile's validation when `amount_to_fund` equals `required_fund`.
 		/// - `ProfileFundDetails`: Stores details of funds deposited by users for a specific profile.
 		/// - `ProfileTotalFundCollected`: Keeps track of the total funds collected for each profile.
 		/// - `RegistrationFee`: Retrieves the registration fee required for profile validation.
@@ -371,7 +371,7 @@ pub mod pallet {
 						citizen_address: profile_user_account.clone(),
 						block_number: now.clone(),
 					};
-					<ProfileValidationBlock<T>>::insert(&profile_user_account, now);
+					<ValidationBlock<T>>::insert(&profile_user_account, now);
 
 					// Set a link to the evidence period in the Schelling Game.
 					T::SchellingGameSharedSource::set_to_evidence_period_link(key, now)?;
@@ -467,7 +467,7 @@ pub mod pallet {
 				},
 			}
 
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
@@ -658,7 +658,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
@@ -697,7 +697,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
@@ -726,7 +726,7 @@ pub mod pallet {
 			iterations: u64,
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
@@ -748,7 +748,7 @@ pub mod pallet {
 			profile_user_account: T::AccountId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
@@ -766,7 +766,7 @@ pub mod pallet {
 			vote_commit: [u8; 32],
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
@@ -785,7 +785,7 @@ pub mod pallet {
 			salt: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
@@ -806,7 +806,7 @@ pub mod pallet {
 			profile_user_account: T::AccountId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
@@ -826,7 +826,7 @@ pub mod pallet {
 			profile_user_account: T::AccountId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let block_number = <ProfileValidationBlock<T>>::get(&profile_user_account);
+			let block_number = <ValidationBlock<T>>::get(&profile_user_account);
 			let key = SumTreeName::ProfileValidation {
 				citizen_address: profile_user_account.clone(),
 				block_number,
