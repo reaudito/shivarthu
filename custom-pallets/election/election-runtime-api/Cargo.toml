@@ -1,0 +1,18 @@
+[package]
+name = "election-runtime-api"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sp-api =  { workspace = true }
+frame-support =  { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+	"sp-api/std",
+    "frame-support/std",
+]

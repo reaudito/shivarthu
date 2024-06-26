@@ -1,3 +1,19 @@
+// Copyright (C) Moondance Labs Ltd.
+// This file is part of Tanssi.
+
+// Tanssi is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Tanssi is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Tanssi.  If not, see <http://www.gnu.org/licenses/>
+
 //! A collection of node-specific RPC methods.
 //! Substrate provides the `sc-rpc` crate, which defines the core RPC layer
 //! used by Substrate nodes. This file extends those RPC definitions with
@@ -5,65 +21,96 @@
 
 #![warn(missing_docs)]
 
-use std::sync::Arc;
+pub use sc_rpc::DenyUnsafe;
+use {
+    cumulus_primitives_core::ParaId,
+    dancebox_runtime::{opaque::Block, AccountId, Index as Nonce},
+    manual_xcm_rpc::{ManualXcm, ManualXcmApiServer},
+    polkadot_primitives::Hash,
+    sc_client_api::{AuxStore, UsageProvider},
+    sc_consensus_manual_seal::{
+        rpc::{ManualSeal, ManualSealApiServer},
+        EngineCommand,
+    },
+    sc_transaction_pool_api::TransactionPool,
+    services_payment_rpc::{
+        ServicesPayment, ServicesPaymentApiServer as _, ServicesPaymentRuntimeApi,
+    },
+    sp_api::ProvideRuntimeApi,
+    sp_block_builder::BlockBuilder,
+    sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata},
+    std::sync::Arc,
+    stream_payment_rpc::{StreamPayment, StreamPaymentApiServer as _, StreamPaymentRuntimeApi},
+};
 
-use jsonrpsee::RpcModule;
-use node_template_runtime::{opaque::Block, AccountId, Balance, Index};
-use sc_transaction_pool_api::TransactionPool;
-use sp_api::ProvideRuntimeApi;
-use sp_block_builder::BlockBuilder;
-use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+/// A type representing all RPC extensions.
+pub type RpcExtension = jsonrpsee::RpcModule<()>;
 
-pub use sc_rpc_api::DenyUnsafe;
-
-/// Full client dependencies.
+/// Full client dependencies
 pub struct FullDeps<C, P> {
-	/// The client instance to use.
-	pub client: Arc<C>,
-	/// Transaction pool instance.
-	pub pool: Arc<P>,
-	/// Whether to deny unsafe calls
-	pub deny_unsafe: DenyUnsafe,
+    /// The client instance to use.
+    pub client: Arc<C>,
+    /// Transaction pool instance.
+    pub pool: Arc<P>,
+    /// Whether to deny unsafe calls
+    pub deny_unsafe: DenyUnsafe,
+    /// Manual seal command sink
+    pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
+    /// Channels for manual xcm messages (downward, hrmp)
+    pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
 }
 
-/// Instantiate all full RPC extensions.
+/// Instantiate all RPC extensions.
 pub fn create_full<C, P>(
-	deps: FullDeps<C, P>,
-) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
+    deps: FullDeps<C, P>,
+) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
 where
-	C: ProvideRuntimeApi<Block>,
-	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
-	C: Send + Sync + 'static,
-	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
-	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: profile_validation_runtime_api::ProfileValidationApi<Block, AccountId>,
-	C::Api: department_funding_runtime_api::DepartmentFundingApi<Block, AccountId>,
-	C::Api: positive_externality_runtime_api::PositiveExternalityApi<Block, AccountId>,
-	C::Api: project_tips_runtime_api::ProjectTipsApi<Block, AccountId>,
-	C::Api: BlockBuilder<Block>,
-	P: TransactionPool + 'static,
+    C: ProvideRuntimeApi<Block>
+        + HeaderBackend<Block>
+        + AuxStore
+        + HeaderMetadata<Block, Error = BlockChainError>
+        + Send
+        + Sync
+        + UsageProvider<Block>
+        + 'static,
+    C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
+    C::Api: BlockBuilder<Block>,
+    C::Api: StreamPaymentRuntimeApi<Block, u64, u128, u128>,
+    C::Api: ServicesPaymentRuntimeApi<Block, u128, ParaId>,
+    P: TransactionPool + Sync + Send + 'static,
 {
-	use department_funding_rpc::DepartmentFundingApiServer;
-	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-	use positive_externality_rpc::PositiveExternalityApiServer;
-	use profile_validation_rpc::ProfileValidationApiServer;
-	use project_tips_rpc::ProjectTipsApiServer;
-	use substrate_frame_rpc_system::{System, SystemApiServer};
+    use substrate_frame_rpc_system::{System, SystemApiServer};
 
-	let mut module = RpcModule::new(());
-	let FullDeps { client, pool, deny_unsafe } = deps;
+    let mut module = RpcExtension::new(());
+    let FullDeps {
+        client,
+        pool,
+        deny_unsafe,
+        command_sink,
+        xcm_senders,
+    } = deps;
 
-	module.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
-	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
-	module.merge(profile_validation_rpc::ProfileValidation::new(client.clone()).into_rpc())?;
-	module.merge(department_funding_rpc::DepartmentFunding::new(client.clone()).into_rpc())?;
-	module.merge(positive_externality_rpc::PositiveExternality::new(client.clone()).into_rpc())?;
-	module.merge(project_tips_rpc::ProjectTips::new(client.clone()).into_rpc())?;
+    module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
+    module.merge(StreamPayment::<_, Block>::new(client.clone()).into_rpc())?;
+    module.merge(ServicesPayment::<_, Block>::new(client).into_rpc())?;
 
-	// Extend this RPC with a custom API by using the following syntax.
-	// `YourRpcStruct` should have a reference to a client, which is needed
-	// to call into the runtime.
-	// `module.merge(YourRpcTrait::into_rpc(YourRpcStruct::new(ReferenceToClient, ...)))?;`
+    if let Some(command_sink) = command_sink {
+        module.merge(
+            // We provide the rpc handler with the sending end of the channel to allow the rpc
+            // send EngineCommands to the background block authorship task.
+            ManualSeal::new(command_sink).into_rpc(),
+        )?;
+    };
 
-	Ok(module)
+    if let Some((downward_message_channel, hrmp_message_channel)) = xcm_senders {
+        module.merge(
+            ManualXcm {
+                downward_message_channel,
+                hrmp_message_channel,
+            }
+            .into_rpc(),
+        )?;
+    }
+
+    Ok(module)
 }

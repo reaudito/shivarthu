@@ -1,0 +1,14 @@
+[package]
+name = "department-funding-rpc"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+jsonrpsee = { workspace = true }
+sc-rpc = { workspace = true}
+sp-api = { workspace = true }
+sp-blockchain = {workspace = true }
+sp-runtime = { workspace = true }
+department-funding-runtime-api = { workspace = true}
