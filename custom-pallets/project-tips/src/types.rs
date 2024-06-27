@@ -30,6 +30,7 @@ pub struct Project<T: Config> {
     pub tipping_name: TippingName,
     pub funding_needed: BalanceOf<T>,
     pub project_leader: T::AccountId,
+    pub released: bool,
 }
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]

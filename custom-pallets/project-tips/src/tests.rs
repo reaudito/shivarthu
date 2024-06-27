@@ -1104,7 +1104,7 @@ fn schelling_game_incentives_get_test() {
             number_of_games: 20,
             winner: 18,
             loser: 2,
-            total_stake: 14 * 100 *20,
+            total_stake: 14 * 100 * 20,
             start: WhenDetails {
                 block: 201,
                 time: 0,
@@ -1130,7 +1130,7 @@ fn schelling_game_incentives_get_test() {
             number_of_games: 20,
             winner: 2,
             loser: 18,
-            total_stake: 14 * 100 *20,
+            total_stake: 14 * 100 * 20,
             start: WhenDetails {
                 block: 201,
                 time: 0,

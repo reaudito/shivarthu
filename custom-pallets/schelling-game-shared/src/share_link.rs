@@ -303,7 +303,9 @@ impl<T: Config> SchellingGameSharedLink for Pallet<T> {
         Self::drawn_jurors(key)
     }
 
-    fn get_winning_decision_value_link(key: Self::SumTreeName) -> WinningDecision {
+    fn get_winning_decision_value(
+        key: Self::SumTreeName,
+    ) -> Result<WinningDecision, DispatchError> {
         Self::get_winning_decision_value(key)
     }
 

@@ -145,7 +145,9 @@ pub trait SchellingGameSharedLink {
 
     fn get_drawn_jurors(key: Self::SumTreeName) -> Vec<(Self::AccountId, u64)>;
 
-    fn get_winning_decision_value_link(key: Self::SumTreeName) -> Self::WinningDecision;
+    fn get_winning_decision_value(
+        key: Self::SumTreeName,
+    ) -> Result<Self::WinningDecision, DispatchError>;
 
     fn get_result_of_juror(
         key: Self::SumTreeName,

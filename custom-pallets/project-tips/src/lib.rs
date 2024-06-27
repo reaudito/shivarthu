@@ -23,6 +23,7 @@ mod types;
 use frame_support::pallet_prelude::DispatchError;
 use frame_support::pallet_prelude::*;
 use frame_support::sp_runtime::traits::Saturating;
+use frame_support::sp_runtime::traits::{CheckedAdd, CheckedSub};
 use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{dispatch::DispatchResult, ensure};
 use frame_system::pallet_prelude::*;
@@ -35,7 +36,7 @@ use frame_support::{
     PalletId,
 };
 use pallet_schelling_game_shared::types::{
-    JurorGameResult, Period, PhaseData, RangePoint, SchellingGameType,
+    JurorGameResult, Period, PhaseData, RangePoint, SchellingGameType, WinningDecision,
 };
 use pallet_sortition_sum_game::types::SumTreeName;
 use pallet_support::{
@@ -85,6 +86,7 @@ pub mod pallet {
             RangePoint = RangePoint,
             Period = Period,
             PhaseData = PhaseData<Self>,
+            WinningDecision = WinningDecision,
             JurorGameResult = JurorGameResult,
         >;
         type Currency: ReservableCurrency<Self::AccountId>;
@@ -419,6 +421,82 @@ pub mod pallet {
 
         #[pallet::call_index(8)]
         #[pallet::weight(0)]
+        pub fn release_tip(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+
+            let block_number = Self::get_block_number_of_schelling_game(project_id)?;
+            let key = SumTreeName::ProjectTips {
+                project_id,
+                block_number: block_number.clone(),
+            };
+
+            let winning_decision =
+                T::SchellingGameSharedSource::get_winning_decision_value(key.clone())?;
+
+            match <Projects<T>>::get(project_id) {
+                Some(mut project) => {
+                    let tipping_name = project.tipping_name;
+                    let tipping_value = Self::value_of_tipping_name(tipping_name);
+                    let stake_required = tipping_value.stake_required;
+                    let fund_needed = project.funding_needed;
+                    let released = project.released;
+
+                    let total_funding = stake_required.checked_add(&fund_needed).expect("overflow");
+                    if winning_decision == WinningDecision::WinnerYes && released == false {
+                        project.released = true;
+
+                        <Projects<T>>::mutate(&project_id, |project_option| {
+                            *project_option = Some(project);
+                        });
+
+                        let r = <T as pallet::Config>::Currency::deposit_into_existing(
+                            &who,
+                            total_funding,
+                        )
+                        .ok()
+                        .unwrap();
+                        <T as pallet::Config>::Reward::on_unbalanced(r);
+                    } else if winning_decision == WinningDecision::WinnerNo && released == false {
+                        project.released = true;
+
+                        <Projects<T>>::mutate(&project_id, |project_option| {
+                            *project_option = Some(project);
+                        });
+
+                        let r = <T as pallet::Config>::Currency::deposit_into_existing(
+                            &who,
+                            stake_required,
+                        )
+                        .ok()
+                        .unwrap();
+                        <T as pallet::Config>::Reward::on_unbalanced(r);
+                    } else if winning_decision == WinningDecision::Draw && released == false {
+                        project.released = true;
+
+                        <Projects<T>>::mutate(&project_id, |project_option| {
+                            *project_option = Some(project);
+                        });
+
+                        let r = <T as pallet::Config>::Currency::deposit_into_existing(
+                            &who,
+                            stake_required,
+                        )
+                        .ok()
+                        .unwrap();
+                        <T as pallet::Config>::Reward::on_unbalanced(r);
+                    } else {
+                        Err(Error::<T>::ProjectDontExists)?
+                    }
+                }
+
+                None => Err(Error::<T>::ProjectDontExists)?,
+            }
+
+            Ok(())
+        }
+
+        #[pallet::call_index(9)]
+        #[pallet::weight(0)]
         pub fn add_incentive_count(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
             let who = ensure_signed(origin)?;
             let block_number = Self::get_block_number_of_schelling_game(project_id)?;
@@ -478,7 +556,7 @@ pub mod pallet {
 
         // Provide incentives
 
-        #[pallet::call_index(9)]
+        #[pallet::call_index(10)]
         #[pallet::weight(0)]
         pub fn get_incentives(origin: OriginFor<T>) -> DispatchResult {
             let who = ensure_signed(origin)?;

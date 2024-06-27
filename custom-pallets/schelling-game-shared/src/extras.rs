@@ -801,9 +801,18 @@ impl<T: Config> Pallet<T> {
         }
     }
 
-    pub(super) fn get_winning_decision_value(key: SumTreeNameType<T>) -> WinningDecision {
+    pub(super) fn get_winning_decision_value(
+        key: SumTreeNameType<T>,
+    ) -> Result<WinningDecision, DispatchError> {
+        match <PeriodName<T>>::get(&key) {
+            Some(period) => {
+                ensure!(period == Period::Execution, Error::<T>::PeriodDontMatch);
+            }
+            None => Err(Error::<T>::PeriodDoesNotExists)?,
+        }
         let decision_tuple: (u64, u64) = <DecisionCount<T>>::get(&key);
-        Self::get_winning_decision(decision_tuple)
+        let winning_decision = Self::get_winning_decision(decision_tuple);
+        Ok(winning_decision)
     }
 
     pub(super) fn get_winning_incentives(

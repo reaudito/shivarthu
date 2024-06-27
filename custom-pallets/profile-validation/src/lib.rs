@@ -838,7 +838,7 @@ pub mod pallet {
             let period = T::SchellingGameSharedSource::get_period_link(key.clone()).unwrap();
             if period == Period::Execution {
                 let decision: WinningDecision =
-                    T::SchellingGameSharedSource::get_winning_decision_value_link(key.clone());
+                    T::SchellingGameSharedSource::get_winning_decision_value(key.clone())?;
                 if decision == WinningDecision::WinnerNo {
                     match <ProfileFundDetails<T>>::get(profile_user_account.clone(), who.clone()) {
                         Some(mut profile_fund_info) => {

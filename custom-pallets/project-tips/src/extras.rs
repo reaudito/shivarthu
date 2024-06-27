@@ -17,6 +17,7 @@ impl<T: Config> Project<T> {
             tipping_name,
             funding_needed,
             project_leader,
+            released: false,
         }
     }
 }
