@@ -1,3 +1,26 @@
+# Shivarthu
+
+### Decentralized democracy with experts as leaders.
+
+https://shivarthu.reaudito.com/#/
+
+## Leptos/Rust Frontend
+
+https://github.com/reaudito/shivarthu-client
+
+## React Frontend (archieved)
+
+https://github.com/amiyatulu/shivarthu_frontend
+
+## Whitepaper
+
+https://shivarthu.reaudito.com/paper/Shivarthu_whitepaper.pdf
+
+## Technical Details
+
+https://github.com/reaudito/shivarthu/blob/main/docs/Shivarthu.md
+
+
 <p align="center">
   <img src="media/tanssi.png" width="360">
 </p>
