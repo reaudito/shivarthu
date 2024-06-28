@@ -192,6 +192,7 @@ pub mod pallet {
         BlockNumberProjectIdNotExists,
         NotReachedMinimumDecision,
         NoIncentiveCount,
+        AlreadyFunded,
     }
 
     // Check deparment exists, it will done using loose coupling
@@ -440,6 +441,7 @@ pub mod pallet {
                     let stake_required = tipping_value.stake_required;
                     let fund_needed = project.funding_needed;
                     let released = project.released;
+                    let project_leader = project.project_leader.clone();
 
                     let total_funding = stake_required.checked_add(&fund_needed).expect("overflow");
                     if winning_decision == WinningDecision::WinnerYes && released == false {
@@ -450,7 +452,7 @@ pub mod pallet {
                         });
 
                         let r = <T as pallet::Config>::Currency::deposit_into_existing(
-                            &who,
+                            &project_leader,
                             total_funding,
                         )
                         .ok()
@@ -464,7 +466,7 @@ pub mod pallet {
                         });
 
                         let r = <T as pallet::Config>::Currency::deposit_into_existing(
-                            &who,
+                            &project_leader,
                             stake_required,
                         )
                         .ok()
@@ -478,14 +480,14 @@ pub mod pallet {
                         });
 
                         let r = <T as pallet::Config>::Currency::deposit_into_existing(
-                            &who,
+                            &project_leader,
                             stake_required,
                         )
                         .ok()
                         .unwrap();
                         <T as pallet::Config>::Reward::on_unbalanced(r);
                     } else {
-                        Err(Error::<T>::ProjectDontExists)?
+                        Err(Error::<T>::AlreadyFunded)?
                     }
                 }
 
