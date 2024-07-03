@@ -4,7 +4,7 @@ use jsonrpsee::{
 	types::error::{CallError, ErrorCode, ErrorObject},
 };
 use profile_validation_runtime_api::ProfileValidationApi as ProfileValidationRuntimeApi;
-use sp_api::codec::Codec;
+use parity_scale_codec::Codec;
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::traits::Block as BlockT;

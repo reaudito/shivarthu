@@ -1736,6 +1736,8 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "dc-orchestrator-chain-interface",
  "dc-orchestrator-chain-rpc-interface",
+ "department-funding-rpc",
+ "department-funding-runtime-api",
  "dp-core",
  "flume 0.10.14",
  "frame-benchmarking",
@@ -1754,6 +1756,12 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-service",
+ "positive-externality-rpc",
+ "positive-externality-runtime-api",
+ "profile-validation-rpc",
+ "profile-validation-runtime-api",
+ "project-tips-rpc",
+ "project-tips-runtime-api",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -3152,6 +3160,19 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "url",
+]
+
+[[package]]
+name = "department-funding-rpc"
+version = "0.1.0"
+dependencies = [
+ "department-funding-runtime-api",
+ "jsonrpsee",
+ "parity-scale-codec",
+ "sc-rpc",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11337,6 +11358,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7170ef9988bc169ba16dd36a7fa041e5c4cbeb6a35b76d4c03daded371eae7c0"
 
 [[package]]
+name = "positive-externality-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee",
+ "parity-scale-codec",
+ "positive-externality-runtime-api",
+ "sc-rpc",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
 name = "positive-externality-runtime-api"
 version = "0.1.0"
 dependencies = [
@@ -11577,6 +11611,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "profile-validation-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee",
+ "parity-scale-codec",
+ "profile-validation-runtime-api",
+ "sc-rpc",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
 name = "profile-validation-runtime-api"
 version = "0.1.0"
 dependencies = [
@@ -11584,6 +11631,19 @@ dependencies = [
  "parity-scale-codec",
  "sp-api",
  "sp-std",
+]
+
+[[package]]
+name = "project-tips-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee",
+ "parity-scale-codec",
+ "project-tips-runtime-api",
+ "sc-rpc",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
 ]
 
 [[package]]

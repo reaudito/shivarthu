@@ -101,6 +101,23 @@ cumulus-relay-chain-interface = { workspace = true }
 
 pallet-shared-storage = { workspace = true }
 
+# profile valdiation rpc
+profile-validation-runtime-api = { workspace = true }
+profile-validation-rpc = { workspace = true }
+
+
+# Department funding rpc
+department-funding-runtime-api = { workspace = true }
+department-funding-rpc= {workspace = true }
+
+# Postive exterality rpc
+positive-externality-runtime-api = { workspace = true }
+positive-externality-rpc= { workspace = true }
+
+# Project tip rpc
+project-tips-runtime-api = { workspace = true }
+project-tips-rpc= { workspace = true }
+
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }

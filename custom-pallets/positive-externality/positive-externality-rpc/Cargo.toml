@@ -11,4 +11,5 @@ sc-rpc = { workspace = true  }
 sp-api = { workspace = true }
 sp-blockchain = { workspace = true  }
 sp-runtime = { workspace = true  }
+parity-scale-codec = { workspace = true }
 positive-externality-runtime-api = { workspace = true}

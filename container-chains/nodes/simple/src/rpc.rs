@@ -71,8 +71,16 @@ where
     C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
     C::Api: BlockBuilder<Block>,
     P: TransactionPool + Sync + Send + 'static,
+    C::Api: profile_validation_runtime_api::ProfileValidationApi<Block, AccountId>,
+	C::Api: department_funding_runtime_api::DepartmentFundingApi<Block, AccountId>,
+	C::Api: positive_externality_runtime_api::PositiveExternalityApi<Block, AccountId>,
+	C::Api: project_tips_runtime_api::ProjectTipsApi<Block, AccountId>,
 {
     use substrate_frame_rpc_system::{System, SystemApiServer};
+    use department_funding_rpc::DepartmentFundingApiServer;
+	use positive_externality_rpc::PositiveExternalityApiServer;
+	use profile_validation_rpc::ProfileValidationApiServer;
+	use project_tips_rpc::ProjectTipsApiServer;
 
     let mut module = RpcExtension::new(());
     let FullDeps {
@@ -83,7 +91,7 @@ where
         xcm_senders,
     } = deps;
 
-    module.merge(System::new(client, pool, deny_unsafe).into_rpc())?;
+    module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
 
     // Manual seal
     if let Some(command_sink) = command_sink {
@@ -103,6 +111,11 @@ where
             .into_rpc(),
         )?;
     }
+
+    module.merge(profile_validation_rpc::ProfileValidation::new(client.clone()).into_rpc())?;
+	module.merge(department_funding_rpc::DepartmentFunding::new(client.clone()).into_rpc())?;
+	module.merge(positive_externality_rpc::PositiveExternality::new(client.clone()).into_rpc())?;
+	module.merge(project_tips_rpc::ProjectTips::new(client.clone()).into_rpc())?;
 
     Ok(module)
 }
