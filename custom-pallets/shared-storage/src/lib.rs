@@ -15,7 +15,8 @@ mod tests;
 mod benchmarking;
 pub mod weights;
 pub use weights::*;
-mod extras;
+pub mod extras;
+pub mod types;
 
 use frame_support::sp_runtime;
 use frame_support::traits::BuildGenesisConfig;
