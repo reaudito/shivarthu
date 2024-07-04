@@ -4,7 +4,6 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
-
 /// Reputation scores that can be used for schelling game.
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
@@ -60,7 +59,7 @@ impl ReputationScore {
     pub fn subtract_score(&mut self, department: Vec<u8>, amount: i64) -> bool {
         if let Some(score) = self.departments.get_mut(&department) {
             if *score >= amount {
-                *score = score.checked_sub(amount).unwrap_or(0);
+                *score = score.checked_sub(amount).unwrap_or(i64::MIN);
                 self.total_score = self.total_score.checked_sub(amount).unwrap_or(i64::MIN);
                 true
             } else {

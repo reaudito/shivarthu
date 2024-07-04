@@ -66,7 +66,8 @@ pub mod pallet {
 
     #[pallet::storage]
     #[pallet::getter(fn  reputation_score)]
-    pub type ReputationScoreOfAccount<T:Config> = StorageMap<_, Blake2_128Concat, T::AccountId, ReputationScore>;
+    pub type ReputationScoreOfAccount<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::AccountId, ReputationScore>;
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
