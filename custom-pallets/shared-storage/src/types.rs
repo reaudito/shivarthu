@@ -4,8 +4,10 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
-#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 
+/// Reputation scores that can be used for schelling game.
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub struct ReputationScore {
     pub departments: BTreeMap<Vec<u8>, i64>,
     pub total_score: i64,
@@ -41,10 +43,10 @@ impl ReputationScore {
         self.departments.get(&department).copied()
     }
 
-    pub fn get_all_departments(&self) -> Vec<(Vec<u8>, &i64)> {
+    pub fn get_all_departments(&self) -> Vec<(Vec<u8>, i64)> {
         self.departments
             .iter()
-            .map(|(v, i)| (v.clone(), i))
+            .map(|(v, i)| (v.clone(), i.clone()))
             .collect()
     }
 
@@ -71,49 +73,5 @@ impl ReputationScore {
 
     pub fn get_total_score(&self) -> i64 {
         self.total_score
-    }
-}
-
-#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
-#[scale_info(skip_type_params(T))]
-pub struct Account<T: Config> {
-    id: T::AccountId,
-    reputation_score: ReputationScore,
-}
-
-impl<T: Config> Account<T> {
-    pub fn new(id: T::AccountId) -> Self {
-        Account {
-            id: id,
-            reputation_score: ReputationScore::new(),
-        }
-    }
-
-    pub fn add_department_score(&mut self, department: Vec<u8>, score: i64) {
-        self.reputation_score.add_department(department, score);
-    }
-
-    pub fn update_department_score(&mut self, department: Vec<u8>, score: i64) {
-        self.reputation_score.update_department(department, score);
-    }
-
-    pub fn get_department_score(&self, department: Vec<u8>) -> Option<i64> {
-        self.reputation_score.get_department_score(department)
-    }
-
-    pub fn get_all_department_scores(&self) -> Vec<(Vec<u8>, &i64)> {
-        self.reputation_score.get_all_departments()
-    }
-
-    pub fn add_score(&mut self, department: Vec<u8>, amount: i64) {
-        self.reputation_score.add_score(department, amount);
-    }
-
-    pub fn subtract_score(&mut self, department: Vec<u8>, amount: i64) -> bool {
-        self.reputation_score.subtract_score(department, amount)
-    }
-
-    pub fn get_total_reputation_score(&self) -> i64 {
-        self.reputation_score.get_total_score()
     }
 }

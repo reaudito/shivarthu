@@ -22,6 +22,7 @@ use frame_support::sp_runtime;
 use frame_support::traits::BuildGenesisConfig;
 use frame_system::pallet_prelude::*;
 use sp_std::prelude::*;
+use types::ReputationScore;
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type Score = i64;
@@ -62,6 +63,10 @@ pub mod pallet {
         StorageMap<_, Blake2_128Concat, T::AccountId, Score, ValueQuery>;
 
     // Keep winning representatives of department in shared storage
+
+    #[pallet::storage]
+    #[pallet::getter(fn  reputation_score)]
+    pub type ReputationScoreOfAccount<T:Config> = StorageMap<_, Blake2_128Concat, T::AccountId, ReputationScore>;
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
