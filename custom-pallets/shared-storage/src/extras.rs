@@ -16,6 +16,28 @@ impl<T: Config> SharedStorageLink for Pallet<T> {
     fn set_positive_externality_link(address: Self::AccountId, score: i64) -> DispatchResult {
         Self::set_positive_externality(address, score)
     }
+
+    fn add_reputation_score_to_department(
+        address: T::AccountId,
+        department: Vec<u8>,
+        amount: i64,
+    ) -> DispatchResult {
+        Self::add_reputation_score_to_department(address, department, amount)
+    }
+    fn subtract_reputation_score_from_department(
+        address: T::AccountId,
+        department: Vec<u8>,
+        amount: i64,
+    ) -> DispatchResult {
+        Self::subtract_reputation_score_from_department(address, department, amount)
+    }
+
+    fn get_department_reputation_score(address: T::AccountId, department: Vec<u8>) -> Option<i64> {
+        Self::get_department_reputation_score(address, department)
+    }
+    fn get_total_reputation_score(address: T::AccountId) -> i64 {
+        Self::get_total_reputation_score(address)
+    }
 }
 
 impl<T: Config> Pallet<T> {
