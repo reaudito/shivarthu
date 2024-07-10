@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 use frame_support::pallet_prelude::DispatchResult;
+use sp_std::vec::Vec;
+
 
 pub trait SharedStorageLink {
     type AccountId;

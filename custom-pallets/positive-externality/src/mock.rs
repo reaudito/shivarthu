@@ -106,6 +106,7 @@ impl pallet_template::Config for Test {
     type SharedStorageSource = SharedStorage;
     type Currency = Balances; // New code
     type SchellingGameSharedSource = SchellingGameShared;
+    type Reward = ();
 }
 
 // Build genesis storage according to the mock runtime.

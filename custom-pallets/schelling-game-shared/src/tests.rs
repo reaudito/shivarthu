@@ -1149,20 +1149,29 @@ fn score_schelling_game_value_test() {
         assert_ok!(TemplateModule::set_new_mean_value(key.clone()));
         let mean_values = TemplateModule::new_mean_reveal_score(key.clone());
         assert_eq!(2000, mean_values.unwrap());
-        let result =
+        let result_stake =
             TemplateModule::get_result_of_juror_score(key.clone(), 4, RangePoint::ZeroToTen);
-        assert_eq!(result.unwrap(), JurorGameResult::Won);
-        let result =
+        let (result, _) = result_stake.unwrap();
+        assert_eq!(result, JurorGameResult::Won);
+        let result_stake =
             TemplateModule::get_result_of_juror_score(key.clone(), 7, RangePoint::ZeroToTen);
-        assert_eq!(result.unwrap(), JurorGameResult::Won);
-        let result =
+        let (result, _) = result_stake.unwrap();
+
+        assert_eq!(result, JurorGameResult::Won);
+        let result_stake =
             TemplateModule::get_result_of_juror_score(key.clone(), 13, RangePoint::ZeroToTen);
-        assert_eq!(result.unwrap(), JurorGameResult::Lost);
-        let result =
+        let (result, _) = result_stake.unwrap();
+
+        assert_eq!(result, JurorGameResult::Lost);
+        let result_stake =
             TemplateModule::get_result_of_juror_score(key.clone(), 14, RangePoint::ZeroToTen);
-        assert_eq!(result.unwrap(), JurorGameResult::Won);
-        let result =
+        let (result, _) = result_stake.unwrap();
+
+        assert_eq!(result, JurorGameResult::Won);
+        let result_stake =
             TemplateModule::get_result_of_juror_score(key.clone(), 15, RangePoint::ZeroToTen);
-        assert_eq!(result.unwrap(), JurorGameResult::Lost);
+        let (result, _) = result_stake.unwrap();
+
+        assert_eq!(result, JurorGameResult::Lost);
     });
 }

@@ -173,7 +173,7 @@ impl<T: Config> Pallet<T> {
         key: SumTreeNameType<T>,
         who: AccountIdOf<T>,
         range_point: RangePoint,
-    ) -> Result<JurorGameResult, DispatchError> {
+    ) -> Result<(JurorGameResult, u64), DispatchError> {
         match <PeriodName<T>>::get(&key) {
             Some(period) => {
                 ensure!(period == Period::Execution, Error::<T>::PeriodDontMatch);
@@ -181,6 +181,14 @@ impl<T: Config> Pallet<T> {
             None => Err(Error::<T>::PeriodDoesNotExists)?,
         }
         let new_mean = Self::get_mean_value(key.clone())?;
+
+        let drawn_juror = <DrawnJurors<T>>::get(&key);
+        let mut stake = 0;
+        if let Ok(i) = drawn_juror.binary_search_by(|(c, _)| c.cmp(&who.clone())) {
+            stake = drawn_juror[i].1;
+        } else {
+            Err(Error::<T>::StakeDoesNotExists)?
+        }
 
         let incentives_range = Self::get_incentives_range(range_point);
         let reveal_votes = <ScoreVoteCommits<T>>::get(&key, &who);
@@ -193,9 +201,9 @@ impl<T: Config> Pallet<T> {
                             && vote * 1000 <= new_mean.checked_add(incentives_range).unwrap()
                         {
                             // get incentives
-                            Ok(JurorGameResult::Won)
+                            Ok((JurorGameResult::Won, stake))
                         } else {
-                            Ok(JurorGameResult::Lost)
+                            Ok((JurorGameResult::Lost, stake))
                         }
                     }
                     None => Err(Error::<T>::VoteNotRevealed)?,

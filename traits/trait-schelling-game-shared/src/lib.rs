@@ -157,7 +157,7 @@ pub trait SchellingGameSharedLink {
         key: Self::SumTreeName,
         who: Self::AccountId,
         range_point: Self::RangePoint,
-    ) -> Result<Self::JurorGameResult, DispatchError>;
+    ) -> Result<(Self::JurorGameResult, u64), DispatchError>;
 
     fn set_new_mean_value(key: Self::SumTreeName) -> DispatchResult;
 
