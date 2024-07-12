@@ -26,7 +26,9 @@ use frame_support::sp_runtime::traits::Saturating;
 use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{dispatch::DispatchResult, ensure};
 use frame_support::{
-    traits::{Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons},
+    traits::{
+        Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
+    },
     PalletId,
 };
 use frame_system::pallet_prelude::*;
@@ -139,6 +141,11 @@ pub mod pallet {
     #[pallet::getter(fn validation_block)]
     pub type ValidationBlock<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, BlockNumberOf<T>, ValueQuery>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn got_incentives_positive_externality)]
+    pub type GotPositiveExternality<T: Config> =
+        StorageMap<_, Blake2_128Concat, SumTreeNameType<T>, bool, ValueQuery>;
 
     #[pallet::storage]
     #[pallet::getter(fn incentives_count)]
@@ -416,8 +423,50 @@ pub mod pallet {
             T::SchellingGameSharedSource::reveal_vote_score_helper_link(key, who, choice, salt)?;
             Ok(())
         }
-
         #[pallet::call_index(9)]
+        #[pallet::weight(0)]
+        pub fn release_positive_externality_fund(
+            origin: OriginFor<T>,
+            user_to_calculate: T::AccountId,
+        ) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            let block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
+
+            let key = SumTreeName::PositiveExternality {
+                user_address: user_to_calculate.clone(),
+                block_number: block_number.clone(),
+            };
+
+            let score = T::SchellingGameSharedSource::get_mean_value_link(key.clone())?;
+
+            // println!("Score {:?}", score);
+
+            T::SharedStorageSource::set_positive_externality_link(
+                user_to_calculate.clone(),
+                score,
+            )?;
+
+            let got_incentives_bool = <GotPositiveExternality<T>>::get(key.clone());
+
+            if got_incentives_bool == false {
+                <GotPositiveExternality<T>>::insert(key.clone(), true);
+                let balance = Self::u64_to_balance_saturated((score as u64) * 1000);
+
+                let r = <T as pallet::Config>::Currency::deposit_into_existing(
+                    &user_to_calculate,
+                    balance,
+                )
+                .ok()
+                .unwrap();
+                <T as pallet::Config>::Reward::on_unbalanced(r);
+            } else {
+                Err(Error::<T>::AlreadyFunded)?
+            }
+
+            Ok(())
+        }
+
+        #[pallet::call_index(10)]
         #[pallet::weight(0)]
         pub fn add_incentive_count(
             origin: OriginFor<T>,
@@ -484,69 +533,68 @@ pub mod pallet {
             Ok(())
         }
 
+        // Provide incentives
 
-         // Provide incentives
+        #[pallet::call_index(11)]
+        #[pallet::weight(0)]
+        pub fn get_incentives(origin: OriginFor<T>) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            let incentive_meta = <IncentivesMeta<T>>::get();
+            let total_games_allowed = incentive_meta.total_number;
+            let incentive_count_option = <IncentiveCount<T>>::get(&who);
+            match incentive_count_option {
+                Some(incentive) => {
+                    let total_number_games = incentive.number_of_games;
+                    if total_number_games >= total_games_allowed {
+                        let new_incentives: Incentives<T> = Incentives::new(0, 0, 0, 0);
+                        <IncentiveCount<T>>::mutate(&who, |incentive_option| {
+                            *incentive_option = Some(new_incentives);
+                        });
 
-         #[pallet::call_index(10)]
-         #[pallet::weight(0)]
-         pub fn get_incentives(origin: OriginFor<T>) -> DispatchResult {
-             let who = ensure_signed(origin)?;
-             let incentive_meta = <IncentivesMeta<T>>::get();
-             let total_games_allowed = incentive_meta.total_number;
-             let incentive_count_option = <IncentiveCount<T>>::get(&who);
-             match incentive_count_option {
-                 Some(incentive) => {
-                     let total_number_games = incentive.number_of_games;
-                     if total_number_games >= total_games_allowed {
-                         let new_incentives: Incentives<T> = Incentives::new(0, 0, 0, 0);
-                         <IncentiveCount<T>>::mutate(&who, |incentive_option| {
-                             *incentive_option = Some(new_incentives);
-                         });
- 
-                         let total_win = incentive.winner;
-                         let total_lost = incentive.loser;
- 
-                         // Define multipliers
-                         let win_multiplier = 10 * 100;
-                         let lost_multiplier = incentive_meta.disincentive_times * 100;
- 
-                         // Calculate total_win_incentives and total_lost_incentives
-                         let total_win_incentives = total_win.checked_mul(win_multiplier);
-                         let total_lost_incentives = total_lost.checked_mul(lost_multiplier);
- 
-                         // Calculate total_incentives, handling overflow or negative errors
-                         let total_incentives = match (total_win_incentives, total_lost_incentives) {
-                             (Some(win), Some(lost)) => win.checked_sub(lost).unwrap_or(0),
-                             _ => 0, // If multiplication overflowed, set total_incentives to 0
-                         };
- 
-                         let mut stake = incentive.total_stake;
-                         // Deduct 1% of the stake if total_lost > total_win
-                         if total_lost > total_win {
-                             let stake_deduction = stake / 100; // 1% of the stake
-                             stake = stake.checked_sub(stake_deduction).unwrap_or(stake);
-                             // Safe subtraction
-                             // println!("Stake deducted by 1%: {}", stake);
-                         }
- 
-                         let total_fund = stake.checked_add(total_incentives).unwrap_or(0);
- 
-                         let balance = Self::u64_to_balance_saturated(total_fund);
- 
-                         let r =
-                             <T as pallet::Config>::Currency::deposit_into_existing(&who, balance)
-                                 .ok()
-                                 .unwrap();
-                         <T as pallet::Config>::Reward::on_unbalanced(r);
-                         // Provide the incentives
-                     } else {
-                         Err(Error::<T>::NotReachedMinimumDecision)?
-                     }
-                 }
-                 None => Err(Error::<T>::NoIncentiveCount)?,
-             }
-             Ok(())
-         }
+                        let total_win = incentive.winner;
+                        let total_lost = incentive.loser;
+
+                        // Define multipliers
+                        let win_multiplier = 10 * 100;
+                        let lost_multiplier = incentive_meta.disincentive_times * 100;
+
+                        // Calculate total_win_incentives and total_lost_incentives
+                        let total_win_incentives = total_win.checked_mul(win_multiplier);
+                        let total_lost_incentives = total_lost.checked_mul(lost_multiplier);
+
+                        // Calculate total_incentives, handling overflow or negative errors
+                        let total_incentives = match (total_win_incentives, total_lost_incentives) {
+                            (Some(win), Some(lost)) => win.checked_sub(lost).unwrap_or(0),
+                            _ => 0, // If multiplication overflowed, set total_incentives to 0
+                        };
+
+                        let mut stake = incentive.total_stake;
+                        // Deduct 1% of the stake if total_lost > total_win
+                        if total_lost > total_win {
+                            let stake_deduction = stake / 100; // 1% of the stake
+                            stake = stake.checked_sub(stake_deduction).unwrap_or(stake);
+                            // Safe subtraction
+                            // println!("Stake deducted by 1%: {}", stake);
+                        }
+
+                        let total_fund = stake.checked_add(total_incentives).unwrap_or(0);
+
+                        let balance = Self::u64_to_balance_saturated(total_fund);
+
+                        let r =
+                            <T as pallet::Config>::Currency::deposit_into_existing(&who, balance)
+                                .ok()
+                                .unwrap();
+                        <T as pallet::Config>::Reward::on_unbalanced(r);
+                        // Provide the incentives
+                    } else {
+                        Err(Error::<T>::NotReachedMinimumDecision)?
+                    }
+                }
+                None => Err(Error::<T>::NoIncentiveCount)?,
+            }
+            Ok(())
+        }
 
         // #[pallet::call_index(9)]
         // #[pallet::weight(0)]

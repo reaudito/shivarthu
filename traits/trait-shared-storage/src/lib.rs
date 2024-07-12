@@ -2,7 +2,6 @@
 use frame_support::pallet_prelude::DispatchResult;
 use sp_std::vec::Vec;
 
-
 pub trait SharedStorageLink {
     type AccountId;
 

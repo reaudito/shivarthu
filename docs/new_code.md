@@ -183,6 +183,7 @@ impl pallet_positive_externality::Config for Runtime {
 	type SharedStorageSource = SharedStorage;
 	type Currency = Balances;
 	type SchellingGameSharedSource = SchellingGameShared;
+	type Reward = ();
 }
 
 impl pallet_department_funding::Config for Runtime {
