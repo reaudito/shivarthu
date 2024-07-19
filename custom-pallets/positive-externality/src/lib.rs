@@ -267,10 +267,10 @@ pub mod pallet {
             let three_month_block = Self::u64_to_block_saturated(three_month_number);
             let modulus = now % three_month_block;
             let storage_main_block = now - modulus;
-            // println!("{:?}", now);
-            // println!("{:?}", three_month_number);
-            // println!("{:?}", storage_main_block);
-            // println!("{:?}", pe_block_number);
+            // println!("now: {:?}", now);
+            // println!("three month number{:?}", three_month_number);
+            // println!("storage main block {:?}", storage_main_block);
+            // println!("pe block number {:?}", pe_block_number);
 
             let key = SumTreeName::PositiveExternality {
                 user_address: user_to_calculate.clone(),
@@ -423,7 +423,26 @@ pub mod pallet {
             T::SchellingGameSharedSource::reveal_vote_score_helper_link(key, who, choice, salt)?;
             Ok(())
         }
+
         #[pallet::call_index(9)]
+        #[pallet::weight(0)]
+        pub fn set_new_mean_value(
+            origin: OriginFor<T>,
+            user_to_calculate: T::AccountId, 
+        ) -> DispatchResult {
+            let _= ensure_signed(origin)?;
+            let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
+
+            let key = SumTreeName::PositiveExternality {
+                user_address: user_to_calculate,
+                block_number: pe_block_number.clone(),
+            };
+
+            T::SchellingGameSharedSource::set_new_mean_value(key)?;
+            Ok(())
+        }
+
+        #[pallet::call_index(10)]
         #[pallet::weight(0)]
         pub fn release_positive_externality_fund(
             origin: OriginFor<T>,
@@ -466,7 +485,7 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::call_index(10)]
+        #[pallet::call_index(11)]
         #[pallet::weight(0)]
         pub fn add_incentive_count(
             origin: OriginFor<T>,
@@ -535,7 +554,7 @@ pub mod pallet {
 
         // Provide incentives
 
-        #[pallet::call_index(11)]
+        #[pallet::call_index(12)]
         #[pallet::weight(0)]
         pub fn get_incentives(origin: OriginFor<T>) -> DispatchResult {
             let who = ensure_signed(origin)?;

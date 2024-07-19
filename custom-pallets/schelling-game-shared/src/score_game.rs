@@ -214,6 +214,12 @@ impl<T: Config> Pallet<T> {
     }
 
     pub(super) fn set_new_mean_value(key: SumTreeNameType<T>) -> DispatchResult {
+        match <PeriodName<T>>::get(&key) {
+            Some(period) => {
+                ensure!(period == Period::Execution, Error::<T>::PeriodDontMatch);
+            }
+            None => Err(Error::<T>::PeriodDoesNotExists)?,
+        }
         let reveal_values = <RevealScoreValues<T>>::get(&key);
         let sd_and_mean = Self::std_deviation_interger(&reveal_values);
         let new_mean = Self::calculate_new_mean(&reveal_values, sd_and_mean).unwrap();
