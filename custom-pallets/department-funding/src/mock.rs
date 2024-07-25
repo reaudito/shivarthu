@@ -72,6 +72,7 @@ impl pallet_template::Config for Test {
     type SharedStorageSource = SharedStorage;
     type Currency = Balances; // New code
     type SchellingGameSharedSource = SchellingGameShared;
+    type Reward = ();
 }
 
 impl pallet_balances::Config for Test {

@@ -785,7 +785,25 @@ fn schelling_game_incentives_get_test() {
 
 
         full_schelling_game_func(2, 1);
-        full_schelling_game_func(3, startblock1);
+
+        let balance = Balances::free_balance(2);
+        println!("{}", balance);
+        // assert_eq!(300025, balance);
+        assert_ok!(TemplateModule::release_positive_externality_fund(
+            RuntimeOrigin::signed(14),
+            2
+        ));
+
+        let balance = Balances::free_balance(2);
+        println!("{}", balance);
+
+
+        assert_noop!(
+            TemplateModule::release_positive_externality_fund(RuntimeOrigin::signed(13), 2),
+            Error::<Test>::AlreadyFunded
+        );
+        
+        full_schelling_game_func(2, startblock1);
 
         let incentive_count = TemplateModule::incentives_count(14).unwrap();
 

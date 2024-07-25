@@ -691,6 +691,7 @@ impl pallet_department_funding::Config for Runtime {
     type SharedStorageSource = SharedStorage;
     type Currency = Balances;
     type SchellingGameSharedSource = SchellingGameShared;
+    type Reward = ();
 }
 
 impl pallet_project_tips::Config for Runtime {

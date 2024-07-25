@@ -29,14 +29,14 @@ use frame_system::pallet_prelude::*;
 use sp_std::prelude::*;
 
 use frame_support::{
-    traits::{Currency, ExistenceRequirement, Get, ReservableCurrency, WithdrawReasons},
+    traits::{Currency, ExistenceRequirement, Get, ReservableCurrency, WithdrawReasons, OnUnbalanced},
     PalletId,
 };
-use pallet_schelling_game_shared::types::{Period, PhaseData, RangePoint, SchellingGameType};
+use pallet_schelling_game_shared::types::{Period, PhaseData, RangePoint, SchellingGameType, JurorGameResult};
 use pallet_sortition_sum_game::types::SumTreeName;
 use pallet_support::{
-    ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, PostId, WhoAndWhen,
-    WhoAndWhenOf,
+    ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, PostId, WhoAndWhen, WhenDetailsOf,
+    WhoAndWhenOf, new_when_details
 };
 use trait_schelling_game_shared::SchellingGameSharedLink;
 use trait_shared_storage::SharedStorageLink;
@@ -45,8 +45,14 @@ use types::{
     DepartmentFundingStatus, DepartmentRequiredFund, FundingStatus, TippingName, TippingValue,
 };
 
+use types::{Incentives, IncentivesMetaData};
+
+
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balance;
+type PositiveImbalanceOf<T> = <<T as Config>::Currency as Currency<
+    <T as frame_system::Config>::AccountId,
+>>::PositiveImbalance;
 pub type BlockNumberOf<T> = BlockNumberFor<T>;
 pub type SumTreeNameType<T> = SumTreeName<AccountIdOf<T>, BlockNumberOf<T>>;
 type DepartmentId = u64;
@@ -80,8 +86,11 @@ pub mod pallet {
             RangePoint = RangePoint,
             Period = Period,
             PhaseData = PhaseData<Self>,
+            JurorGameResult = JurorGameResult,
         >;
         type Currency: ReservableCurrency<Self::AccountId>;
+        type Reward: OnUnbalanced<PositiveImbalanceOf<Self>>;
+
     }
 
     // The pallet's runtime storage items.
@@ -135,6 +144,21 @@ pub mod pallet {
         DepartmentFundingStatus<BlockNumberOf<T>, FundingStatus>,
     >;
 
+    #[pallet::storage]
+    #[pallet::getter(fn incentives_count)]
+    pub type IncentiveCount<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::AccountId, Incentives<T>>;
+
+    #[pallet::type_value]
+    pub fn IncentivesMetaValue<T: Config>() -> IncentivesMetaData<T> {
+        IncentivesMetaData::default()
+    }
+
+    #[pallet::storage]
+    #[pallet::getter(fn incentives_meta)]
+    pub type IncentivesMeta<T: Config> =
+        StorageValue<_, IncentivesMetaData<T>, ValueQuery, IncentivesMetaValue<T>>;
+
     // Pallets use events to inform users when important changes are made.
     // https://docs.substrate.io/main-docs/build/events-errors/
     #[pallet::event]
@@ -175,6 +199,9 @@ pub mod pallet {
         FundingStatusProcessing,
         ReapplicationTimeNotReached,
         ConditionDontMatch,
+        NotReachedMinimumDecision,
+        NoIncentiveCount,
+        AlreadyFunded,
     }
 
     // Check deparment exists, it will done using loose coupling
@@ -424,9 +451,30 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::call_index(8)]
+        // #[pallet::call_index(8)]
+        // #[pallet::weight(0)]
+        // pub fn get_incentives(
+        //     origin: OriginFor<T>,
+        //     department_required_fund_id: DepartmentRequiredFundId,
+        // ) -> DispatchResult {
+        //     let who = ensure_signed(origin)?;
+        //     let block_number =
+        //         Self::get_block_number_of_schelling_game(department_required_fund_id)?;
+        //     // let key = SumTreeName::DepartmentRequiredFund {
+        //     //     department_required_fund_id,
+        //     //     block_number: block_number.clone(),
+        //     // };
+
+        //     let phase_data = Self::get_phase_data();
+        //     // T::SchellingGameSharedSource::get_incentives_two_choice_helper_link(
+        //     //     key, phase_data, who,
+        //     // )?;
+        //     Ok(())
+        // }
+
+        #[pallet::call_index(9)]
         #[pallet::weight(0)]
-        pub fn get_incentives(
+        pub fn add_incentive_count(
             origin: OriginFor<T>,
             department_required_fund_id: DepartmentRequiredFundId,
         ) -> DispatchResult {
@@ -438,10 +486,115 @@ pub mod pallet {
                 block_number: block_number.clone(),
             };
 
-            let phase_data = Self::get_phase_data();
-            T::SchellingGameSharedSource::get_incentives_two_choice_helper_link(
-                key, phase_data, who,
-            )?;
+            let (juror_game_result, stake) =
+                T::SchellingGameSharedSource::get_result_of_juror(key.clone(), who.clone())?;
+
+            T::SchellingGameSharedSource::add_to_incentives_count(key, who.clone())?;
+            let incentive_count_option = <IncentiveCount<T>>::get(&who);
+            match incentive_count_option {
+                Some(mut incentive) => {
+                    match juror_game_result {
+                        JurorGameResult::Won => {
+                            incentive.number_of_games += 1;
+                            incentive.winner += 1;
+                            incentive.total_stake += stake;
+                        }
+                        JurorGameResult::Lost => {
+                            incentive.number_of_games += 1;
+                            incentive.loser += 1;
+                            incentive.total_stake += stake;
+                        }
+
+                        JurorGameResult::Draw => {
+                            incentive.number_of_games += 1;
+                            incentive.total_stake += stake;
+                        }
+                    };
+                    <IncentiveCount<T>>::mutate(&who, |incentive_option| {
+                        *incentive_option = Some(incentive);
+                    });
+                }
+                None => {
+                    let mut winner = 0;
+                    let mut loser = 0;
+                    match juror_game_result {
+                        JurorGameResult::Won => {
+                            winner = 1;
+                        }
+                        JurorGameResult::Lost => {
+                            loser = 1;
+                        }
+                        JurorGameResult::Draw => {}
+                    };
+                    let number_of_games = 1;
+                    let new_incentives: Incentives<T> =
+                        Incentives::new(number_of_games, winner, loser, stake);
+                    <IncentiveCount<T>>::insert(&who, new_incentives);
+                }
+            }
+
+            Ok(())
+        }
+
+
+        #[pallet::call_index(10)]
+        #[pallet::weight(0)]
+        pub fn get_incentives(origin: OriginFor<T>) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            let incentive_meta = <IncentivesMeta<T>>::get();
+            let total_games_allowed = incentive_meta.total_number;
+            let incentive_count_option = <IncentiveCount<T>>::get(&who);
+            match incentive_count_option {
+                Some(incentive) => {
+                    let total_number_games = incentive.number_of_games;
+                    if total_number_games >= total_games_allowed {
+                        let new_incentives: Incentives<T> = Incentives::new(0, 0, 0, 0);
+                        <IncentiveCount<T>>::mutate(&who, |incentive_option| {
+                            *incentive_option = Some(new_incentives);
+                        });
+
+                        let total_win = incentive.winner;
+                        let total_lost = incentive.loser;
+
+                        // Define multipliers
+                        let win_multiplier = 10 * 100;
+                        let lost_multiplier = incentive_meta.disincentive_times * 100;
+
+                        // Calculate total_win_incentives and total_lost_incentives
+                        let total_win_incentives = total_win.checked_mul(win_multiplier);
+                        let total_lost_incentives = total_lost.checked_mul(lost_multiplier);
+
+                        // Calculate total_incentives, handling overflow or negative errors
+                        let total_incentives = match (total_win_incentives, total_lost_incentives) {
+                            (Some(win), Some(lost)) => win.checked_sub(lost).unwrap_or(0),
+                            _ => 0, // If multiplication overflowed, set total_incentives to 0
+                        };
+
+                        let mut stake = incentive.total_stake;
+                        // Deduct 1% of the stake if total_lost > total_win
+                        if total_lost > total_win {
+                            let stake_deduction = stake / 100; // 1% of the stake
+                            stake = stake.checked_sub(stake_deduction).unwrap_or(stake);
+                            // Safe subtraction
+                            // println!("Stake deducted by 1%: {}", stake);
+                        }
+
+                        let total_fund = stake.checked_add(total_incentives).unwrap_or(0);
+
+                        let balance = Self::u64_to_balance_saturated(total_fund);
+
+                        let r =
+                            <T as pallet::Config>::Currency::deposit_into_existing(&who, balance)
+                                .ok()
+                                .unwrap();
+                        <T as pallet::Config>::Reward::on_unbalanced(r);
+                        // Provide the incentives
+                    } else {
+                        Err(Error::<T>::NotReachedMinimumDecision)?
+                    }
+                }
+                None => Err(Error::<T>::NoIncentiveCount)?,
+            }
             Ok(())
         }
     }
