@@ -67,7 +67,6 @@ impl pallet_sortition_sum_game::Config for Test {
 }
 
 impl pallet_balances::Config for Test {
-    type MaxHolds = ();
     type MaxLocks = ();
     type MaxReserves = ();
     type ReserveIdentifier = [u8; 8];
