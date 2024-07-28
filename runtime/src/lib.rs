@@ -63,6 +63,12 @@ pub type Nonce = u32;
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
 
+pub type ChallengePostId = u64;
+
+pub type DepartmentRequiredFundId = u64;
+
+pub type ProjectId = u64;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -251,6 +257,67 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
+
+
+impl pallet_sortition_sum_game::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_sortition_sum_game::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_schelling_game_shared::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_schelling_game_shared::weights::SubstrateWeight<Runtime>;
+	type Currency = Balances;
+	type RandomnessSource = RandomnessCollectiveFlip;
+	type Slash = ();
+	type Reward = ();
+	type SortitionSumGameSource = SortitionSumGame;
+}
+
+impl pallet_profile_validation::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_profile_validation::weights::SubstrateWeight<Runtime>;
+	type Currency = Balances;
+	type SchellingGameSharedSource = SchellingGameShared;
+	type Slash = ();
+	type Reward = ();
+}
+
+
+impl pallet_shared_storage::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_shared_storage::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_positive_externality::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_positive_externality::weights::SubstrateWeight<Runtime>;
+	type SharedStorageSource = SharedStorage;
+	type Currency = Balances;
+	type SchellingGameSharedSource = SchellingGameShared;
+	type Reward = ();
+}
+
+impl pallet_department_funding::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_department_funding::weights::SubstrateWeight<Runtime>;
+	type SharedStorageSource = SharedStorage;
+	type Currency = Balances;
+	type SchellingGameSharedSource = SchellingGameShared;
+	type Reward = ();
+}
+
+impl pallet_project_tips::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_project_tips::weights::SubstrateWeight<Runtime>;
+	type SharedStorageSource = SharedStorage;
+	type Currency = Balances;
+	type Reward = ();
+	type SchellingGameSharedSource = SchellingGameShared;	
+}
+
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
 mod runtime {
@@ -292,6 +359,31 @@ mod runtime {
 	// Include the custom logic from the pallet-template in the runtime.
 	#[runtime::pallet_index(7)]
 	pub type TemplateModule = pallet_template;
+
+	#[runtime::pallet_index(8)]
+	pub type SortitionSumGame = pallet_sortition_sum_game;
+
+	#[runtime::pallet_index(9)]
+	pub type SchellingGameShared = pallet_schelling_game_shared;
+
+	#[runtime::pallet_index(10)]
+	pub type ProfileValidation = pallet_profile_validation;
+
+	#[runtime::pallet_index(11)]
+	pub type SharedStorage = pallet_shared_storage;
+
+	#[runtime::pallet_index(12)]
+	pub type PositiveExternality = pallet_positive_externality;
+
+	#[runtime::pallet_index(13)]
+	pub type DepartmentFunding = pallet_department_funding;
+
+	#[runtime::pallet_index(14)]
+	pub type ProjectTips = pallet_project_tips;
+
+	#[runtime::pallet_index(15)]
+	pub type RandomnessCollectiveFlip = pallet_insecure_randomness_collective_flip;
+
 }
 
 /// The address format for describing accounts.
@@ -510,6 +602,106 @@ impl_runtime_apis! {
 		}
 		fn query_length_to_fee(length: u32) -> Balance {
 			TransactionPayment::length_to_fee(length)
+		}
+	}
+
+	impl profile_validation_runtime_api::ProfileValidationApi<Block, AccountId> for Runtime {
+
+		fn get_challengers_evidence(profile_user_account: AccountId, offset: u64, limit: u16) -> Vec<ChallengePostId> {
+			ProfileValidation::get_challengers_evidence(profile_user_account, offset, limit)
+		}
+
+		fn get_evidence_period_end_block(profile_user_account: AccountId) -> Option<u32> {
+			ProfileValidation::get_evidence_period_end_block(profile_user_account)
+		}
+
+		fn get_staking_period_end_block(profile_user_account: AccountId) -> Option<u32> {
+			ProfileValidation::get_staking_period_end_block(profile_user_account)
+		}
+		fn get_drawing_period_end(profile_user_account: AccountId) -> (u64, u64, bool) {
+			ProfileValidation::get_drawing_period_end(profile_user_account)
+		}
+		fn get_commit_period_end_block(profile_user_account: AccountId) -> Option<u32> {
+			ProfileValidation::get_commit_period_end_block(profile_user_account)
+		}
+
+		fn get_vote_period_end_block(profile_user_account: AccountId) -> Option<u32> {
+			ProfileValidation::get_vote_period_end_block(profile_user_account)
+		}
+		fn selected_as_juror(profile_user_account: AccountId, who: AccountId) -> bool {
+			ProfileValidation::selected_as_juror(profile_user_account, who)
+		}
+	}
+
+	impl department_funding_runtime_api::DepartmentFundingApi<Block, AccountId> for Runtime {
+
+		fn get_evidence_period_end_block(department_required_fund_id: DepartmentRequiredFundId) -> Option<u32> {
+			DepartmentFunding::get_evidence_period_end_block(department_required_fund_id)
+		}
+
+		fn get_staking_period_end_block(department_required_fund_id: DepartmentRequiredFundId) -> Option<u32> {
+			DepartmentFunding::get_staking_period_end_block(department_required_fund_id)
+		}
+		fn get_drawing_period_end(department_required_fund_id: DepartmentRequiredFundId) -> (u64, u64, bool) {
+			DepartmentFunding::get_drawing_period_end(department_required_fund_id)
+		}
+		fn get_commit_period_end_block(department_required_fund_id: DepartmentRequiredFundId) -> Option<u32> {
+			DepartmentFunding::get_commit_period_end_block(department_required_fund_id)
+		}
+
+		fn get_vote_period_end_block(department_required_fund_id: DepartmentRequiredFundId) -> Option<u32> {
+			DepartmentFunding::get_vote_period_end_block(department_required_fund_id)
+		}
+		fn selected_as_juror(department_required_fund_id: DepartmentRequiredFundId, who: AccountId) -> bool {
+			DepartmentFunding::selected_as_juror(department_required_fund_id, who)
+		}
+	}
+
+	impl positive_externality_runtime_api::PositiveExternalityApi<Block, AccountId> for Runtime {
+
+		fn get_evidence_period_end_block(user_to_calculate: AccountId) -> Option<u32> {
+			PositiveExternality::get_evidence_period_end_block(user_to_calculate)
+		}
+
+		fn get_staking_period_end_block(user_to_calculate: AccountId) -> Option<u32> {
+			PositiveExternality::get_staking_period_end_block(user_to_calculate)
+		}
+		fn get_drawing_period_end(user_to_calculate: AccountId) -> (u64, u64, bool) {
+			PositiveExternality::get_drawing_period_end(user_to_calculate)
+		}
+		fn get_commit_period_end_block(user_to_calculate: AccountId) -> Option<u32> {
+			PositiveExternality::get_commit_period_end_block(user_to_calculate)
+		}
+
+		fn get_vote_period_end_block(user_to_calculate: AccountId) -> Option<u32> {
+			PositiveExternality::get_vote_period_end_block(user_to_calculate)
+		}
+		fn selected_as_juror(user_to_calculate: AccountId, who: AccountId) -> bool {
+			PositiveExternality::selected_as_juror(user_to_calculate, who)
+		}
+	}
+
+	impl project_tips_runtime_api::ProjectTipsApi<Block, AccountId> for Runtime {
+
+		fn get_evidence_period_end_block(project_id: ProjectId) -> Option<u32> {
+			ProjectTips::get_evidence_period_end_block(project_id)
+		}
+
+		fn get_staking_period_end_block(project_id: ProjectId) -> Option<u32> {
+			ProjectTips::get_staking_period_end_block(project_id)
+		}
+		fn get_drawing_period_end(project_id: ProjectId) -> (u64, u64, bool) {
+			ProjectTips::get_drawing_period_end(project_id)
+		}
+		fn get_commit_period_end_block(project_id: ProjectId) -> Option<u32> {
+			ProjectTips::get_commit_period_end_block(project_id)
+		}
+
+		fn get_vote_period_end_block(project_id: ProjectId) -> Option<u32> {
+			ProjectTips::get_vote_period_end_block(project_id)
+		}
+		fn selected_as_juror(project_id: ProjectId, who: AccountId) -> bool {
+			ProjectTips::selected_as_juror(project_id, who)
 		}
 	}
 

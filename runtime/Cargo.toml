@@ -25,7 +25,9 @@ scale-info = { version = "2.10.0", default-features = false, features = [
 ] }
 
 # frame
-frame-support = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, features = ["experimental"] }
+frame-support = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, features = [
+	"experimental",
+] }
 frame-system = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 frame-try-runtime = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, optional = true }
 frame-executive = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
@@ -75,6 +77,27 @@ frame-system-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk.
 # The pallet in this template.
 pallet-template = { path = "../pallets/template", default-features = false }
 
+pallet-insecure-randomness-collective-flip = { workspace = true }
+
+
+pallet-sortition-sum-game = { workspace = true }
+# pallet-election={  workspace = true }
+# # election-runtime-api={ workspace = true }
+# pallet-posts = { workspace = true }
+# pallet-spaces = { workspace = true }
+pallet-schelling-game-shared = { workspace = true }
+pallet-profile-validation = { workspace = true }
+# profile-validation-runtime-api = {  workspace = true }
+pallet-shared-storage = { workspace = true }
+pallet-positive-externality = { workspace = true }
+pallet-department-funding = { workspace = true }
+pallet-project-tips = { workspace = true }
+
+profile-validation-runtime-api = { workspace = true }
+positive-externality-runtime-api = { workspace = true }
+department-funding-runtime-api = { workspace = true }
+project-tips-runtime-api = { workspace = true }
+
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", optional = true }
 
@@ -118,6 +141,18 @@ std = [
 	"sp-version/std",
 
 	"substrate-wasm-builder",
+	"pallet-insecure-randomness-collective-flip/std",
+	"pallet-sortition-sum-game/std",
+	"pallet-schelling-game-shared/std",
+	"pallet-profile-validation/std",
+	"pallet-shared-storage/std",
+	"pallet-positive-externality/std",
+	"pallet-department-funding/std",
+	"pallet-project-tips/std",
+	"profile-validation-runtime-api/std",
+	"positive-externality-runtime-api/std",
+	"department-funding-runtime-api/std",
+	"project-tips-runtime-api/std",
 ]
 
 runtime-benchmarks = [
@@ -131,6 +166,13 @@ runtime-benchmarks = [
 	"pallet-template/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
+	"pallet-sortition-sum-game/runtime-benchmarks",
+	"pallet-schelling-game-shared/runtime-benchmarks",
+	"pallet-profile-validation/runtime-benchmarks",
+	"pallet-shared-storage/runtime-benchmarks",
+	"pallet-positive-externality/runtime-benchmarks",
+	"pallet-department-funding/runtime-benchmarks",
+	"pallet-project-tips/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -146,6 +188,13 @@ try-runtime = [
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"sp-runtime/try-runtime",
+	"pallet-sortition-sum-game/try-runtime",
+	"pallet-schelling-game-shared/try-runtime",
+	"pallet-profile-validation/try-runtime",
+	"pallet-shared-storage/try-runtime",
+	"pallet-positive-externality/try-runtime",
+	"pallet-department-funding/try-runtime",
+	"pallet-project-tips/try-runtime",
 ]
 
 experimental = ["pallet-aura/experimental"]

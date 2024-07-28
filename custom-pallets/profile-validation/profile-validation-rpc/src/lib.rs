@@ -1,7 +1,7 @@
 use jsonrpsee::{
-    core::{Error as JsonRpseeError, RpcResult},
-    proc_macros::rpc,
-    types::error::{CallError, ErrorCode, ErrorObject},
+	core::RpcResult,
+	proc_macros::rpc,
+	types::{ErrorObject, ErrorObjectOwned},
 };
 use parity_scale_codec::Codec;
 use profile_validation_runtime_api::ProfileValidationApi as ProfileValidationRuntimeApi;
@@ -121,13 +121,9 @@ where
 
         let runtime_api_result =
             api.get_challengers_evidence(at, profile_user_account, offset, limit);
-        fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-            CallError::Custom(ErrorObject::owned(
-                Error::RuntimeError.into(),
-                desc,
-                Some(error.to_string()),
-            ))
-        }
+            fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+                ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+            }
         let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
         Ok(res)
     }
@@ -143,13 +139,9 @@ where
 			self.client.info().best_hash);
 
         let runtime_api_result = api.get_evidence_period_end_block(at, profile_user_account);
-        fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-            CallError::Custom(ErrorObject::owned(
-                Error::RuntimeError.into(),
-                desc,
-                Some(error.to_string()),
-            ))
-        }
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
         let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
         Ok(res)
     }
@@ -164,13 +156,9 @@ where
 			self.client.info().best_hash);
 
         let runtime_api_result = api.get_staking_period_end_block(at, profile_user_account);
-        fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-            CallError::Custom(ErrorObject::owned(
-                Error::RuntimeError.into(),
-                desc,
-                Some(error.to_string()),
-            ))
-        }
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
         let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
         Ok(res)
     }
@@ -185,13 +173,9 @@ where
 			self.client.info().best_hash);
 
         let runtime_api_result = api.get_drawing_period_end(at, profile_user_account);
-        fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-            CallError::Custom(ErrorObject::owned(
-                Error::RuntimeError.into(),
-                desc,
-                Some(error.to_string()),
-            ))
-        }
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
         let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
         Ok(res)
     }
@@ -207,13 +191,9 @@ where
 			self.client.info().best_hash);
 
         let runtime_api_result = api.get_commit_period_end_block(at, profile_user_account);
-        fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-            CallError::Custom(ErrorObject::owned(
-                Error::RuntimeError.into(),
-                desc,
-                Some(error.to_string()),
-            ))
-        }
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
         let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
         Ok(res)
     }
@@ -229,13 +209,9 @@ where
 			self.client.info().best_hash);
 
         let runtime_api_result = api.get_vote_period_end_block(at, profile_user_account);
-        fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-            CallError::Custom(ErrorObject::owned(
-                Error::RuntimeError.into(),
-                desc,
-                Some(error.to_string()),
-            ))
-        }
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
         let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
         Ok(res)
     }
@@ -252,13 +228,9 @@ where
 			self.client.info().best_hash);
 
         let runtime_api_result = api.selected_as_juror(at, profile_user_account, who);
-        fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-            CallError::Custom(ErrorObject::owned(
-                Error::RuntimeError.into(),
-                desc,
-                Some(error.to_string()),
-            ))
-        }
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
         let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
         Ok(res)
     }

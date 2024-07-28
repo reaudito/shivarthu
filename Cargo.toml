@@ -96,6 +96,10 @@ frame-support-test = { git = "https://github.com/paritytech/polkadot-sdk.git", t
 pallet-insecure-randomness-collective-flip = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-npos-elections = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false}
 log = { version = "0.4.17", default-features = false }
+jsonrpsee = { version = "0.22", features = ["client-core", "macros", "server"] }
+sc-rpc = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+sp-blockchain = {  git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false  }
+hex-literal = { version= " 0.4.1" }
 ## New end
 
 parity-scale-codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = [
@@ -116,3 +120,4 @@ pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk.git", tag 
 sp-core = {  git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-io = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false}
 sp-runtime = {  git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+sp-api = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
