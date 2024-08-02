@@ -18,7 +18,7 @@ members = [
 	"custom-pallets/sortition-sum-game",
 	"custom-pallets/spaces",
 	"custom-pallets/support",
-    "runtime",
+    "runtime", "custom-pallets/create-department",
 ]
 resolver = "2"
 [profile.release]

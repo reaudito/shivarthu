@@ -69,6 +69,8 @@ pub mod pallet {
     pub type ReputationScoreOfAccount<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, ReputationScore>;
 
+    
+
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub approved_citizen_address: Vec<T::AccountId>,

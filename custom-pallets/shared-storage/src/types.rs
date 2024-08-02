@@ -4,6 +4,8 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
+
+
 /// Reputation scores that can be used for schelling game.
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
@@ -74,3 +76,6 @@ impl ReputationScore {
         self.total_score
     }
 }
+
+
+
