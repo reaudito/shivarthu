@@ -259,7 +259,6 @@ impl pallet_template::Config for Runtime {
 
 impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
 
-
 impl pallet_sortition_sum_game::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_sortition_sum_game::weights::SubstrateWeight<Runtime>;
@@ -283,7 +282,6 @@ impl pallet_profile_validation::Config for Runtime {
 	type Slash = ();
 	type Reward = ();
 }
-
 
 impl pallet_shared_storage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -314,9 +312,8 @@ impl pallet_project_tips::Config for Runtime {
 	type SharedStorageSource = SharedStorage;
 	type Currency = Balances;
 	type Reward = ();
-	type SchellingGameSharedSource = SchellingGameShared;	
+	type SchellingGameSharedSource = SchellingGameShared;
 }
-
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
@@ -383,7 +380,6 @@ mod runtime {
 
 	#[runtime::pallet_index(15)]
 	pub type RandomnessCollectiveFlip = pallet_insecure_randomness_collective_flip;
-
 }
 
 /// The address format for describing accounts.

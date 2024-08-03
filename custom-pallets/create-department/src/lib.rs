@@ -52,8 +52,6 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-
-
 // Every callable function or "dispatchable" a pallet exposes must have weight values that correctly
 // estimate a dispatchable's execution time. The benchmarking module is used to calculate weights
 // for each dispatchable and generates this pallet's weight.rs file. Learn more about benchmarking here: https://docs.substrate.io/test/benchmark/
@@ -63,11 +61,11 @@ pub mod weights;
 pub use weights::*;
 pub mod types;
 
-pub use types::{DepartmentDetails,FIRST_DEPARTMENT_ID};
+pub use types::{DepartmentDetails, FIRST_DEPARTMENT_ID};
 
 type DepartmentId = u64;
 use pallet_support::{
-    ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, WhoAndWhen, WhoAndWhenOf,
+	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, WhoAndWhen, WhoAndWhenOf,
 };
 
 // All pallet logic is defined in its own module and must be annotated by the `pallet` attribute.
@@ -105,21 +103,24 @@ pub mod pallet {
 	pub type Something<T> = StorageValue<_, u32>;
 
 	#[pallet::type_value]
-    pub fn DefaultForNextDepartmentId() -> DepartmentId {
-        FIRST_DEPARTMENT_ID
-    }
+	pub fn DefaultForNextDepartmentId() -> DepartmentId {
+		FIRST_DEPARTMENT_ID
+	}
 
-    #[pallet::storage]
-    #[pallet::getter(fn next_department_id)]
-    pub type NextDepartmentId<T: Config> =
-        StorageValue<_, DepartmentId, ValueQuery, DefaultForNextDepartmentId>;
+	#[pallet::storage]
+	#[pallet::getter(fn next_department_id)]
+	pub type NextDepartmentId<T: Config> =
+		StorageValue<_, DepartmentId, ValueQuery, DefaultForNextDepartmentId>;
 
-    #[pallet::storage]
-    #[pallet::getter(fn department_profile)]
-    pub type DepartmentProfile<T: Config> =
-        StorageMap<_, Blake2_128Concat, DepartmentId, DepartmentDetails<T>>; // Peer account id => Peer Profile Hash
+	#[pallet::storage]
+	#[pallet::getter(fn departments)]
+	pub type Departments<T: Config> =
+		StorageMap<_, Blake2_128Concat, DepartmentId, DepartmentDetails<T>>; // Peer account id => Peer Profile Hash
 
-
+	#[pallet::storage]
+	#[pallet::getter(fn department_accounts)]
+	pub type DepartmentAccounts<T: Config> =
+		StorageMap<_, Blake2_128Concat, DepartmentId, Vec<T::AccountId>>;
 	/// Events that functions in this pallet can emit.
 	///
 	/// Events are a simple means of indicating to the outside world (such as dApps, chain explorers
@@ -133,13 +134,7 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// A user has successfully set a new value.
-		SomethingStored {
-			/// The new value set.
-			something: u32,
-			/// The account who set the new value.
-			who: T::AccountId,
-		},
+		DepartmentCreated { account: T::AccountId, department_id: DepartmentId },
 	}
 
 	/// Errors that can be returned by this pallet.
@@ -156,6 +151,9 @@ pub mod pallet {
 		NoneValue,
 		/// There was an attempt to increment the value in storage over `u32::MAX`.
 		StorageOverflow,
+		DepartmentDontExists,
+		NotAdmin,
+		AccountAlreadyExits,
 	}
 
 	/// The pallet's dispatchable functions ([`Call`]s).
@@ -172,58 +170,67 @@ pub mod pallet {
 	/// The [`weight`] macro is used to assign a weight to each call.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// An example dispatchable that takes a single u32 value as a parameter, writes the value
-		/// to storage and emits an event.
-		///
-		/// It checks that the _origin_ for this call is _Signed_ and returns a dispatch
-		/// error if it isn't. Learn more about origins here: <https://docs.substrate.io/build/origins/>
+		/// Creates a department
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
-		pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
-			// Check that the extrinsic was signed and get the signer.
+		pub fn create_department(origin: OriginFor<T>, content: Content) -> DispatchResult {
+			let new_department_id = Self::next_department_id();
+
 			let who = ensure_signed(origin)?;
+			let new_department: DepartmentDetails<T> =
+				DepartmentDetails::new(new_department_id, content, who.clone());
 
-			// Update storage.
-			Something::<T>::put(something);
+			Departments::insert(new_department_id, new_department);
 
-			// Emit an event.
-			Self::deposit_event(Event::SomethingStored { something, who });
+			NextDepartmentId::<T>::mutate(|n| {
+				*n += 1;
+			});
 
-			// Return a successful `DispatchResult`
+			Self::deposit_event(Event::DepartmentCreated {
+				account: who,
+				department_id: new_department_id,
+			});
+
 			Ok(())
 		}
 
-		/// An example dispatchable that may throw a custom error.
-		///
-		/// It checks that the caller is a signed origin and reads the current value from the
-		/// `Something` storage item. If a current value exists, it is incremented by 1 and then
-		/// written back to storage.
-		///
-		/// ## Errors
-		///
-		/// The function will return an error under the following conditions:
-		///
-		/// - If no value has been set ([`Error::NoneValue`])
-		/// - If incrementing the value in storage causes an arithmetic overflow
-		///   ([`Error::StorageOverflow`])
+		/// Add member to department
 		#[pallet::call_index(1)]
 		#[pallet::weight(0)]
-		pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
-			let _who = ensure_signed(origin)?;
+		pub fn add_members_to_department(
+			origin: OriginFor<T>,
+			department_id: DepartmentId,
+			account: T::AccountId,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			match <Departments<T>>::get(department_id) {
+				Some(department) => {
+					let admin = department.department_admin;
+					ensure!(admin == who, Error::<T>::NotAdmin);
+				},
+				None => Err(Error::<T>::DepartmentDontExists)?,
+			}
 
-			// Read a value from storage.
-			match Something::<T>::get() {
-				// Return an error if the value has not been set.
-				None => Err(Error::<T>::NoneValue.into()),
-				Some(old) => {
-					// Increment the value read from storage. This will cause an error in the event
-					// of overflow.
-					let new = old.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
-					// Update the value in storage with the incremented result.
-					Something::<T>::put(new);
-					Ok(())
+			match <DepartmentAccounts<T>>::get(department_id) {
+				Some(mut old_accounts) => {
+					// Check if some accounts already exists in old_accounts
+
+					if old_accounts.contains(&account) {
+						Err(Error::<T>::AccountAlreadyExits)?
+					}
+
+					old_accounts.push(account);
+
+					<DepartmentAccounts<T>>::mutate(&department_id, |account_option| {
+						*account_option = Some(old_accounts);
+					})
+				},
+				None => {
+					<DepartmentAccounts<T>>::insert(department_id, vec![account]);
 				},
 			}
+
+			Ok(())
 		}
 	}
 }

@@ -1,6 +1,6 @@
 use crate as pallet_template;
 use frame_support::{
-	derive_impl,parameter_types,
+	derive_impl, parameter_types,
 	traits::{ConstU16, ConstU64},
 };
 use sp_core::H256;
@@ -48,14 +48,14 @@ impl frame_system::Config for Test {
 }
 
 parameter_types! {
-    pub const MinimumPeriod: u64 = 5;
+	pub const MinimumPeriod: u64 = 5;
 }
 
 impl pallet_timestamp::Config for Test {
-    type Moment = u64;
-    type OnTimestampSet = ();
-    type MinimumPeriod = MinimumPeriod;
-    type WeightInfo = ();
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
 }
 
 impl pallet_template::Config for Test {

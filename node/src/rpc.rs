@@ -43,13 +43,12 @@ where
 	C::Api: positive_externality_runtime_api::PositiveExternalityApi<Block, AccountId>,
 	C::Api: project_tips_runtime_api::ProjectTipsApi<Block, AccountId>,
 {
-	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-	use substrate_frame_rpc_system::{System, SystemApiServer};
 	use department_funding_rpc::{DepartmentFunding, DepartmentFundingApiServer};
+	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use positive_externality_rpc::{PositiveExternality, PositiveExternalityApiServer};
 	use profile_validation_rpc::{ProfileValidation, ProfileValidationApiServer};
 	use project_tips_rpc::{ProjectTips, ProjectTipsApiServer};
-
+	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcModule::new(());
 	let FullDeps { client, pool, deny_unsafe } = deps;
