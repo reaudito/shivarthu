@@ -213,8 +213,7 @@ pub mod pallet {
 
 			match <DepartmentAccounts<T>>::get(department_id) {
 				Some(mut old_accounts) => {
-					// Check if some accounts already exists in old_accounts
-
+					// Check if account already exists in old_accounts
 					if old_accounts.contains(&account) {
 						Err(Error::<T>::AccountAlreadyExits)?
 					}
