@@ -59,10 +59,12 @@ mod tests;
 mod benchmarking;
 pub mod weights;
 pub use weights::*;
+pub mod extras;
 pub mod types;
 
+use frame_support::pallet_prelude::*;
+use frame_system::pallet_prelude::*;
 pub use types::{DepartmentDetails, FIRST_DEPARTMENT_ID};
-
 type DepartmentId = u64;
 use pallet_support::{
 	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, WhoAndWhen, WhoAndWhenOf,
@@ -73,8 +75,6 @@ use pallet_support::{
 pub mod pallet {
 	// Import various useful types required by all FRAME pallets.
 	use super::*;
-	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
 
 	// The `Pallet` struct serves as a placeholder to implement traits, methods and dispatchables
 	// (`Call`s) in this pallet.
@@ -135,6 +135,8 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		DepartmentCreated { account: T::AccountId, department_id: DepartmentId },
+		MemberAdded { new_member: T::AccountId, department_id: DepartmentId },
+		MemberRemoved { remove_member: T::AccountId, department_id: DepartmentId },
 	}
 
 	/// Errors that can be returned by this pallet.
@@ -154,6 +156,9 @@ pub mod pallet {
 		DepartmentDontExists,
 		NotAdmin,
 		AccountAlreadyExits,
+		AlreadyMember,
+		NotMember,
+		NoAccounts,
 	}
 
 	/// The pallet's dispatchable functions ([`Call`]s).
@@ -197,36 +202,81 @@ pub mod pallet {
 		/// Add member to department
 		#[pallet::call_index(1)]
 		#[pallet::weight(0)]
-		pub fn add_members_to_department(
+		pub fn add_member_to_department(
 			origin: OriginFor<T>,
 			department_id: DepartmentId,
-			account: T::AccountId,
+			new_member: T::AccountId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			match <Departments<T>>::get(department_id) {
-				Some(department) => {
-					let admin = department.department_admin;
-					ensure!(admin == who, Error::<T>::NotAdmin);
-				},
-				None => Err(Error::<T>::DepartmentDontExists)?,
-			}
+			Self::check_member_is_admin(who, department_id)?;
 
 			match <DepartmentAccounts<T>>::get(department_id) {
-				Some(mut old_accounts) => {
-					// Check if account already exists in old_accounts
-					if old_accounts.contains(&account) {
-						Err(Error::<T>::AccountAlreadyExits)?
-					}
-
-					old_accounts.push(account);
-
-					<DepartmentAccounts<T>>::mutate(&department_id, |account_option| {
-						*account_option = Some(old_accounts);
-					})
+				Some(mut accounts) => match accounts.binary_search(&new_member) {
+					Ok(_) => Err(Error::<T>::AlreadyMember)?,
+					Err(index) => {
+						accounts.insert(index, new_member.clone());
+						<DepartmentAccounts<T>>::mutate(&department_id, |account_option| {
+							*account_option = Some(accounts);
+						});
+						Self::deposit_event(Event::MemberAdded { new_member, department_id });
+					},
 				},
 				None => {
-					<DepartmentAccounts<T>>::insert(department_id, vec![account]);
+					<DepartmentAccounts<T>>::insert(department_id, vec![new_member]);
 				},
+			}
+
+			Ok(())
+		}
+
+		#[pallet::call_index(2)]
+		#[pallet::weight(0)]
+		pub fn remove_member_from_department(
+			origin: OriginFor<T>,
+			department_id: DepartmentId,
+			remove_member: T::AccountId,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			Self::check_member_is_admin(who, department_id)?;
+
+			match <DepartmentAccounts<T>>::get(department_id) {
+				Some(mut accounts) => match accounts.binary_search(&remove_member) {
+					Ok(index) => {
+						accounts.remove(index);
+						<DepartmentAccounts<T>>::mutate(&department_id, |account_option| {
+							*account_option = Some(accounts);
+						});
+						Self::deposit_event(Event::MemberRemoved { remove_member, department_id });
+					},
+					Err(_) => Err(Error::<T>::NotMember)?,
+				},
+				None => Err(Error::<T>::NoAccounts)?,
+			}
+
+			Ok(())
+		}
+
+		#[pallet::call_index(3)]
+		#[pallet::weight(0)]
+		pub fn change_the_admin(
+			origin: OriginFor<T>,
+			department_id: DepartmentId,
+			new_admin: T::AccountId,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			match <Departments<T>>::get(department_id) {
+				Some(mut department) => {
+					let admin = department.department_admin;
+					ensure!(admin == who, Error::<T>::NotAdmin);
+					department.department_admin = new_admin;
+
+					<Departments<T>>::mutate(&department_id, |department_option| {
+						*department_option = Some(department);
+					});
+				},
+				None => Err(Error::<T>::DepartmentDontExists)?,
 			}
 
 			Ok(())
