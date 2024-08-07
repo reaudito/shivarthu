@@ -70,6 +70,8 @@ use pallet_support::{
 	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, WhoAndWhen, WhoAndWhenOf,
 };
 
+use sp_std::vec;
+use sp_std::vec::Vec;
 // All pallet logic is defined in its own module and must be annotated by the `pallet` attribute.
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {

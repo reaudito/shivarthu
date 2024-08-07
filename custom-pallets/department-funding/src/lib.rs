@@ -42,6 +42,7 @@ use pallet_support::{
 	ensure_content_is_valid, new_when_details, new_who_and_when, remove_from_vec, Content, PostId,
 	WhenDetailsOf, WhoAndWhen, WhoAndWhenOf,
 };
+use trait_departments::DepartmentsLink;
 use trait_schelling_game_shared::SchellingGameSharedLink;
 use trait_shared_storage::SharedStorageLink;
 pub use types::DEPARTMENT_REQUIRED_FUND_ID;
@@ -91,6 +92,7 @@ pub mod pallet {
 			PhaseData = PhaseData<Self>,
 			JurorGameResult = JurorGameResult,
 		>;
+		type DepartmentsSource: DepartmentsLink<DepartmentId = DepartmentId>;
 		type Currency: ReservableCurrency<Self::AccountId>;
 		type Reward: OnUnbalanced<PositiveImbalanceOf<Self>>;
 	}
@@ -219,6 +221,7 @@ pub mod pallet {
 			funding_needed: BalanceOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+			T::DepartmentsSource::check_department_exists(department_id)?;
 			let tipping_value = Self::value_of_tipping_name(tipping_name);
 			let max_tipping_value = tipping_value.max_tipping_value;
 			let stake_required = tipping_value.stake_required;

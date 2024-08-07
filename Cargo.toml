@@ -10,15 +10,16 @@ members = [
     "node",
     "pallets/template",
     "custom-pallets/department-funding",
-	"custom-pallets/positive-externality",
-	"custom-pallets/profile-validation",
-	"custom-pallets/project-tips",
-	"custom-pallets/schelling-game-shared",
-	"custom-pallets/shared-storage",
-	"custom-pallets/sortition-sum-game",
-	"custom-pallets/spaces",
-	"custom-pallets/support",
-    "runtime", "custom-pallets/create-department",
+    "custom-pallets/positive-externality",
+    "custom-pallets/profile-validation",
+    "custom-pallets/project-tips",
+    "custom-pallets/schelling-game-shared",
+    "custom-pallets/shared-storage",
+    "custom-pallets/sortition-sum-game",
+    "custom-pallets/spaces",
+    "custom-pallets/support",
+    "custom-pallets/departments",
+    "runtime",
 ]
 resolver = "2"
 [profile.release]
@@ -68,11 +69,13 @@ pallet-profile-validation = { path = "custom-pallets/profile-validation", defaul
 pallet-project-tips = { path = "custom-pallets/project-tips", default-features = false }
 pallet-positive-externality = { path = "custom-pallets/positive-externality", default-features = false }
 pallet-department-funding = { path = "custom-pallets/department-funding", default-features = false }
+pallet-departments = { path = "custom-pallets/departments", default-features = false }
 
 ## Traits
 trait-sortition-sum-game = { path = "traits/trait-sortition-sum-game", default-features = false }
 trait-shared-storage = { path = "traits/trait-shared-storage", default-features = false }
 trait-schelling-game-shared = { path = "traits/trait-schelling-game-shared", default-features = false }
+trait-departments = { path = "traits/trait-departments", default-features = false }
 
 ## Api
 profile-validation-runtime-api = { path = "custom-pallets/profile-validation/profile-validation-runtime-api", default-features = false }
@@ -94,30 +97,30 @@ strum = { version = "0.26.2", default-features = false, features = ["derive"] }
 num-integer = { default-features = false, version = "0.1.44" }
 frame-support-test = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 pallet-insecure-randomness-collective-flip = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-npos-elections = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false}
+sp-npos-elections = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 log = { version = "0.4.17", default-features = false }
 jsonrpsee = { version = "0.22", features = ["client-core", "macros", "server"] }
 sc-rpc = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-blockchain = {  git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false  }
-hex-literal = { version= " 0.4.1" }
+sp-blockchain = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+hex-literal = { version = " 0.4.1" }
 ## New end
 
 parity-scale-codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = [
-	"derive",
+    "derive",
 ] }
 scale-info = { version = "2.10.0", default-features = false, features = [
-	"derive",
+    "derive",
 ] }
 
 # frame deps
-frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false}
+frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 frame-support = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 frame-system = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-std = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false}
-pallet-timestamp = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false}
-pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false}
+sp-std = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+pallet-timestamp = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 
-sp-core = {  git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-io = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false}
-sp-runtime = {  git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+sp-core = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+sp-io = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-api = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }

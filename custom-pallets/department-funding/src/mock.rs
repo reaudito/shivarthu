@@ -22,6 +22,7 @@ frame_support::construct_runtime!(
 		SharedStorage:pallet_shared_storage,
 		SchellingGameShared: pallet_schelling_game_shared,
 		SortitionSumGame: pallet_sortition_sum_game,
+		Departments: pallet_departments,
 	}
 );
 #[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig)]
@@ -72,6 +73,7 @@ impl pallet_template::Config for Test {
 	type SharedStorageSource = SharedStorage;
 	type Currency = Balances; // New code
 	type SchellingGameSharedSource = SchellingGameShared;
+	type DepartmentsSource = Departments;
 	type Reward = ();
 }
 
@@ -102,6 +104,11 @@ impl pallet_schelling_game_shared::Config for Test {
 }
 
 impl pallet_sortition_sum_game::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+}
+
+impl pallet_departments::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 }

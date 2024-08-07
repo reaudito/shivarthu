@@ -297,12 +297,18 @@ impl pallet_positive_externality::Config for Runtime {
 	type Reward = ();
 }
 
+impl pallet_departments::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_departments::weights::SubstrateWeight<Runtime>;
+}
+
 impl pallet_department_funding::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_department_funding::weights::SubstrateWeight<Runtime>;
 	type SharedStorageSource = SharedStorage;
 	type Currency = Balances;
 	type SchellingGameSharedSource = SchellingGameShared;
+	type DepartmentsSource = Departments;
 	type Reward = ();
 }
 
@@ -380,6 +386,9 @@ mod runtime {
 
 	#[runtime::pallet_index(15)]
 	pub type RandomnessCollectiveFlip = pallet_insecure_randomness_collective_flip;
+
+	#[runtime::pallet_index(16)]
+	pub type Departments = pallet_departments;
 }
 
 /// The address format for describing accounts.

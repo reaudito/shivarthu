@@ -17,16 +17,16 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = [
-	"derive",
+    "derive",
 ] }
 scale-info = { version = "2.10.0", default-features = false, features = [
-	"derive",
-	"serde",
+    "derive",
+    "serde",
 ] }
 
 # frame
 frame-support = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, features = [
-	"experimental",
+    "experimental",
 ] }
 frame-system = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 frame-try-runtime = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, optional = true }
@@ -44,25 +44,25 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/polkadot-sdk
 sp-api = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-block-builder = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, features = [
-	"serde",
+    "serde",
 ] }
 sp-consensus-grandpa = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, features = [
-	"serde",
+    "serde",
 ] }
 sp-core = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, features = [
-	"serde",
+    "serde",
 ] }
 sp-inherents = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-offchain = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, features = [
-	"serde",
+    "serde",
 ] }
 sp-session = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-std = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-storage = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-transaction-pool = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-version = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false, features = [
-	"serde",
+    "serde",
 ] }
 sp-genesis-builder = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0" }
 
@@ -92,11 +92,13 @@ pallet-shared-storage = { workspace = true }
 pallet-positive-externality = { workspace = true }
 pallet-department-funding = { workspace = true }
 pallet-project-tips = { workspace = true }
+pallet-departments = { workspace = true }
 
 profile-validation-runtime-api = { workspace = true }
 positive-externality-runtime-api = { workspace = true }
 department-funding-runtime-api = { workspace = true }
 project-tips-runtime-api = { workspace = true }
+
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", optional = true }
@@ -104,97 +106,97 @@ substrate-wasm-builder = { git = "https://github.com/paritytech/polkadot-sdk.git
 [features]
 default = ["std"]
 std = [
-	"codec/std",
-	"scale-info/std",
+    "codec/std",
+    "scale-info/std",
 
-	"frame-executive/std",
-	"frame-support/std",
-	"frame-system-benchmarking?/std",
-	"frame-system-rpc-runtime-api/std",
-	"frame-system/std",
+    "frame-executive/std",
+    "frame-support/std",
+    "frame-system-benchmarking?/std",
+    "frame-system-rpc-runtime-api/std",
+    "frame-system/std",
 
-	"frame-benchmarking?/std",
-	"frame-try-runtime?/std",
+    "frame-benchmarking?/std",
+    "frame-try-runtime?/std",
 
-	"pallet-aura/std",
-	"pallet-balances/std",
-	"pallet-grandpa/std",
-	"pallet-sudo/std",
-	"pallet-template/std",
-	"pallet-timestamp/std",
-	"pallet-transaction-payment-rpc-runtime-api/std",
-	"pallet-transaction-payment/std",
+    "pallet-aura/std",
+    "pallet-balances/std",
+    "pallet-grandpa/std",
+    "pallet-sudo/std",
+    "pallet-template/std",
+    "pallet-timestamp/std",
+    "pallet-transaction-payment-rpc-runtime-api/std",
+    "pallet-transaction-payment/std",
 
-	"sp-api/std",
-	"sp-block-builder/std",
-	"sp-consensus-aura/std",
-	"sp-consensus-grandpa/std",
-	"sp-core/std",
-	"sp-genesis-builder/std",
-	"sp-inherents/std",
-	"sp-offchain/std",
-	"sp-runtime/std",
-	"sp-session/std",
-	"sp-std/std",
-	"sp-storage/std",
-	"sp-transaction-pool/std",
-	"sp-version/std",
+    "sp-api/std",
+    "sp-block-builder/std",
+    "sp-consensus-aura/std",
+    "sp-consensus-grandpa/std",
+    "sp-core/std",
+    "sp-genesis-builder/std",
+    "sp-inherents/std",
+    "sp-offchain/std",
+    "sp-runtime/std",
+    "sp-session/std",
+    "sp-std/std",
+    "sp-storage/std",
+    "sp-transaction-pool/std",
+    "sp-version/std",
 
-	"substrate-wasm-builder",
-	"pallet-insecure-randomness-collective-flip/std",
-	"pallet-sortition-sum-game/std",
-	"pallet-schelling-game-shared/std",
-	"pallet-profile-validation/std",
-	"pallet-shared-storage/std",
-	"pallet-positive-externality/std",
-	"pallet-department-funding/std",
-	"pallet-project-tips/std",
-	"profile-validation-runtime-api/std",
-	"positive-externality-runtime-api/std",
-	"department-funding-runtime-api/std",
-	"project-tips-runtime-api/std",
+    "substrate-wasm-builder",
+    "pallet-insecure-randomness-collective-flip/std",
+    "pallet-sortition-sum-game/std",
+    "pallet-schelling-game-shared/std",
+    "pallet-profile-validation/std",
+    "pallet-shared-storage/std",
+    "pallet-positive-externality/std",
+    "pallet-department-funding/std",
+    "pallet-project-tips/std",
+    "profile-validation-runtime-api/std",
+    "positive-externality-runtime-api/std",
+    "department-funding-runtime-api/std",
+    "project-tips-runtime-api/std",
 ]
 
 runtime-benchmarks = [
-	"frame-benchmarking/runtime-benchmarks",
-	"frame-support/runtime-benchmarks",
-	"frame-system-benchmarking/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"pallet-balances/runtime-benchmarks",
-	"pallet-grandpa/runtime-benchmarks",
-	"pallet-sudo/runtime-benchmarks",
-	"pallet-template/runtime-benchmarks",
-	"pallet-timestamp/runtime-benchmarks",
-	"sp-runtime/runtime-benchmarks",
-	"pallet-sortition-sum-game/runtime-benchmarks",
-	"pallet-schelling-game-shared/runtime-benchmarks",
-	"pallet-profile-validation/runtime-benchmarks",
-	"pallet-shared-storage/runtime-benchmarks",
-	"pallet-positive-externality/runtime-benchmarks",
-	"pallet-department-funding/runtime-benchmarks",
-	"pallet-project-tips/runtime-benchmarks",
+    "frame-benchmarking/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+    "frame-system-benchmarking/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "pallet-balances/runtime-benchmarks",
+    "pallet-grandpa/runtime-benchmarks",
+    "pallet-sudo/runtime-benchmarks",
+    "pallet-template/runtime-benchmarks",
+    "pallet-timestamp/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
+    "pallet-sortition-sum-game/runtime-benchmarks",
+    "pallet-schelling-game-shared/runtime-benchmarks",
+    "pallet-profile-validation/runtime-benchmarks",
+    "pallet-shared-storage/runtime-benchmarks",
+    "pallet-positive-externality/runtime-benchmarks",
+    "pallet-department-funding/runtime-benchmarks",
+    "pallet-project-tips/runtime-benchmarks",
 ]
 
 try-runtime = [
-	"frame-executive/try-runtime",
-	"frame-support/try-runtime",
-	"frame-system/try-runtime",
-	"frame-try-runtime/try-runtime",
-	"pallet-aura/try-runtime",
-	"pallet-balances/try-runtime",
-	"pallet-grandpa/try-runtime",
-	"pallet-sudo/try-runtime",
-	"pallet-template/try-runtime",
-	"pallet-timestamp/try-runtime",
-	"pallet-transaction-payment/try-runtime",
-	"sp-runtime/try-runtime",
-	"pallet-sortition-sum-game/try-runtime",
-	"pallet-schelling-game-shared/try-runtime",
-	"pallet-profile-validation/try-runtime",
-	"pallet-shared-storage/try-runtime",
-	"pallet-positive-externality/try-runtime",
-	"pallet-department-funding/try-runtime",
-	"pallet-project-tips/try-runtime",
+    "frame-executive/try-runtime",
+    "frame-support/try-runtime",
+    "frame-system/try-runtime",
+    "frame-try-runtime/try-runtime",
+    "pallet-aura/try-runtime",
+    "pallet-balances/try-runtime",
+    "pallet-grandpa/try-runtime",
+    "pallet-sudo/try-runtime",
+    "pallet-template/try-runtime",
+    "pallet-timestamp/try-runtime",
+    "pallet-transaction-payment/try-runtime",
+    "sp-runtime/try-runtime",
+    "pallet-sortition-sum-game/try-runtime",
+    "pallet-schelling-game-shared/try-runtime",
+    "pallet-profile-validation/try-runtime",
+    "pallet-shared-storage/try-runtime",
+    "pallet-positive-externality/try-runtime",
+    "pallet-department-funding/try-runtime",
+    "pallet-project-tips/try-runtime",
 ]
 
 experimental = ["pallet-aura/experimental"]
