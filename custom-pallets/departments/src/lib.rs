@@ -181,9 +181,10 @@ pub mod pallet {
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
 		pub fn create_department(origin: OriginFor<T>, content: Content) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
 			let new_department_id = Self::next_department_id();
 
-			let who = ensure_signed(origin)?;
 			let new_department: DepartmentDetails<T> =
 				DepartmentDetails::new(new_department_id, content, who.clone());
 

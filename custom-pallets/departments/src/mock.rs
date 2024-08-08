@@ -16,7 +16,8 @@ frame_support::construct_runtime!(
 	pub enum Test
 	{
 		System: frame_system,
-		CreateDepartmentModule: pallet_template,
+		Timestamp: pallet_timestamp,
+		Departments: pallet_template,
 	}
 );
 
@@ -62,6 +63,8 @@ impl pallet_template::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 }
+
+
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
