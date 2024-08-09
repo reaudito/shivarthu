@@ -225,7 +225,8 @@ pub mod pallet {
 					},
 				},
 				None => {
-					<DepartmentAccounts<T>>::insert(department_id, vec![new_member]);
+					<DepartmentAccounts<T>>::insert(department_id, vec![new_member.clone()]);
+					Self::deposit_event(Event::MemberAdded { new_member, department_id });
 				},
 			}
 
