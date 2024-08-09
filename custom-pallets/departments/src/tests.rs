@@ -314,3 +314,97 @@ fn remove_member_from_department_fails_if_no_accounts() {
 		);
 	});
 }
+
+#[test]
+fn change_the_admin_works() {
+	new_test_ext().execute_with(|| {
+		// Go past genesis block so events get deposited
+		System::set_block_number(1);
+		let admin_account_id = 1;
+		let new_admin_account_id = 2;
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
+
+		// Create a department
+		assert_ok!(Departments::create_department(
+			RuntimeOrigin::signed(admin_account_id),
+			content.clone()
+		));
+
+		// Get the department ID
+		let department_id = Departments::next_department_id() - 1;
+
+		// Change the admin of the department
+		assert_ok!(Departments::change_the_admin(
+			RuntimeOrigin::signed(admin_account_id),
+			department_id,
+			new_admin_account_id
+		));
+
+		// Check that the admin was changed correctly
+		let department = Departments::departments(department_id).unwrap();
+		assert_eq!(department.department_admin, new_admin_account_id);
+
+		// Verify that the correct event was emitted
+		System::assert_last_event(
+			Event::AdminChanged { admin_changed: new_admin_account_id, department_id }.into(),
+		);
+	});
+}
+
+#[test]
+fn change_the_admin_fails_if_not_current_admin() {
+	new_test_ext().execute_with(|| {
+		System::set_block_number(1);
+		let admin_account_id = 1;
+		let non_admin_account_id = 3;
+		let new_admin_account_id = 2;
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
+
+		// Create a department
+		assert_ok!(Departments::create_department(
+			RuntimeOrigin::signed(admin_account_id),
+			content.clone()
+		));
+
+		// Get the department ID
+		let department_id = Departments::next_department_id() - 1;
+
+		// Attempt to change the admin with a non-admin account, should fail
+		assert_noop!(
+			Departments::change_the_admin(
+				RuntimeOrigin::signed(non_admin_account_id),
+				department_id,
+				new_admin_account_id
+			),
+			Error::<Test>::NotAdmin
+		);
+	});
+}
+
+#[test]
+fn change_the_admin_fails_if_department_does_not_exist() {
+	new_test_ext().execute_with(|| {
+		System::set_block_number(1);
+		let admin_account_id = 1;
+		let new_admin_account_id = 2;
+		let non_existent_department_id = 999; // Assuming this ID does not exist
+
+		// Attempt to change the admin of a non-existent department, should fail
+		assert_noop!(
+			Departments::change_the_admin(
+				RuntimeOrigin::signed(admin_account_id),
+				non_existent_department_id,
+				new_admin_account_id
+			),
+			Error::<Test>::DepartmentDontExists
+		);
+	});
+}

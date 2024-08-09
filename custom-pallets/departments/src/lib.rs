@@ -139,6 +139,7 @@ pub mod pallet {
 		DepartmentCreated { account: T::AccountId, department_id: DepartmentId },
 		MemberAdded { new_member: T::AccountId, department_id: DepartmentId },
 		MemberRemoved { remove_member: T::AccountId, department_id: DepartmentId },
+		AdminChanged { admin_changed: T::AccountId, department_id: DepartmentId },
 	}
 
 	/// Errors that can be returned by this pallet.
@@ -274,10 +275,15 @@ pub mod pallet {
 				Some(mut department) => {
 					let admin = department.department_admin;
 					ensure!(admin == who, Error::<T>::NotAdmin);
-					department.department_admin = new_admin;
+					department.department_admin = new_admin.clone();
 
 					<Departments<T>>::mutate(&department_id, |department_option| {
 						*department_option = Some(department);
+					});
+
+					Self::deposit_event(Event::AdminChanged {
+						admin_changed: new_admin,
+						department_id,
 					});
 				},
 				None => Err(Error::<T>::DepartmentDontExists)?,
