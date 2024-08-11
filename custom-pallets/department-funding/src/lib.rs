@@ -125,7 +125,7 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn get_department_required_funds)]
+	#[pallet::getter(fn department_required_funds)]
 	pub type DepartmentRequiredFunds<T: Config> =
 		StorageMap<_, Blake2_128Concat, DepartmentRequiredFundId, DepartmentRequiredFund<T>>;
 
@@ -261,7 +261,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			department_required_fund_id: DepartmentRequiredFundId,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+			let _who = ensure_signed(origin)?;
 			Self::ensure_validation_to_do(department_required_fund_id)?;
 			let department_id = Self::get_department_id_from_department_required_fund_id(
 				department_required_fund_id,

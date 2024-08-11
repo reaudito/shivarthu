@@ -23,6 +23,7 @@ frame_support::construct_runtime!(
 		SchellingGameShared: pallet_schelling_game_shared,
 		SortitionSumGame: pallet_sortition_sum_game,
 		Departments: pallet_departments,
+		Timestamp: pallet_timestamp,
 	}
 );
 #[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig)]

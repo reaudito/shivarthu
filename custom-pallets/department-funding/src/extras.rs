@@ -48,6 +48,32 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
+	/// Ensures that a department can stake based on its current funding status and the time elapsed since the last status change.
+	///
+	/// # Parameters
+	/// - `department_id`: The identifier of the department for which staking is being checked.
+	///
+	/// # Returns
+	/// - `Ok(DepartmentFundingStatus)`: If the department can proceed with staking. The returned value contains the current block number and sets the status to `Processing`.
+	/// - `Err(DispatchError)`: If the department cannot stake due to one of the following reasons:
+	///   - **`FundingStatus::Processing`**: The department is already in the `Processing` state, meaning that a funding operation is currently ongoing.
+	///   - **`FundingStatus::Failed`**: The department's last funding attempt failed, and the required waiting period (defined by `TIME_FOR_STAKING_FUNDING_STATUS_FAILED`) has not yet passed.
+	///   - **`FundingStatus::Success`**: The department's last funding attempt succeeded, and the required waiting period (defined by `TIME_FOR_STAKING_FUNDING_STATUS_PASSED`) has not yet passed.
+	///   - **`ConditionDontMatch`**: If the department's funding status doesn't match any known conditions.
+	///
+	/// # Logic
+	/// 1. **Current Block Time**: The function first retrieves the current block number to timestamp the new funding status if applicable.
+	/// 2. **Existing Status Check**: It checks if there is an existing funding status for the given department:
+	///    - **Processing**: If the status is `Processing`, staking cannot proceed, and an error is returned.
+	///    - **Failed**: If the status is `Failed`, it checks if the required waiting period has passed since the failure. If the time has passed, staking can proceed; otherwise, an error is returned.
+	///    - **Success**: If the status is `Success`, it similarly checks if the required waiting period has passed. If it has, staking can proceed; otherwise, an error is returned.
+	///    - **Other Conditions**: If the status does not match any of the above, an error is returned.
+	/// 3. **No Existing Status**: If there is no existing status, staking is allowed, and the department's status is set to `Processing`.
+	///
+	/// # Errors
+	/// - **`FundingStatusProcessing`**: Returned if the department is already in the `Processing` state.
+	/// - **`ReapplicationTimeNotReached`**: Returned if the department is trying to reapply before the required waiting period has passed.
+	/// - **`ConditionDontMatch`**: Returned if the department's funding status doesn't match any known conditions.
 	pub fn ensure_can_stake_using_status(
 		department_id: DepartmentId,
 	) -> Result<DepartmentFundingStatus<BlockNumberOf<T>, FundingStatus>, DispatchError> {
