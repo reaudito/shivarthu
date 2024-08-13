@@ -92,7 +92,10 @@ pub mod pallet {
 			PhaseData = PhaseData<Self>,
 			JurorGameResult = JurorGameResult,
 		>;
-		type DepartmentsSource: DepartmentsLink<DepartmentId = DepartmentId>;
+		type DepartmentsSource: DepartmentsLink<
+			DepartmentId = DepartmentId,
+			AccountId = AccountIdOf<Self>,
+		>;
 		type Currency: ReservableCurrency<Self::AccountId>;
 		type Reward: OnUnbalanced<PositiveImbalanceOf<Self>>;
 	}
@@ -254,18 +257,33 @@ pub mod pallet {
 			Ok(())
 		}
 
-		// Check update and discussion time over, only project creator can apply staking period
 		#[pallet::call_index(1)]
+		#[pallet::weight(0)]
+		pub fn allow_validation(
+			origin: OriginFor<T>,
+			department_required_fund_id: DepartmentRequiredFundId,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			T::DepartmentsSource::check_member_is_admin(who, department_required_fund_id)?;
+
+			Ok(())
+		}
+
+		// Check update and discussion time over, only project creator can apply staking period
+		#[pallet::call_index(2)]
 		#[pallet::weight(0)]
 		pub fn apply_staking_period(
 			origin: OriginFor<T>,
 			department_required_fund_id: DepartmentRequiredFundId,
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
-			Self::ensure_validation_to_do(department_required_fund_id)?;
+			// Self::ensure_validation_to_do(department_required_fund_id)?;
 			let department_id = Self::get_department_id_from_department_required_fund_id(
 				department_required_fund_id,
 			)?;
+
+			// These two steps can be removed to eliminate the time limit for department funding applications.
 			let department_funding_status = Self::ensure_can_stake_using_status(department_id)?;
 			DepartmentFundingStatusForDepartmentId::<T>::insert(
 				department_id,
@@ -311,7 +329,7 @@ pub mod pallet {
 		// 	Ok(())
 		// }
 
-		#[pallet::call_index(2)]
+		#[pallet::call_index(3)]
 		#[pallet::weight(0)]
 		pub fn apply_jurors(
 			origin: OriginFor<T>,
@@ -345,7 +363,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(3)]
+		#[pallet::call_index(4)]
 		#[pallet::weight(0)]
 		pub fn pass_period(
 			origin: OriginFor<T>,
@@ -367,7 +385,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(4)]
+		#[pallet::call_index(5)]
 		#[pallet::weight(0)]
 		pub fn draw_jurors(
 			origin: OriginFor<T>,
@@ -393,7 +411,7 @@ pub mod pallet {
 
 		// Unstaking
 		// Stop drawn juror to unstake ✔️
-		#[pallet::call_index(5)]
+		#[pallet::call_index(6)]
 		#[pallet::weight(0)]
 		pub fn unstaking(
 			origin: OriginFor<T>,
@@ -411,7 +429,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(6)]
+		#[pallet::call_index(7)]
 		#[pallet::weight(0)]
 		pub fn commit_vote(
 			origin: OriginFor<T>,
@@ -430,7 +448,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(7)]
+		#[pallet::call_index(8)]
 		#[pallet::weight(0)]
 		pub fn reveal_vote(
 			origin: OriginFor<T>,

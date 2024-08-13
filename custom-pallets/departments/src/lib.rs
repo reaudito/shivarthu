@@ -72,6 +72,8 @@ use pallet_support::{
 
 use sp_std::vec;
 use sp_std::vec::Vec;
+type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
+
 // All pallet logic is defined in its own module and must be annotated by the `pallet` attribute.
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {

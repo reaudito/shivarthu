@@ -3,9 +3,17 @@ use trait_departments::DepartmentsLink;
 
 impl<T: Config> DepartmentsLink for Pallet<T> {
 	type DepartmentId = DepartmentId;
+	type AccountId = AccountIdOf<T>;
 
-	fn check_department_exists(department_id: DepartmentId) -> DispatchResult {
+	fn check_department_exists(department_id: Self::DepartmentId) -> DispatchResult {
 		Self::check_department_exists(department_id)
+	}
+
+	fn check_member_is_admin(
+		who: Self::AccountId,
+		department_id: Self::DepartmentId,
+	) -> DispatchResult {
+		Self::check_member_is_admin(who, department_id)
 	}
 }
 
