@@ -257,6 +257,8 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Check member is admin
+		// To Do! Set ValidateDepartmentRequiredFund
 		#[pallet::call_index(1)]
 		#[pallet::weight(0)]
 		pub fn allow_validation(
