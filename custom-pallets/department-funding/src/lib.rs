@@ -50,7 +50,7 @@ use types::{
 	DepartmentFundingStatus, DepartmentRequiredFund, FundingStatus, TippingName, TippingValue,
 };
 
-use types::{Incentives, IncentivesMetaData};
+use types::{DepartmentFundDetails, Incentives, IncentivesMetaData};
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balance;
@@ -165,6 +165,11 @@ pub mod pallet {
 	#[pallet::getter(fn incentives_meta)]
 	pub type IncentivesMeta<T: Config> =
 		StorageValue<_, IncentivesMetaData<T>, ValueQuery, IncentivesMetaValue<T>>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn department_fund)]
+	pub type DepartmentFund<T: Config> =
+		StorageMap<_, Blake2_128Concat, DepartmentId, DepartmentFundDetails>;
 
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/

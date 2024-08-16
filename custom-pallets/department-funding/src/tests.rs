@@ -1,9 +1,10 @@
-use crate::types::TippingName;
+use crate::types::{Incentives, TippingName};
 use crate::{mock::*, Error, Event};
 use frame_support::{assert_noop, assert_ok};
 use pallet_schelling_game_shared::types::Period;
 use pallet_sortition_sum_game::types::SumTreeName;
 use pallet_support::Content;
+use pallet_support::WhenDetails;
 
 #[test]
 fn it_works_for_default_value() {
@@ -489,5 +490,17 @@ fn schelling_game_incentives_get_test() {
 		));
 
 		full_schelling_game_func(department_id, startblock1);
+
+		let incentive_count = DepartmentFunding::incentives_count(14).unwrap();
+
+		let incentive_count_eq: Incentives<Test> = Incentives {
+			number_of_games: 1,
+			winner: 1,
+			loser: 0,
+			total_stake: 14 * 100,
+			start: WhenDetails { block: 2592200, time: 0 },
+		};
+
+		assert_eq!(incentive_count, incentive_count_eq);
 	})
 }

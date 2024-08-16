@@ -88,3 +88,16 @@ impl<T: Config> Default for IncentivesMetaData<T> {
 		}
 	}
 }
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
+#[scale_info(skip_type_params(T))]
+pub struct DepartmentFundDetails {
+	pub department_fund: u64,
+	pub department_id: u64,
+}
+
+impl DepartmentFundDetails {
+	pub fn new(department_fund: u64, department_id: u64) -> Self {
+		DepartmentFundDetails { department_fund, department_id }
+	}
+}
