@@ -34,6 +34,7 @@ pub struct DepartmentRequiredFund<T: Config> {
 	pub tipping_name: TippingName,
 	pub funding_needed: BalanceOf<T>,
 	pub creator: T::AccountId,
+	pub released: bool,
 }
 
 #[derive(Encode, Decode, Clone, Copy, Eq, PartialEq, RuntimeDebug, TypeInfo)]

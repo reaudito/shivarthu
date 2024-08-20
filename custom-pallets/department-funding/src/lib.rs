@@ -4,6 +4,7 @@
 /// Learn more about FRAME and the core library of Substrate FRAME pallets:
 /// <https://docs.substrate.io/reference/frame-pallets/>
 // One can enhance validation measures by increasing staking power for local residents or individuals with positive externalities—those who contribute to the network for a good cause.
+// To Do! Staking is not yet done while applying for staking period.
 pub use pallet::*;
 
 #[cfg(test)]
@@ -64,6 +65,8 @@ type DepartmentRequiredFundId = u64;
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
+	use pallet_schelling_game_shared::types::WinningDecision;
+
 	use super::*;
 
 	#[pallet::pallet]
@@ -90,6 +93,7 @@ pub mod pallet {
 			RangePoint = RangePoint,
 			Period = Period,
 			PhaseData = PhaseData<Self>,
+			WinningDecision = WinningDecision,
 			JurorGameResult = JurorGameResult,
 		>;
 		type DepartmentsSource: DepartmentsLink<
@@ -621,6 +625,85 @@ pub mod pallet {
 				},
 				None => Err(Error::<T>::NoIncentiveCount)?,
 			}
+			Ok(())
+		}
+
+		#[pallet::call_index(11)]
+		#[pallet::weight(0)]
+		pub fn add_to_department_fund(
+			origin: OriginFor<T>,
+			department_required_fund_id: DepartmentRequiredFundId,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			let block_number =
+				Self::get_block_number_of_schelling_game(department_required_fund_id)?;
+			let key = SumTreeName::DepartmentRequiredFund {
+				department_required_fund_id,
+				block_number: block_number.clone(),
+			};
+			let winning_decision =
+				T::SchellingGameSharedSource::get_winning_decision_value(key.clone())?;
+			match <DepartmentRequiredFunds<T>>::get(department_required_fund_id) {
+				Some(mut departmentrequiredfund) => {
+					let tipping_name = departmentrequiredfund.tipping_name;
+					let tipping_value = Self::value_of_tipping_name(tipping_name);
+					let stake_required = tipping_value.stake_required;
+					let fund_needed = departmentrequiredfund.funding_needed;
+					let released = departmentrequiredfund.released;
+					let creator = departmentrequiredfund.creator.clone();
+
+					let total_funding = stake_required.checked_add(&fund_needed).expect("overflow");
+
+					if winning_decision == WinningDecision::WinnerYes && released == false {
+						departmentrequiredfund.released = true;
+						<DepartmentRequiredFunds<T>>::mutate(
+							&department_required_fund_id,
+							|departmentrequiredfund_option| {
+								*departmentrequiredfund_option = Some(departmentrequiredfund);
+							},
+						);
+					} else if winning_decision == WinningDecision::WinnerNo && released == false {
+						departmentrequiredfund.released = true;
+
+						<DepartmentRequiredFunds<T>>::mutate(
+							&department_required_fund_id,
+							|departmentrequiredfund_option| {
+								*departmentrequiredfund_option = Some(departmentrequiredfund);
+							},
+						);
+
+						let r = <T as pallet::Config>::Currency::deposit_into_existing(
+							&creator,
+							stake_required,
+						)
+						.ok()
+						.unwrap();
+						<T as pallet::Config>::Reward::on_unbalanced(r);
+					} else if winning_decision == WinningDecision::Draw && released == false {
+						departmentrequiredfund.released = true;
+
+						<DepartmentRequiredFunds<T>>::mutate(
+							&department_required_fund_id,
+							|departmentrequiredfund_option| {
+								*departmentrequiredfund_option = Some(departmentrequiredfund);
+							},
+						);
+
+						let r = <T as pallet::Config>::Currency::deposit_into_existing(
+							&creator,
+							stake_required,
+						)
+						.ok()
+						.unwrap();
+						<T as pallet::Config>::Reward::on_unbalanced(r);
+					} else {
+						Err(Error::<T>::AlreadyFunded)?
+					}
+				},
+				None => {},
+			}
+
 			Ok(())
 		}
 	}

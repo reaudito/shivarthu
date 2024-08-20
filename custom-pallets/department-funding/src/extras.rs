@@ -18,6 +18,7 @@ impl<T: Config> DepartmentRequiredFund<T> {
 			tipping_name,
 			funding_needed,
 			creator,
+			released: false,
 		}
 	}
 }
