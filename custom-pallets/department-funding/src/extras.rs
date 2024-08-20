@@ -118,6 +118,24 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
+	pub fn set_department_status(
+		department_id: DepartmentId,
+		funding_status: FundingStatus,
+	) -> DispatchResult {
+		match DepartmentFundingStatusForDepartmentId::<T>::get(department_id) {
+			Some(mut department_status) => {
+				department_status.status = funding_status;
+				<DepartmentFundingStatusForDepartmentId<T>>::mutate(
+					&department_id,
+					|department_status_option| *department_status_option = Some(department_status),
+				)
+			},
+			None => Err(Error::<T>::FundingStatusNotPresent)?,
+		}
+
+		Ok(())
+	}
+
 	// pub fn ensure_user_is_project_creator_and_project_exists(
 	// 	project_id: ProjectId,
 	// 	user: T::AccountId,

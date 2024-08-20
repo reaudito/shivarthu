@@ -173,7 +173,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn department_fund)]
 	pub type DepartmentFund<T: Config> =
-		StorageMap<_, Blake2_128Concat, DepartmentId, DepartmentFundDetails>;
+		StorageMap<_, Blake2_128Concat, DepartmentId, DepartmentFundDetails<T>>;
 
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/
@@ -218,6 +218,7 @@ pub mod pallet {
 		NotReachedMinimumDecision,
 		NoIncentiveCount,
 		AlreadyFunded,
+		FundingStatusNotPresent,
 	}
 
 	// Check deparment exists, it will done using loose coupling
@@ -634,7 +635,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			department_required_fund_id: DepartmentRequiredFundId,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+			let _who = ensure_signed(origin)?;
 
 			let block_number =
 				Self::get_block_number_of_schelling_game(department_required_fund_id)?;
@@ -653,7 +654,8 @@ pub mod pallet {
 					let released = departmentrequiredfund.released;
 					let creator = departmentrequiredfund.creator.clone();
 
-					let total_funding = stake_required.checked_add(&fund_needed).expect("overflow");
+					let mut total_funding =
+						stake_required.checked_add(&fund_needed).expect("overflow");
 
 					if winning_decision == WinningDecision::WinnerYes && released == false {
 						departmentrequiredfund.released = true;
@@ -663,6 +665,34 @@ pub mod pallet {
 								*departmentrequiredfund_option = Some(departmentrequiredfund);
 							},
 						);
+
+						match <DepartmentFund<T>>::get(department_required_fund_id) {
+							Some(mut department_fund_details) => {
+								let department_fund = department_fund_details.department_fund;
+								total_funding =
+									total_funding.checked_add(&department_fund).expect("overflow");
+								department_fund_details.department_fund = total_funding;
+								<DepartmentFund<T>>::insert(
+									&department_required_fund_id,
+									department_fund_details,
+								);
+							},
+							None => {
+								let department_fund_details = DepartmentFundDetails {
+									department_fund: total_funding,
+									department_id: department_required_fund_id,
+								};
+								<DepartmentFund<T>>::insert(
+									&department_required_fund_id,
+									department_fund_details,
+								);
+							},
+						}
+
+						Self::set_department_status(
+							department_required_fund_id,
+							FundingStatus::Success,
+						)?;
 					} else if winning_decision == WinningDecision::WinnerNo && released == false {
 						departmentrequiredfund.released = true;
 
@@ -680,6 +710,11 @@ pub mod pallet {
 						.ok()
 						.unwrap();
 						<T as pallet::Config>::Reward::on_unbalanced(r);
+
+						Self::set_department_status(
+							department_required_fund_id,
+							FundingStatus::Failed,
+						)?;
 					} else if winning_decision == WinningDecision::Draw && released == false {
 						departmentrequiredfund.released = true;
 
@@ -697,6 +732,10 @@ pub mod pallet {
 						.ok()
 						.unwrap();
 						<T as pallet::Config>::Reward::on_unbalanced(r);
+						Self::set_department_status(
+							department_required_fund_id,
+							FundingStatus::Failed,
+						)?;
 					} else {
 						Err(Error::<T>::AlreadyFunded)?
 					}
