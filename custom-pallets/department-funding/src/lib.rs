@@ -652,6 +652,8 @@ pub mod pallet {
 					let stake_required = tipping_value.stake_required;
 					let fund_needed = departmentrequiredfund.funding_needed;
 					let released = departmentrequiredfund.released;
+					let department_id = departmentrequiredfund.department_id;
+					println!("Released: {}", released);
 					let creator = departmentrequiredfund.creator.clone();
 
 					let mut total_funding =
@@ -666,14 +668,14 @@ pub mod pallet {
 							},
 						);
 
-						match <DepartmentFund<T>>::get(department_required_fund_id) {
+						match <DepartmentFund<T>>::get(department_id) {
 							Some(mut department_fund_details) => {
 								let department_fund = department_fund_details.department_fund;
 								total_funding =
 									total_funding.checked_add(&department_fund).expect("overflow");
 								department_fund_details.department_fund = total_funding;
 								<DepartmentFund<T>>::insert(
-									&department_required_fund_id,
+									&department_id,
 									department_fund_details,
 								);
 							},
@@ -683,16 +685,13 @@ pub mod pallet {
 									department_id: department_required_fund_id,
 								};
 								<DepartmentFund<T>>::insert(
-									&department_required_fund_id,
+									&department_id,
 									department_fund_details,
 								);
 							},
 						}
 
-						Self::set_department_status(
-							department_required_fund_id,
-							FundingStatus::Success,
-						)?;
+						Self::set_department_status(department_id, FundingStatus::Success)?;
 					} else if winning_decision == WinningDecision::WinnerNo && released == false {
 						departmentrequiredfund.released = true;
 
@@ -711,10 +710,7 @@ pub mod pallet {
 						.unwrap();
 						<T as pallet::Config>::Reward::on_unbalanced(r);
 
-						Self::set_department_status(
-							department_required_fund_id,
-							FundingStatus::Failed,
-						)?;
+						Self::set_department_status(department_id, FundingStatus::Failed)?;
 					} else if winning_decision == WinningDecision::Draw && released == false {
 						departmentrequiredfund.released = true;
 
@@ -732,10 +728,7 @@ pub mod pallet {
 						.ok()
 						.unwrap();
 						<T as pallet::Config>::Reward::on_unbalanced(r);
-						Self::set_department_status(
-							department_required_fund_id,
-							FundingStatus::Failed,
-						)?;
+						Self::set_department_status(department_id, FundingStatus::Failed)?;
 					} else {
 						Err(Error::<T>::AlreadyFunded)?
 					}

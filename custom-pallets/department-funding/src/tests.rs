@@ -444,6 +444,10 @@ fn full_schelling_game_func(department_required_fund_id: u64, start_block_number
 		RuntimeOrigin::signed(15),
 		department_required_fund_id
 	));
+	assert_ok!(DepartmentFunding::add_to_department_fund(
+		RuntimeOrigin::signed(5),
+		department_required_fund_id
+	));
 }
 
 #[test]
@@ -480,6 +484,16 @@ fn schelling_game_incentives_get_test() {
 				.as_bytes()
 				.to_vec(),
 		);
+		let department_required_fund_id = 1;
+		assert_ok!(DepartmentFunding::create_department_required_fund(
+			RuntimeOrigin::signed(account_id),
+			department_id,
+			content.clone(),
+			tipping_name,
+			funding_needed
+		));
+
+		full_schelling_game_func(department_required_fund_id, startblock1);
 
 		assert_ok!(DepartmentFunding::create_department_required_fund(
 			RuntimeOrigin::signed(account_id),
@@ -489,15 +503,17 @@ fn schelling_game_incentives_get_test() {
 			funding_needed
 		));
 
-		full_schelling_game_func(department_id, startblock1);
+		let department_required_fund_id = 2;
+
+		full_schelling_game_func(department_required_fund_id, startblock2);
 
 		let incentive_count = DepartmentFunding::incentives_count(14).unwrap();
 
 		let incentive_count_eq: Incentives<Test> = Incentives {
-			number_of_games: 1,
-			winner: 1,
+			number_of_games: 2,
+			winner: 2,
 			loser: 0,
-			total_stake: 14 * 100,
+			total_stake: 14 * 100 + 14 * 100,
 			start: WhenDetails { block: 2592200, time: 0 },
 		};
 
