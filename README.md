@@ -79,6 +79,18 @@ persist state:
 ./target/release/node-template --dev
 ```
 
+Use base path
+
+```
+-d, --base-path <PATH>
+          Specify custom base path
+```
+
+```bash
+./target/release/node-template  -d mychain-data --dev
+```
+
+
 To purge the development chain's state, run the following command:
 
 ```sh
@@ -117,6 +129,9 @@ dev
 $ ls ./my-chain-state/chains/dev
 db keystore network
 ```
+
+
+
 
 ### Connect with Polkadot-JS Apps Front-End
 

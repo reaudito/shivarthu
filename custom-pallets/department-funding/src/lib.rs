@@ -653,7 +653,7 @@ pub mod pallet {
 					let fund_needed = departmentrequiredfund.funding_needed;
 					let released = departmentrequiredfund.released;
 					let department_id = departmentrequiredfund.department_id;
-					println!("Released: {}", released);
+					// println!("Released: {}", released);
 					let creator = departmentrequiredfund.creator.clone();
 
 					let mut total_funding =
