@@ -20,7 +20,7 @@ RUN apt-get update && \
 USER polkadot
 
 # copy the compiled binary to the container
-COPY --chown=polkadot:polkadot --chmod=774 node-template /usr/bin/node-template
+COPY --chown=polkadot:polkadot --chmod=774 target/release/node-template /usr/bin/node-template
 
 # check if executable works in this container
 RUN /usr/bin/node-template --version

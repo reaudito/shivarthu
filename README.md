@@ -53,6 +53,14 @@ Use the following command to build the node without launching it:
 cargo build --release
 ```
 
+### Podman Build
+
+```
+cargo build --release
+podman build . -t=image1
+podman run -d --name=container1 image1
+```
+
 ### Embedded Docs
 
 After you build the project, you can use the following command to explore its
