@@ -61,6 +61,11 @@ podman build . -t=image1
 podman run -d --name=container1 image1
 ```
 
+### Tests
+```
+cargo test
+```
+
 ### Embedded Docs
 
 After you build the project, you can use the following command to explore its
