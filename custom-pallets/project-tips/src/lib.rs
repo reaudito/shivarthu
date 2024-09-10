@@ -95,14 +95,6 @@ pub mod pallet {
 		type Reward: OnUnbalanced<PositiveImbalanceOf<Self>>;
 	}
 
-	// The pallet's runtime storage items.
-	// https://docs.substrate.io/main-docs/build/runtime-storage/
-	#[pallet::storage]
-	#[pallet::getter(fn something)]
-	// Learn more about declaring storage items:
-	// https://docs.substrate.io/main-docs/build/runtime-storage/#declaring-storage-items
-	pub type Something<T> = StorageValue<_, u32>;
-
 	#[pallet::type_value]
 	pub fn MinimumDepartmentStake<T: Config>() -> BalanceOf<T> {
 		10000u128.saturated_into::<BalanceOf<T>>()
@@ -157,25 +149,9 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Event documentation should end with an array that provides descriptive names for event
-		/// parameters. [something, who]
-		SomethingStored {
-			something: u32,
-			who: T::AccountId,
-		},
-		ProjectCreated {
-			account: T::AccountId,
-			project_id: ProjectId,
-		},
-		StakinPeriodStarted {
-			project_id: ProjectId,
-			block_number: BlockNumberOf<T>,
-		},
-		ApplyJurors {
-			project_id: ProjectId,
-			block_number: BlockNumberOf<T>,
-			account: T::AccountId,
-		},
+		ProjectCreated { account: T::AccountId, project_id: ProjectId },
+		StakinPeriodStarted { project_id: ProjectId, block_number: BlockNumberOf<T> },
+		ApplyJurors { project_id: ProjectId, block_number: BlockNumberOf<T>, account: T::AccountId },
 	}
 
 	// Errors inform users that something went wrong.
