@@ -28,7 +28,10 @@ impl<T: Config> SortitionSumGameLink for Pallet<T> {
 }
 
 impl<T: Config> Pallet<T> {
-	// SortitionSumTree
+	/// `create_tree`:
+	/// This function creates a new sortition sum tree. It checks whether the number k (the number of children per node) is valid (greater than 1) and whether the tree already exists.
+	/// If no tree exists, it initializes a new tree with a root node of value 0 and inserts it into the storage.
+
 	pub fn create_tree(key: SumTreeNameType<T>, k: u64) -> DispatchResult {
 		if k < 1 {
 			Err(Error::<T>::KMustGreaterThanOne)?
@@ -53,6 +56,11 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	/// The set function is used to set a value (tokens staked) for a specific participant (citizen_id) in the sum tree.
+	/// It handles both the creation of new nodes (when a participant is not in the tree yet) and the update of existing nodes.
+	/// If the value is 0, it removes the node from the game by setting it to 0 and pushing the node to the vacant stack for future reuse.
+	/// If the value is greater than 0, the function either creates a new node for the participant or updates the value in the existing node.
+	/// The update_parents function is called after any change in a node's value to update the values of the parent nodes upwards to the root.
 	pub fn set(key: SumTreeNameType<T>, value: u64, citizen_id: AccountIdOf<T>) -> DispatchResult {
 		let tree_option = <SortitionSumTrees<T>>::get(&key);
 
@@ -108,6 +116,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	/// `update_parants`: This function ensures that when a leaf node's value is changed, the parent nodes' sums are also updated. It traverses from the updated node to the root and adjusts the sum of each parent based on whether the change was an increase or decrease.
 	fn update_parents(
 		mut tree: SortitionSumTree<AccountIdOf<T>>,
 		tree_index: u64,
@@ -127,6 +136,9 @@ impl<T: Config> Pallet<T> {
 			<SortitionSumTrees<T>>::insert(&key, &tree);
 		}
 	}
+
+	/// `if_tree_index_zero`: This helper function is called when the participant does not yet have a node in the tree (i.e., it's the first time they're staking tokens). It adds a new node to the tree or reuses a node from the stack of vacant nodes. It then updates the tree structure by updating the parent nodes.
+
 	fn if_tree_index_zero(
 		value: u64,
 		citizen_id: AccountIdOf<T>,
@@ -173,6 +185,7 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
+	/// This function retrieves the number of tokens staked by a specific participant (`citizen_id`). If the participant does not exist in the tree, it returns `None`.
 	pub fn stake_of(
 		key: SumTreeNameType<T>,
 		citizen_id: AccountIdOf<T>,
@@ -199,6 +212,9 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
+	/// The draw function is the core of the sortition game. It draws a participant randomly, weighted by the number of tokens they have staked. It works by starting from the root node and recursively traversing the tree to find the participant corresponding to the random number (draw_number).
+	/// It subtracts the token values of skipped nodes and continues the search in the appropriate child node.
+	/// Once it reaches a leaf node, it returns the ID of the participant whose stake corresponds to the drawn number.
 	pub fn draw(
 		key: SumTreeNameType<T>,
 		draw_number: u64,
@@ -230,15 +246,8 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/**
-	 *  @dev Query the leaves of a tree. Note that if `startIndex == 0`, the tree is empty and the root node will be returned.
-	 *  @param key The key of the tree to get the leaves from.
-	 *  @param cursor The pagination cursor.
-	 *  @param count The number of items to return.
-	 *  @return The index at which leaves start, the values of the returned leaves, and whether there are more for pagination.
-	 *  `O(n)` where
-	 *  `n` is the maximum number of nodes ever appended.
-	 */
+	/// query_leafs:
+	/// This function allows querying the leaves of the tree (the participants with their stakes) in a paginated manner. It returns the values of the leaves and indicates whether there are more leaves to query.
 	pub fn query_leafs(
 		key: SumTreeNameType<T>,
 		cursor: u64,
@@ -282,6 +291,7 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
+	/// `remove_tree`: This function removes a sortition sum tree from storage.
 	pub fn remove_tree(key: SumTreeNameType<T>) -> DispatchResult {
 		<SortitionSumTrees<T>>::remove(&key);
 		Ok(())
