@@ -2,7 +2,7 @@ use frame_support::pallet_prelude::*;
 use scale_info::TypeInfo;
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
-type CitizenId = u64;
+type _CitizenId = u64;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Debug))]

@@ -1092,13 +1092,13 @@ fn schelling_game_incentives_get_test() {
 		assert_eq!(incentive_count, incentive_count_eq);
 		// println!("incentive count:{:?}", incentive_count);
 
-		let balance = Balances::free_balance(14);
+		let _balance = Balances::free_balance(14);
 
 		// println!("balance account before(14):{:?}", balance);
 
 		assert_ok!(ProjectTips::get_incentives(RuntimeOrigin::signed(14)));
 
-		let balance = Balances::free_balance(14);
+		let _balance = Balances::free_balance(14);
 
 		// println!("balance account after(14):{:?}", balance);
 
@@ -1115,13 +1115,13 @@ fn schelling_game_incentives_get_test() {
 		assert_eq!(incentive_count, incentive_count_eq);
 		// println!("incentive count:{:?}", incentive_count);
 
-		let balance = Balances::free_balance(15);
+		let _balance = Balances::free_balance(15);
 
 		// println!("balance account before(15):{:?}", balance);
 
 		assert_ok!(ProjectTips::get_incentives(RuntimeOrigin::signed(15)));
 
-		let balance = Balances::free_balance(15);
+		let _balance = Balances::free_balance(15);
 
 		// println!("balance account after(15):{:?}", balance);
 	})

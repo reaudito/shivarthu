@@ -18,9 +18,7 @@ pub use weights::*;
 pub mod extras;
 pub mod types;
 
-use frame_support::sp_runtime;
 use frame_support::traits::BuildGenesisConfig;
-use frame_system::pallet_prelude::*;
 use sp_std::prelude::*;
 use types::ReputationScore;
 
@@ -30,7 +28,7 @@ type Score = i64;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
+	use frame_support::pallet_prelude::*;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]

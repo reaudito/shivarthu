@@ -22,26 +22,23 @@ mod types;
 
 use frame_support::pallet_prelude::DispatchError;
 use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::traits::Saturating;
-use frame_support::sp_runtime::traits::{CheckedAdd, CheckedSub};
+use frame_support::sp_runtime::traits::{CheckedAdd};
 use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{dispatch::DispatchResult, ensure};
 use frame_system::pallet_prelude::*;
 use sp_std::prelude::*;
 
-use frame_support::{
+use frame_support::
 	traits::{
-		Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
-	},
-	PalletId,
-};
+		Currency, ExistenceRequirement, OnUnbalanced, ReservableCurrency, WithdrawReasons,
+	};
 use pallet_schelling_game_shared::types::{
 	JurorGameResult, Period, PhaseData, RangePoint, SchellingGameType, WinningDecision,
 };
 use pallet_sortition_sum_game::types::SumTreeName;
 use pallet_support::{
-	ensure_content_is_valid, new_when_details, new_who_and_when, remove_from_vec, Content,
-	WhenDetails, WhenDetailsOf, WhoAndWhen, WhoAndWhenOf,
+	 new_when_details, new_who_and_when, Content,
+	 WhenDetailsOf, WhoAndWhenOf,
 };
 use trait_schelling_game_shared::SchellingGameSharedLink;
 use trait_shared_storage::SharedStorageLink;
@@ -366,7 +363,7 @@ pub mod pallet {
 		#[pallet::call_index(8)]
 		#[pallet::weight(0)]
 		pub fn release_tip(origin: OriginFor<T>, project_id: ProjectId) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+			let _who = ensure_signed(origin)?;
 
 			let block_number = Self::get_block_number_of_schelling_game(project_id)?;
 			let key = SumTreeName::ProjectTips { project_id, block_number: block_number.clone() };

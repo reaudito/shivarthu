@@ -34,7 +34,7 @@ use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
 use frame_support::{
 	traits::{
-		Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
+		Currency, ExistenceRequirement, OnUnbalanced, ReservableCurrency, WithdrawReasons,
 	},
 	PalletId,
 };
@@ -46,7 +46,7 @@ use pallet_schelling_game_shared::types::{
 };
 use pallet_sortition_sum_game::types::SumTreeName;
 use pallet_support::{
-	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, WhoAndWhen, WhoAndWhenOf,
+	new_who_and_when, Content, WhoAndWhenOf,
 };
 use trait_schelling_game_shared::SchellingGameSharedLink;
 pub use types::{CitizenDetailsPost, FIRST_CHALLENGE_POST_ID, FIRST_CITIZEN_ID};

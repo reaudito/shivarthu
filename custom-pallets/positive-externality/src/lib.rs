@@ -20,25 +20,19 @@ mod extras;
 pub mod types;
 pub use types::{Post, FIRST_POST_ID};
 
-use frame_support::pallet_prelude::DispatchError;
 use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::traits::Saturating;
 use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{dispatch::DispatchResult, ensure};
-use frame_support::{
-	traits::{
+use frame_support::traits::{
 		Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
-	},
-	PalletId,
-};
+	};
 use frame_system::pallet_prelude::*;
 use pallet_schelling_game_shared::types::{
 	JurorGameResult, Period, PhaseData, RangePoint, SchellingGameType, WinningDecision,
 };
 use pallet_sortition_sum_game::types::SumTreeName;
 use pallet_support::{
-	ensure_content_is_valid, new_when_details, new_who_and_when, remove_from_vec, Content, PostId,
-	WhenDetails, WhenDetailsOf, WhoAndWhen, WhoAndWhenOf,
+	ensure_content_is_valid, new_when_details, new_who_and_when, Content, PostId, WhenDetailsOf, WhoAndWhenOf,
 };
 use types::{Incentives, IncentivesMetaData};
 

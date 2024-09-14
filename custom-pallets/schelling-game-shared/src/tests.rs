@@ -1,7 +1,7 @@
 use crate::{
 	mock::*,
 	types::{JurorGameResult, Period, PhaseData, RangePoint, SchellingGameType},
-	Error, Event,
+	Error,
 };
 use frame_support::{assert_noop, assert_ok};
 
@@ -395,7 +395,7 @@ fn challenger_win_test_jurors_incentive_in_one_go() {
 		let now = 10;
 		assert_ok!(TemplateModule::set_to_evidence_period(key.clone(), now));
 		assert_eq!(TemplateModule::get_period(&key).unwrap(), Period::Evidence);
-		let game_type = return_game_type_profile_approval();
+		let _game_type = return_game_type_profile_approval();
 
 		// let min_short_block_length = return_min_short_block_length();
 		// let min_long_block_length = return_min_long_block_length();
@@ -675,7 +675,7 @@ fn score_schelling_game_test() {
 		let now = 10;
 		assert_ok!(TemplateModule::set_to_evidence_period(key.clone(), now));
 		assert_eq!(TemplateModule::get_period(&key).unwrap(), Period::Evidence);
-		let game_type = return_game_type_profile_approval();
+		let _game_type = return_game_type_profile_approval();
 		// let min_short_block_length = return_min_short_block_length();
 		// let min_long_block_length = return_min_long_block_length();
 		let phase_data = get_the_phase_data();
@@ -816,7 +816,7 @@ fn score_schelling_game_value_test() {
 		let now = 10;
 		assert_ok!(TemplateModule::set_to_evidence_period(key.clone(), now));
 		assert_eq!(TemplateModule::get_period(&key).unwrap(), Period::Evidence);
-		let game_type = return_game_type_profile_approval();
+		let _game_type = return_game_type_profile_approval();
 		// let min_short_block_length = return_min_short_block_length();
 		// let min_long_block_length = return_min_long_block_length();
 		let phase_data = get_the_phase_data();

@@ -67,7 +67,7 @@ use frame_system::pallet_prelude::*;
 pub use types::{DepartmentDetails, FIRST_DEPARTMENT_ID};
 type DepartmentId = u64;
 use pallet_support::{
-	ensure_content_is_valid, new_who_and_when, remove_from_vec, Content, WhoAndWhen, WhoAndWhenOf,
+	 new_who_and_when, Content, WhoAndWhenOf,
 };
 
 use sp_std::vec;

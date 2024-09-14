@@ -459,9 +459,9 @@ fn schelling_game_incentives_get_test() {
 
 		let startblock2 = 2 * (6 * 30 * 24 * 60 * 60) / 6;
 
-		let startblock3 = 3 * (6 * 30 * 24 * 60 * 60) / 6;
+		let _startblock3 = 3 * (6 * 30 * 24 * 60 * 60) / 6;
 
-		let startblock4 = 4 * (6 * 30 * 24 * 60 * 60) / 6;
+		let _startblock4 = 4 * (6 * 30 * 24 * 60 * 60) / 6;
 
 		let account_id = 1;
 		let department_id = 1;

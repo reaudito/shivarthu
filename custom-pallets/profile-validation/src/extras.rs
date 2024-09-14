@@ -76,11 +76,11 @@ impl<T: Config> Pallet<T> {
 	// 	Ok(profile.owner)
 	// }
 
-	pub(super) fn fund_profile_account() -> T::AccountId {
+	pub(super) fn _fund_profile_account() -> T::AccountId {
 		PALLET_ID.into_sub_account_truncating(1)
 	}
 
-	pub(super) fn u64_to_balance_saturated(input: u64) -> BalanceOf<T> {
+	pub(super) fn _u64_to_balance_saturated(input: u64) -> BalanceOf<T> {
 		input.saturated_into::<BalanceOf<T>>()
 	}
 
@@ -88,7 +88,7 @@ impl<T: Config> Pallet<T> {
 		input.saturated_into::<u64>()
 	}
 
-	pub(super) fn u64_to_block_saturated(input: u64) -> BlockNumberOf<T> {
+	pub(super) fn _u64_to_block_saturated(input: u64) -> BlockNumberOf<T> {
 		input.saturated_into::<BlockNumberOf<T>>()
 	}
 
