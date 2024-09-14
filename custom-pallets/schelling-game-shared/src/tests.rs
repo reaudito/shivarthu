@@ -24,31 +24,6 @@ fn get_the_phase_data() -> PhaseData<Test> {
 }
 
 #[test]
-fn it_works_for_default_value() {
-	new_test_ext().execute_with(|| {
-		// Go past genesis block so events get deposited
-		System::set_block_number(1);
-		// Dispatch a signed extrinsic.
-		assert_ok!(TemplateModule::do_something(RuntimeOrigin::signed(1), 42));
-		// Read pallet storage and assert an expected result.
-		assert_eq!(TemplateModule::something(), Some(42));
-		// Assert that the correct event was deposited
-		System::assert_last_event(Event::SomethingStored { something: 42, who: 1 }.into());
-	});
-}
-
-#[test]
-fn correct_error_for_none_value() {
-	new_test_ext().execute_with(|| {
-		// Ensure the expected error is thrown when no value is present.
-		assert_noop!(
-			TemplateModule::cause_error(RuntimeOrigin::signed(1)),
-			Error::<Test>::NoneValue
-		);
-	});
-}
-
-#[test]
 fn evidence_period_not_over_test() {
 	new_test_ext().execute_with(|| {
 		let key = return_key_profile(0);
@@ -64,7 +39,7 @@ fn evidence_period_not_over_test() {
 	});
 }
 
-/// 1) Set evidence period  
+/// 1) Set evidence period
 /// 2) Set staking period
 /// 3) Create tree
 #[test]
