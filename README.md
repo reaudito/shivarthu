@@ -18,7 +18,7 @@ https://shivarthu.reaudito.com/paper/Shivarthu_whitepaper.pdf
 
 ## Technical Details
 
-https://github.com/reaudito/shivarthu/blob/main/docs/Shivarthu.md
+https://github.com/reaudito/shivarthu/blob/main/docs/shivarthu/Shivarthu.md
 
 
 ### Build
