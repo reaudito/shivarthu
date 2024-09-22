@@ -11,11 +11,6 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-#[cfg(feature = "runtime-benchmarks")]
-mod benchmarking;
-pub mod weights;
-pub use weights::*;
-
 mod extras;
 mod functions;
 mod score_game;
@@ -63,8 +58,6 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-		/// Type representing the weight of this pallet
-		type WeightInfo: WeightInfo;
 
 		type SortitionSumGameSource: SortitionSumGameLink<
 			SumTreeName = SumTreeName<Self::AccountId, BlockNumberOf<Self>>,

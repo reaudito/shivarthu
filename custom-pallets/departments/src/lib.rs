@@ -55,8 +55,8 @@ mod tests;
 // Every callable function or "dispatchable" a pallet exposes must have weight values that correctly
 // estimate a dispatchable's execution time. The benchmarking module is used to calculate weights
 // for each dispatchable and generates this pallet's weight.rs file. Learn more about benchmarking here: https://docs.substrate.io/test/benchmark/
-#[cfg(feature = "runtime-benchmarks")]
-mod benchmarking;
+// #[cfg(feature = "runtime-benchmarks")]
+// mod benchmarking;
 pub mod weights;
 pub use weights::*;
 pub mod extras;
@@ -66,9 +66,7 @@ use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
 pub use types::{DepartmentDetails, FIRST_DEPARTMENT_ID};
 type DepartmentId = u64;
-use pallet_support::{
-	 new_who_and_when, Content, WhoAndWhenOf,
-};
+use pallet_support::{new_who_and_when, Content, WhoAndWhenOf};
 
 use sp_std::vec;
 use sp_std::vec::Vec;

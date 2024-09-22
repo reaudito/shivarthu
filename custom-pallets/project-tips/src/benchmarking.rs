@@ -2,34 +2,36 @@
 #![cfg(feature = "runtime-benchmarks")]
 use super::*;
 
+use crate::types::{Incentives, TippingName};
 #[allow(unused)]
-use crate::Pallet as Template;
+use crate::Pallet as ProjectTips;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
+use pallet_support::Content;
 
 #[benchmarks]
 mod benchmarks {
 	use super::*;
 
 	#[benchmark]
-	fn do_something() {
-		let value = 100u32.into();
-		let caller: T::AccountId = whitelisted_caller();
-		#[extrinsic_call]
-		do_something(RawOrigin::Signed(caller), value);
+	fn create_project() {
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
 
-		assert_eq!(Something::<T>::get(), Some(value));
+		let tipping_name = TippingName::SmallTipper;
+		let tipping_value = ProjectTips::<T>::value_of_tipping_name(tipping_name);
+		let max_tipping_value = tipping_value.max_tipping_value;
+		let stake_required = tipping_value.stake_required;
+		let funding_needed = max_tipping_value;
+
+		let caller: T::AccountId = whitelisted_caller();
+
+		#[extrinsic_call]
+		create_project(RawOrigin::Signed(caller), 5, content.clone(), tipping_name, funding_needed);
 	}
 
-	#[benchmark]
-	fn cause_error() {
-		Something::<T>::put(100u32);
-		let caller: T::AccountId = whitelisted_caller();
-		#[extrinsic_call]
-		cause_error(RawOrigin::Signed(caller));
-
-		assert_eq!(Something::<T>::get(), Some(101u32));
-	}
-
-	impl_benchmark_test_suite!(Template, crate::mock::new_test_ext(), crate::mock::Test);
+	impl_benchmark_test_suite!(ProjectTips, crate::mock::new_test_ext(), crate::mock::Test);
 }

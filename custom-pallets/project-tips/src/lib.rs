@@ -22,24 +22,20 @@ mod types;
 
 use frame_support::pallet_prelude::DispatchError;
 use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::traits::{CheckedAdd};
+use frame_support::sp_runtime::traits::CheckedAdd;
 use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{dispatch::DispatchResult, ensure};
 use frame_system::pallet_prelude::*;
 use sp_std::prelude::*;
 
-use frame_support::
-	traits::{
-		Currency, ExistenceRequirement, OnUnbalanced, ReservableCurrency, WithdrawReasons,
-	};
+use frame_support::traits::{
+	Currency, ExistenceRequirement, OnUnbalanced, ReservableCurrency, WithdrawReasons,
+};
 use pallet_schelling_game_shared::types::{
 	JurorGameResult, Period, PhaseData, RangePoint, SchellingGameType, WinningDecision,
 };
 use pallet_sortition_sum_game::types::SumTreeName;
-use pallet_support::{
-	 new_when_details, new_who_and_when, Content,
-	 WhenDetailsOf, WhoAndWhenOf,
-};
+use pallet_support::{new_when_details, new_who_and_when, Content, WhenDetailsOf, WhoAndWhenOf};
 use trait_schelling_game_shared::SchellingGameSharedLink;
 use trait_shared_storage::SharedStorageLink;
 pub use types::PROJECT_ID;

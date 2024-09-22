@@ -53,7 +53,6 @@ impl frame_system::Config for Test {
 
 impl pallet_template::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
 	type Currency = Balances; // New code
 	type RandomnessSource = TestRandomness<Self>;
 	type Slash = ();
@@ -63,7 +62,6 @@ impl pallet_template::Config for Test {
 
 impl pallet_sortition_sum_game::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
 }
 
 impl pallet_balances::Config for Test {

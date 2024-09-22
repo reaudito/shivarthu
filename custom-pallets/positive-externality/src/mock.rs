@@ -55,7 +55,6 @@ impl frame_system::Config for Test {
 
 impl pallet_shared_storage::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
 }
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
@@ -86,7 +85,6 @@ impl pallet_balances::Config for Test {
 
 impl pallet_schelling_game_shared::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
 	type Currency = Balances; // New code
 	type RandomnessSource = TestRandomness<Self>;
 	type Slash = ();
@@ -96,7 +94,6 @@ impl pallet_schelling_game_shared::Config for Test {
 
 impl pallet_sortition_sum_game::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
 }
 
 impl pallet_template::Config for Test {

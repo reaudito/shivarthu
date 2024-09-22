@@ -90,7 +90,6 @@ impl pallet_template::Config for Test {
 
 impl pallet_schelling_game_shared::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
 	type Currency = Balances; // New code
 	type RandomnessSource = TestRandomness<Self>;
 	type Slash = ();
@@ -100,7 +99,6 @@ impl pallet_schelling_game_shared::Config for Test {
 
 impl pallet_sortition_sum_game::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
 }
 
 // Build genesis storage according to the mock runtime.

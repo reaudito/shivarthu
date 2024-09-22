@@ -261,12 +261,10 @@ impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
 
 impl pallet_sortition_sum_game::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_sortition_sum_game::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_schelling_game_shared::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_schelling_game_shared::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
 	type RandomnessSource = RandomnessCollectiveFlip;
 	type Slash = ();
@@ -285,7 +283,6 @@ impl pallet_profile_validation::Config for Runtime {
 
 impl pallet_shared_storage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_shared_storage::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_positive_externality::Config for Runtime {
