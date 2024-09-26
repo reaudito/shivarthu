@@ -78,7 +78,7 @@ impl<T: Config> Pallet<T> {
 		input.saturated_into::<BalanceOf<T>>()
 	}
 
-	pub(super) fn _u64_to_block_saturated(input: u64) -> BlockNumberOf<T> {
+	pub(super) fn u64_to_block_saturated(input: u64) -> BlockNumberOf<T> {
 		input.saturated_into::<BlockNumberOf<T>>()
 	}
 
