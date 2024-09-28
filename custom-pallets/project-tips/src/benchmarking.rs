@@ -25,6 +25,171 @@ mod benchmarks {
 		frame_system::Pallet::<T>::assert_last_event(generic_event.into());
 	}
 
+	fn full_schelling_game<T: 'static + pallet::Config>(
+		who_ask_tipper: u32,
+		start_block_number: u64,
+	) -> Vec<T::AccountId> {
+		let start_block_number = ProjectTips::<T>::u64_to_block_saturated(start_block_number);
+		let tipping_name = TippingName::SmallTipper;
+		let tipping_value = ProjectTips::<T>::value_of_tipping_name(tipping_name);
+		let max_tipping_value = tipping_value.max_tipping_value;
+		let sub_value = ProjectTips::<T>::u64_to_balance_saturated(100);
+		let funding_needed = max_tipping_value - sub_value;
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
+		let account1 = account::<T::AccountId>("account1", who_ask_tipper, SEED);
+
+		assert_ok!(ProjectTips::<T>::create_project(
+			RawOrigin::Signed(account1.clone()).into(),
+			2,
+			content,
+			tipping_name,
+			funding_needed
+		));
+		let balance = ProjectTips::<T>::u64_to_balance_saturated(100000000000000);
+
+		let project_ids = ProjectTips::<T>::get_projects_from_accounts(account1.clone());
+
+		let project_id = project_ids.last().unwrap();
+
+		let project_id = *project_id;
+
+		let _ = <T as pallet::Config>::Currency::deposit_creating(&account1, balance);
+
+		assert_ok!(ProjectTips::<T>::apply_staking_period(
+			RawOrigin::Signed(account1.clone()).into(),
+			project_id
+		));
+
+		let account2 = account::<T::AccountId>("apply-juror-account", 2, SEED);
+
+		let _ = <T as pallet::Config>::Currency::deposit_creating(&account2, balance);
+
+		let stake = ProjectTips::<T>::u64_to_balance_saturated(100);
+		let phase_data = ProjectTips::<T>::get_phase_data();
+
+		let mut accounts = vec![];
+
+		for j in 4..30 {
+			let account_number = account::<T::AccountId>("apply-juror-account", j, SEED);
+			accounts.push(account_number.clone());
+			let _ = <T as pallet::Config>::Currency::deposit_creating(&account_number, balance);
+
+			assert_ok!(ProjectTips::<T>::apply_jurors(
+				RawOrigin::Signed(account_number).into(),
+				project_id,
+				(j * 100).into()
+			));
+		}
+		<frame_system::Pallet<T>>::set_block_number(start_block_number + phase_data.staking_length);
+
+		assert_ok!(ProjectTips::<T>::pass_period(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			project_id
+		));
+		assert_ok!(ProjectTips::<T>::draw_jurors(
+			RawOrigin::Signed(accounts[1].clone()).into(),
+			1,
+			5
+		));
+		assert_ok!(ProjectTips::<T>::pass_period(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			project_id
+		));
+		let hash = sp_io::hashing::keccak_256("1salt2".as_bytes());
+		assert_ok!(ProjectTips::<T>::commit_vote(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			1,
+			hash
+		));
+
+		let hash = sp_io::hashing::keccak_256("1salt3".as_bytes());
+		assert_ok!(ProjectTips::<T>::commit_vote(
+			RawOrigin::Signed(accounts[7 - 4].clone()).into(),
+			1,
+			hash
+		));
+
+		let hash = sp_io::hashing::keccak_256("1salt4".as_bytes());
+		assert_ok!(ProjectTips::<T>::commit_vote(
+			RawOrigin::Signed(accounts[13 - 4].clone()).into(),
+			1,
+			hash
+		));
+
+		let hash = sp_io::hashing::keccak_256("1salt5".as_bytes());
+		assert_ok!(ProjectTips::<T>::commit_vote(
+			RawOrigin::Signed(accounts[14 - 4].clone()).into(),
+			1,
+			hash
+		));
+
+		let hash = sp_io::hashing::keccak_256("0salt6".as_bytes());
+		assert_ok!(ProjectTips::<T>::commit_vote(
+			RawOrigin::Signed(accounts[15 - 4].clone()).into(),
+			1,
+			hash
+		));
+
+		<frame_system::Pallet<T>>::set_block_number(
+			phase_data.evidence_length
+				+ start_block_number
+				+ phase_data.staking_length
+				+ phase_data.commit_length,
+		);
+
+		assert_ok!(ProjectTips::<T>::pass_period(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			project_id
+		));
+
+		assert_ok!(ProjectTips::<T>::reveal_vote(
+			RawOrigin::Signed(accounts[4 - 4].clone()).into(),
+			project_id,
+			1,
+			"salt2".as_bytes().to_vec()
+		));
+
+		assert_ok!(ProjectTips::<T>::reveal_vote(
+			RawOrigin::Signed(accounts[7 - 4].clone()).into(),
+			project_id,
+			1,
+			"salt3".as_bytes().to_vec()
+		));
+
+		assert_ok!(ProjectTips::<T>::reveal_vote(
+			RawOrigin::Signed(accounts[14 - 4].clone()).into(),
+			project_id,
+			1,
+			"salt5".as_bytes().to_vec()
+		));
+
+		assert_ok!(ProjectTips::<T>::reveal_vote(
+			RawOrigin::Signed(accounts[15 - 4].clone()).into(),
+			project_id,
+			0,
+			"salt6".as_bytes().to_vec()
+		));
+
+		<frame_system::Pallet<T>>::set_block_number(
+			phase_data.evidence_length
+				+ start_block_number
+				+ phase_data.staking_length
+				+ phase_data.commit_length
+				+ phase_data.vote_length,
+		);
+
+		assert_ok!(ProjectTips::<T>::pass_period(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			project_id
+		));
+
+		accounts.clone()
+	}
+
 	#[benchmark]
 	fn create_project() {
 		let content: Content = Content::IPFS(
@@ -410,6 +575,13 @@ mod benchmarks {
 
 		#[extrinsic_call]
 		reveal_vote(RawOrigin::Signed(accounts[0].clone()), 1, 1, "salt2".as_bytes().to_vec())
+	}
+
+	#[benchmark]
+	fn add_incentive_count() {
+		let accounts: Vec<T::AccountId> = full_schelling_game::<T>(2, 1);
+		#[extrinsic_call]
+		add_incentive_count(RawOrigin::Signed(accounts[14 - 4].clone()), 1)
 	}
 
 	impl_benchmark_test_suite!(ProjectTips, crate::mock::new_test_ext(), crate::mock::Test);

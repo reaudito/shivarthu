@@ -44,6 +44,7 @@ pub trait WeightInfo {
 	fn draw_jurors() -> Weight;
 	fn commit_vote() -> Weight;
 	fn reveal_vote() -> Weight;
+	fn add_incentive_count() -> Weight;
 }
 
 /// Weights for `pallet_project_tips` using the Substrate node and recommended hardware.
@@ -61,8 +62,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `10`
 		//  Estimated: `3475`
-		// Minimum execution time: 10_529_000 picoseconds.
-		Weight::from_parts(11_062_000, 3475)
+		// Minimum execution time: 11_600_000 picoseconds.
+		Weight::from_parts(12_425_000, 3475)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -82,8 +83,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `439`
 		//  Estimated: `3904`
-		// Minimum execution time: 37_091_000 picoseconds.
-		Weight::from_parts(38_526_000, 3904)
+		// Minimum execution time: 38_785_000 picoseconds.
+		Weight::from_parts(40_532_000, 3904)
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -99,8 +100,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `465`
 		//  Estimated: `3930`
-		// Minimum execution time: 37_291_000 picoseconds.
-		Weight::from_parts(38_692_000, 3930)
+		// Minimum execution time: 36_927_000 picoseconds.
+		Weight::from_parts(39_433_000, 3930)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -114,8 +115,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `302`
 		//  Estimated: `3767`
-		// Minimum execution time: 17_166_000 picoseconds.
-		Weight::from_parts(19_254_000, 3767)
+		// Minimum execution time: 20_162_000 picoseconds.
+		Weight::from_parts(21_262_000, 3767)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -137,8 +138,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `2754`
 		//  Estimated: `6219`
-		// Minimum execution time: 158_972_000 picoseconds.
-		Weight::from_parts(165_441_000, 6219)
+		// Minimum execution time: 162_114_000 picoseconds.
+		Weight::from_parts(168_711_000, 6219)
 			.saturating_add(T::DbWeight::get().reads(7_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
@@ -154,8 +155,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `633`
 		//  Estimated: `4098`
-		// Minimum execution time: 20_601_000 picoseconds.
-		Weight::from_parts(21_601_000, 4098)
+		// Minimum execution time: 20_161_000 picoseconds.
+		Weight::from_parts(22_976_000, 4098)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -171,9 +172,34 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `658`
 		//  Estimated: `4123`
-		// Minimum execution time: 28_781_000 picoseconds.
-		Weight::from_parts(29_635_000, 4123)
+		// Minimum execution time: 25_397_000 picoseconds.
+		Weight::from_parts(29_234_000, 4123)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
+	}
+	/// Storage: `ProjectTips::ValidationBlock` (r:1 w:0)
+	/// Proof: `ProjectTips::ValidationBlock` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::PeriodName` (r:1 w:0)
+	/// Proof: `SchellingGameShared::PeriodName` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::DrawnJurors` (r:1 w:0)
+	/// Proof: `SchellingGameShared::DrawnJurors` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::VoteCommits` (r:1 w:0)
+	/// Proof: `SchellingGameShared::VoteCommits` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::DecisionCount` (r:1 w:0)
+	/// Proof: `SchellingGameShared::DecisionCount` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::IncentiveAddedToCount` (r:1 w:1)
+	/// Proof: `SchellingGameShared::IncentiveAddedToCount` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ProjectTips::IncentiveCount` (r:1 w:1)
+	/// Proof: `ProjectTips::IncentiveCount` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Timestamp::Now` (r:1 w:0)
+	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	fn add_incentive_count() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `991`
+		//  Estimated: `4456`
+		// Minimum execution time: 39_442_000 picoseconds.
+		Weight::from_parts(40_217_000, 4456)
+			.saturating_add(T::DbWeight::get().reads(8_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
 }
@@ -192,8 +218,8 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `10`
 		//  Estimated: `3475`
-		// Minimum execution time: 10_529_000 picoseconds.
-		Weight::from_parts(11_062_000, 3475)
+		// Minimum execution time: 11_600_000 picoseconds.
+		Weight::from_parts(12_425_000, 3475)
 			.saturating_add(RocksDbWeight::get().reads(3_u64))
 			.saturating_add(RocksDbWeight::get().writes(3_u64))
 	}
@@ -213,8 +239,8 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `439`
 		//  Estimated: `3904`
-		// Minimum execution time: 37_091_000 picoseconds.
-		Weight::from_parts(38_526_000, 3904)
+		// Minimum execution time: 38_785_000 picoseconds.
+		Weight::from_parts(40_532_000, 3904)
 			.saturating_add(RocksDbWeight::get().reads(5_u64))
 			.saturating_add(RocksDbWeight::get().writes(5_u64))
 	}
@@ -230,8 +256,8 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `465`
 		//  Estimated: `3930`
-		// Minimum execution time: 37_291_000 picoseconds.
-		Weight::from_parts(38_692_000, 3930)
+		// Minimum execution time: 36_927_000 picoseconds.
+		Weight::from_parts(39_433_000, 3930)
 			.saturating_add(RocksDbWeight::get().reads(4_u64))
 			.saturating_add(RocksDbWeight::get().writes(2_u64))
 	}
@@ -245,8 +271,8 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `302`
 		//  Estimated: `3767`
-		// Minimum execution time: 17_166_000 picoseconds.
-		Weight::from_parts(19_254_000, 3767)
+		// Minimum execution time: 20_162_000 picoseconds.
+		Weight::from_parts(21_262_000, 3767)
 			.saturating_add(RocksDbWeight::get().reads(3_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
@@ -268,8 +294,8 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `2754`
 		//  Estimated: `6219`
-		// Minimum execution time: 158_972_000 picoseconds.
-		Weight::from_parts(165_441_000, 6219)
+		// Minimum execution time: 162_114_000 picoseconds.
+		Weight::from_parts(168_711_000, 6219)
 			.saturating_add(RocksDbWeight::get().reads(7_u64))
 			.saturating_add(RocksDbWeight::get().writes(4_u64))
 	}
@@ -285,8 +311,8 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `633`
 		//  Estimated: `4098`
-		// Minimum execution time: 20_601_000 picoseconds.
-		Weight::from_parts(21_601_000, 4098)
+		// Minimum execution time: 20_161_000 picoseconds.
+		Weight::from_parts(22_976_000, 4098)
 			.saturating_add(RocksDbWeight::get().reads(3_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
@@ -302,9 +328,34 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `658`
 		//  Estimated: `4123`
-		// Minimum execution time: 28_781_000 picoseconds.
-		Weight::from_parts(29_635_000, 4123)
+		// Minimum execution time: 25_397_000 picoseconds.
+		Weight::from_parts(29_234_000, 4123)
 			.saturating_add(RocksDbWeight::get().reads(4_u64))
+			.saturating_add(RocksDbWeight::get().writes(2_u64))
+	}
+	/// Storage: `ProjectTips::ValidationBlock` (r:1 w:0)
+	/// Proof: `ProjectTips::ValidationBlock` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::PeriodName` (r:1 w:0)
+	/// Proof: `SchellingGameShared::PeriodName` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::DrawnJurors` (r:1 w:0)
+	/// Proof: `SchellingGameShared::DrawnJurors` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::VoteCommits` (r:1 w:0)
+	/// Proof: `SchellingGameShared::VoteCommits` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::DecisionCount` (r:1 w:0)
+	/// Proof: `SchellingGameShared::DecisionCount` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::IncentiveAddedToCount` (r:1 w:1)
+	/// Proof: `SchellingGameShared::IncentiveAddedToCount` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ProjectTips::IncentiveCount` (r:1 w:1)
+	/// Proof: `ProjectTips::IncentiveCount` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Timestamp::Now` (r:1 w:0)
+	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	fn add_incentive_count() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `991`
+		//  Estimated: `4456`
+		// Minimum execution time: 39_442_000 picoseconds.
+		Weight::from_parts(40_217_000, 4456)
+			.saturating_add(RocksDbWeight::get().reads(8_u64))
 			.saturating_add(RocksDbWeight::get().writes(2_u64))
 	}
 }
