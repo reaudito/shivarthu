@@ -12,7 +12,6 @@ cargo check --features runtime-benchmarks
 
 cargo run --release --features runtime-benchmarks -- benchmark pallet \
     --chain dev \
-    --execution wasm \
     --wasm-execution compiled \
     --pallet "pallet-project-tips" \
     --extrinsic "*" \
