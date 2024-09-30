@@ -437,6 +437,7 @@ mod benches {
 		[pallet_sudo, Sudo]
 		[pallet_template, TemplateModule]
 		[pallet_project_tips, ProjectTips]
+		[pallet_positive_externality, PositiveExternality]
 	);
 }
 

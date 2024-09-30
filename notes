@@ -19,6 +19,16 @@ cargo run --release --features runtime-benchmarks -- benchmark pallet \
     --repeat 20 \
     --output custom-pallets/project-tips/src/weights.rs --template=./.maintain/frame-weight-template.hbs
     
+    
+cargo run --release --features runtime-benchmarks -- benchmark pallet \
+    --chain dev \
+    --wasm-execution compiled \
+    --pallet "pallet-positive-externality" \
+    --extrinsic "*" \
+    --steps 50 \
+    --repeat 20 \
+    --output custom-pallets/positive-externality/src/weights.rs --template=./.maintain/frame-weight-template.hbs
+    
 
 
 cargo run --release --features runtime-benchmarks -- benchmark pallet \
