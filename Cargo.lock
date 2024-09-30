@@ -5124,6 +5124,7 @@ dependencies = [
  "frame-support",
  "frame-support-test",
  "frame-system",
+ "log",
  "pallet-balances",
  "pallet-schelling-game-shared",
  "pallet-shared-storage",
