@@ -58,7 +58,7 @@ impl<T: Config> Pallet<T> {
 				let commit: &[u8] = &commit_struct.commit;
 				if hash == commit {
 					let mut reveal_score_values = <RevealScoreValues<T>>::get(&key);
-					reveal_score_values.push(choice * 1000);
+					reveal_score_values.push(choice * 1000); // Choice is multiplied by 1000 to get mean and sd in 1000's
 					<RevealScoreValues<T>>::insert(&key, reveal_score_values);
 					commit_struct.revealed_vote = Some(choice);
 					commit_struct.votestatus = VoteStatus::Revealed;
@@ -108,7 +108,7 @@ impl<T: Config> Pallet<T> {
 					let account_n_vote = &reveal_votes[index];
 					if let Some(i) = account_n_vote.1 {
 						// println!("vote {:?}", i);
-						if i * 1000 >= new_mean.checked_sub(incentives_range).unwrap()
+						if i * 1000 >= new_mean.checked_sub(incentives_range).unwrap() // i is mupliplied by 1000 as new_mean is in 1000's as choice is mupltiple by 1000, and incentives range is also in 1000's
 							&& i * 1000 <= new_mean.checked_add(incentives_range).unwrap()
 						{
 							// get incentives
@@ -152,10 +152,10 @@ impl<T: Config> Pallet<T> {
 
 		// Remove ScoreVoteCommits
 		<ScoreVoteCommits<T>>::remove_prefix(key.clone(), None); // Deprecated: Use clear_prefix instead
-														 // let reveal_votes_iterator2 = <ScoreVoteCommits<T>>::iter_prefix(&key);
-														 // reveal_votes_iterator2.for_each(|(account_id, _)|{
-														 // 	<ScoreVoteCommits<T>>::remove(key.clone(), account_id);
-														 // });
+														   // let reveal_votes_iterator2 = <ScoreVoteCommits<T>>::iter_prefix(&key);
+														   // reveal_votes_iterator2.for_each(|(account_id, _)|{
+														   // 	<ScoreVoteCommits<T>>::remove(key.clone(), account_id);
+														   // });
 
 		// Remove RevealScoreValues
 		<RevealScoreValues<T>>::remove(&key);

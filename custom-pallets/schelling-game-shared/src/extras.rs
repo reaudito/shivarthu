@@ -59,8 +59,8 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	/// Check `Period` is `Evidence`, and change it to `Staking`   
-	/// It is called with function that submits challenge stake after `end_block` of evidence period  
+	/// Check `Period` is `Evidence`, and change it to `Staking`
+	/// It is called with function that submits challenge stake after `end_block` of evidence period
 	/// Checks evidence period is over
 	#[doc=include_str!("docimage/set_to_staking_period_1.svg")]
 	/// ```ignore
@@ -133,29 +133,29 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Change the `Period`
-	///    
+	///
 	/// `Period::Staking` to `Period::Drawing`
 	#[doc=include_str!("docimage/change_period_link_1.svg")]
 	/// ```ignore
 	/// if now >= min_long_block_length + staking_start_time {
-	///   // Change `Period::Staking` to `Period::Drawing`   
+	///   // Change `Period::Staking` to `Period::Drawing`
 	/// }
 	/// ```
 	///
-	///  `Period::Drawing` to `Period::Commit`   
-	/// When maximum juror are drawn   
-	///  
-	/// `Period::Commit` to `Period::Vote`       
+	///  `Period::Drawing` to `Period::Commit`
+	/// When maximum juror are drawn
+	///
+	/// `Period::Commit` to `Period::Vote`
 	/// ```ignore
 	/// if now >= min_long_block_length + commit_start_time {
-	///   // Change `Period::Commit` to `Period::Vote`  
+	///   // Change `Period::Commit` to `Period::Vote`
 	/// }
 	/// ```
 	///
-	/// `Period::Vote` to `Period::Execution`   
+	/// `Period::Vote` to `Period::Execution`
 	/// ```ignore
 	/// if now >= min_long_block_length + vote_start_time {
-	///   // Change `Period::Vote` to `Period::Execution`   
+	///   // Change `Period::Vote` to `Period::Execution`
 	/// }
 	/// ```
 	pub(super) fn change_period(
@@ -225,6 +225,7 @@ impl<T: Config> Pallet<T> {
 		phase_data: PhaseDataOf<T>,
 		who: AccountIdOf<T>,
 		stake: BalanceOf<T>,
+		// To do! Include reputation stake
 	) -> DispatchResult {
 		match <PeriodName<T>>::get(&key) {
 			Some(period) => {
@@ -234,7 +235,11 @@ impl<T: Config> Pallet<T> {
 		}
 		let min_stake = phase_data.min_juror_stake;
 
+		// To do! Add reputation stake
 		ensure!(stake >= min_stake, Error::<T>::JurorStakeLessThanMin);
+
+		// To do! Store reputation stake in key value storage
+		// To do! Also write a function to get reputation stake, that can be accessed in all pallets using key and who
 
 		// let imb = T::Currency::withdraw(
 		// 	&who,
@@ -351,6 +356,8 @@ impl<T: Config> Pallet<T> {
 						// 		ExistenceRequirement::AllowDeath,
 						// 	)?,
 						// );
+
+						// To do! Substract reputation stake and return the token
 						let r = T::Currency::deposit_into_existing(&who, balance).ok().unwrap();
 						T::Reward::on_unbalanced(r);
 					},
@@ -519,10 +526,10 @@ impl<T: Config> Pallet<T> {
 
 		// Remove VoteCommits
 		<VoteCommits<T>>::remove_prefix(key.clone(), None); // Deprecated: Use clear_prefix instead
-													// let reveal_votes_iterator2 = <VoteCommits<T>>::iter_prefix(&key);
-													// reveal_votes_iterator2.for_each(|(account_id, _)|{
-													// 	<VoteCommits<T>>::remove(key.clone(), account_id);
-													// });
+													  // let reveal_votes_iterator2 = <VoteCommits<T>>::iter_prefix(&key);
+													  // reveal_votes_iterator2.for_each(|(account_id, _)|{
+													  // 	<VoteCommits<T>>::remove(key.clone(), account_id);
+													  // });
 
 		Ok(())
 	}
