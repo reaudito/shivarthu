@@ -85,5 +85,52 @@ mod benchmarks {
 		apply_jurors(RawOrigin::Signed(account2.clone()), account1.clone(), stake);
 	}
 
+	#[benchmark]
+	fn pass_period() {
+		let account1 = account::<T::AccountId>("set-validate", 1, SEED);
+		assert_ok!(PositiveExternality::<T>::set_validate_positive_externality(
+			RawOrigin::Signed(account1.clone()).into(),
+			true
+		));
+		let account2 = account::<T::AccountId>("stake-account", 2, SEED);
+
+		let balance = PositiveExternality::<T>::u64_to_balance_saturated(100000000000000);
+
+		let _ = <T as pallet::Config>::Currency::deposit_creating(&account2, balance);
+		assert_ok!(PositiveExternality::<T>::apply_staking_period(
+			RawOrigin::Signed(account2.clone()).into(),
+			account1.clone()
+		));
+
+		let account3 = account::<T::AccountId>("apply-juror-account", 3, SEED);
+
+		let _ = <T as pallet::Config>::Currency::deposit_creating(&account3, balance);
+
+		let stake = PositiveExternality::<T>::u64_to_balance_saturated(100);
+
+		let mut accounts = vec![];
+
+		for j in 4..30 {
+			let account_number = account::<T::AccountId>("apply-juror-account", j, SEED);
+			accounts.push(account_number.clone());
+			let _ = <T as pallet::Config>::Currency::deposit_creating(&account_number, balance);
+
+			assert_ok!(PositiveExternality::<T>::apply_jurors(
+				RawOrigin::Signed(account_number).into(),
+				account1.clone(),
+				(j * 100).into()
+			));
+		}
+
+		let phase_data = PositiveExternality::<T>::get_phase_data();
+
+		let now = <frame_system::Pallet<T>>::block_number();
+
+		<frame_system::Pallet<T>>::set_block_number(now + phase_data.staking_length);
+
+		#[extrinsic_call]
+		pass_period(RawOrigin::Signed(accounts[0].clone()), account1.clone());
+	}
+
 	impl_benchmark_test_suite!(PositiveExternality, crate::mock::new_test_ext(), crate::mock::Test);
 }
