@@ -19,6 +19,155 @@ mod benchmarks {
 	) {
 		frame_system::Pallet::<T>::assert_last_event(generic_event.into());
 	}
+	fn full_schelling_game<T: 'static + pallet::Config>(
+		user_to_calculate: T::AccountId,
+		start_block_number: u64,
+		accounts: Vec<T::AccountId>,
+	) {
+		let start_block_number =
+			PositiveExternality::<T>::u64_to_block_saturated(start_block_number);
+		assert_ok!(PositiveExternality::<T>::set_validate_positive_externality(
+			RawOrigin::Signed(user_to_calculate.clone()).into(),
+			true
+		));
+		let account2 = account::<T::AccountId>("stake-account", 2, SEED);
+
+		let balance = PositiveExternality::<T>::u64_to_balance_saturated(100000000000000);
+
+		let _ = <T as pallet::Config>::Currency::deposit_creating(&account2, balance);
+		assert_ok!(PositiveExternality::<T>::apply_staking_period(
+			RawOrigin::Signed(account2.clone()).into(),
+			user_to_calculate.clone()
+		));
+
+		let account3 = account::<T::AccountId>("apply-juror-account", 3, SEED);
+
+		let _ = <T as pallet::Config>::Currency::deposit_creating(&account3, balance);
+
+		let stake = PositiveExternality::<T>::u64_to_balance_saturated(100);
+
+		for j in 4..30 {
+			let stake = PositiveExternality::<T>::u64_to_balance_saturated(j * 100);
+			assert_ok!(PositiveExternality::<T>::apply_jurors(
+				RawOrigin::Signed(accounts[(j) as usize].clone()).into(),
+				user_to_calculate.clone(),
+				stake
+			));
+		}
+
+		let phase_data = PositiveExternality::<T>::get_phase_data();
+
+		<frame_system::Pallet<T>>::set_block_number(start_block_number + phase_data.staking_length);
+
+		assert_ok!(PositiveExternality::<T>::pass_period(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			user_to_calculate.clone()
+		));
+
+		assert_ok!(PositiveExternality::<T>::draw_jurors(
+			RawOrigin::Signed(accounts[1].clone()).into(),
+			user_to_calculate.clone(),
+			5
+		));
+
+		assert_ok!(PositiveExternality::<T>::pass_period(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			user_to_calculate.clone()
+		));
+
+		let hash = sp_io::hashing::keccak_256("1salt2".as_bytes());
+		assert_ok!(PositiveExternality::<T>::commit_vote(
+			RawOrigin::Signed(accounts[4].clone()).into(),
+			user_to_calculate.clone(),
+			hash
+		));
+
+		let hash = sp_io::hashing::keccak_256("1salt3".as_bytes());
+		assert_ok!(PositiveExternality::<T>::commit_vote(
+			RawOrigin::Signed(accounts[7].clone()).into(),
+			user_to_calculate.clone(),
+			hash
+		));
+
+		let hash = sp_io::hashing::keccak_256("1salt4".as_bytes());
+		assert_ok!(PositiveExternality::<T>::commit_vote(
+			RawOrigin::Signed(accounts[13].clone()).into(),
+			user_to_calculate.clone(),
+			hash
+		));
+
+		let hash = sp_io::hashing::keccak_256("1salt5".as_bytes());
+		assert_ok!(PositiveExternality::<T>::commit_vote(
+			RawOrigin::Signed(accounts[14].clone()).into(),
+			user_to_calculate.clone(),
+			hash
+		));
+
+		let hash = sp_io::hashing::keccak_256("3salt6".as_bytes());
+		assert_ok!(PositiveExternality::<T>::commit_vote(
+			RawOrigin::Signed(accounts[15].clone()).into(),
+			user_to_calculate.clone(),
+			hash
+		));
+
+		<frame_system::Pallet<T>>::set_block_number(
+			phase_data.evidence_length
+				+ start_block_number
+				+ phase_data.staking_length
+				+ phase_data.commit_length,
+		);
+
+		assert_ok!(PositiveExternality::<T>::pass_period(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			user_to_calculate.clone()
+		));
+
+		assert_ok!(PositiveExternality::<T>::reveal_vote(
+			RawOrigin::Signed(accounts[4].clone()).into(),
+			user_to_calculate.clone(),
+			1,
+			"salt2".as_bytes().to_vec()
+		));
+
+		assert_ok!(PositiveExternality::<T>::reveal_vote(
+			RawOrigin::Signed(accounts[7].clone()).into(),
+			user_to_calculate.clone(),
+			1,
+			"salt3".as_bytes().to_vec()
+		));
+
+		assert_ok!(PositiveExternality::<T>::reveal_vote(
+			RawOrigin::Signed(accounts[14].clone()).into(),
+			user_to_calculate.clone(),
+			1,
+			"salt5".as_bytes().to_vec()
+		));
+
+		assert_ok!(PositiveExternality::<T>::reveal_vote(
+			RawOrigin::Signed(accounts[15].clone()).into(),
+			user_to_calculate.clone(),
+			3,
+			"salt6".as_bytes().to_vec()
+		));
+
+		<frame_system::Pallet<T>>::set_block_number(
+			phase_data.evidence_length
+				+ start_block_number
+				+ phase_data.staking_length
+				+ phase_data.commit_length
+				+ phase_data.vote_length,
+		);
+
+		assert_ok!(PositiveExternality::<T>::pass_period(
+			RawOrigin::Signed(accounts[0].clone()).into(),
+			user_to_calculate.clone()
+		));
+
+		assert_ok!(PositiveExternality::<T>::set_new_mean_value(
+			RawOrigin::Signed(accounts[13].clone()).into(),
+			user_to_calculate.clone()
+		));
+	}
 
 	#[benchmark]
 	fn create_positive_externality_post() {
@@ -374,6 +523,26 @@ mod benchmarks {
 			1,
 			"salt2".as_bytes().to_vec(),
 		)
+	}
+
+	#[benchmark]
+	fn add_incentive_count() {
+		let mut accounts = vec![];
+		let balance = PositiveExternality::<T>::u64_to_balance_saturated(100000000000000);
+
+		for j in 4..50 {
+			let account_number = account::<T::AccountId>("apply-juror-account", j, SEED);
+			let _ = <T as pallet::Config>::Currency::deposit_creating(&account_number, balance);
+			accounts.push(account_number);
+		}
+
+		let block_number = PositiveExternality::<T>::u64_to_block_saturated(1000);
+		<frame_system::Pallet<T>>::set_block_number(block_number);
+
+		full_schelling_game::<T>(accounts[1].clone(), 1000, accounts.clone());
+
+		#[extrinsic_call]
+		add_incentive_count(RawOrigin::Signed(accounts[14].clone()), accounts[1].clone())
 	}
 
 	impl_benchmark_test_suite!(PositiveExternality, crate::mock::new_test_ext(), crate::mock::Test);
