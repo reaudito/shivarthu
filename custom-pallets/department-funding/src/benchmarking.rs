@@ -3,32 +3,60 @@
 use super::*;
 
 #[allow(unused)]
-use crate::Pallet as Template;
+use crate::Pallet as DepartmentFunding;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
+use pallet_support::Content;
+const SEED: u32 = 0;
+use frame_support::{assert_noop, assert_ok};
 
+#[benchmarks(
+	     where T: pallet_departments::Config + frame_system::Config
+)]
 #[benchmarks]
 mod benchmarks {
 	use super::*;
 
 	#[benchmark]
-	fn do_something() {
-		let value = 100u32.into();
-		let caller: T::AccountId = whitelisted_caller();
+	fn create_department_required_fund() {
+		let account_id = 1;
+		let department_id = 1;
+		let tipping_name = TippingName::SmallTipper;
+
+		let account1 = account::<T::AccountId>("account1", 1, SEED);
+
+		let balance = DepartmentFunding::<T>::u64_to_balance_saturated(100000000000000);
+
+		let _ = <T as pallet::Config>::Currency::deposit_creating(&account1, balance);
+
+		let funding_needed = DepartmentFunding::<T>::u64_to_balance_saturated(10_000u64);
+		// Dispatch a signed extrinsic.
+		let department_account_id = 5;
+		let content_department: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
+
+		assert_ok!(<pallet_departments::Pallet<T>>::create_department(
+			RawOrigin::Signed(account1.clone()).into(),
+			content_department
+		));
+
+		let content: Content = Content::IPFS(
+			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhvqy"
+				.as_bytes()
+				.to_vec(),
+		);
+
 		#[extrinsic_call]
-		do_something(RawOrigin::Signed(caller), value);
-
-		assert_eq!(Something::<T>::get(), Some(value));
-	}
-
-	#[benchmark]
-	fn cause_error() {
-		Something::<T>::put(100u32);
-		let caller: T::AccountId = whitelisted_caller();
-		#[extrinsic_call]
-		cause_error(RawOrigin::Signed(caller));
-
-		assert_eq!(Something::<T>::get(), Some(101u32));
+		create_department_required_fund(
+			RawOrigin::Signed(account1),
+			department_id,
+			content.clone(),
+			tipping_name,
+			funding_needed,
+		);
 	}
 
 	impl_benchmark_test_suite!(Template, crate::mock::new_test_ext(), crate::mock::Test);

@@ -609,33 +609,5 @@ pub mod pallet {
 			}
 			Ok(())
 		}
-
-		// #[pallet::call_index(9)]
-		// #[pallet::weight(0)]
-		// pub fn get_incentives(
-		//     origin: OriginFor<T>,
-		//     user_to_calculate: T::AccountId,
-		// ) -> DispatchResult {
-		//     let _who = ensure_signed(origin)?;
-		//     let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
-
-		//     let key = SumTreeName::PositiveExternality {
-		//         user_address: user_to_calculate.clone(),
-		//         block_number: pe_block_number.clone(),
-		//     };
-
-		//     let phase_data = Self::get_phase_data();
-		//     T::SchellingGameSharedSource::get_incentives_score_schelling_helper_link(
-		//         key.clone(),
-		//         phase_data,
-		//         RangePoint::ZeroToFive,
-		//     )?;
-
-		//     let score = T::SchellingGameSharedSource::get_mean_value_link(key.clone())?;
-		//     // println!("Score {:?}", score);
-		//     T::SharedStorageSource::set_positive_externality_link(user_to_calculate, score)?;
-
-		//     Ok(())
-		// }
 	}
 }

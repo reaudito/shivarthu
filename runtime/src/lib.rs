@@ -438,6 +438,7 @@ mod benches {
 		[pallet_template, TemplateModule]
 		[pallet_project_tips, ProjectTips]
 		[pallet_positive_externality, PositiveExternality]
+		[pallet_department_funding, DepartmentFunding]
 	);
 }
 
