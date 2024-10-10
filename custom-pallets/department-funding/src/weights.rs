@@ -39,6 +39,7 @@ use core::marker::PhantomData;
 pub trait WeightInfo {
 	fn create_department_required_fund() -> Weight;
 	fn apply_staking_period() -> Weight;
+	fn apply_jurors() -> Weight;
 }
 
 /// Weights for `pallet_department_funding` using the Substrate node and recommended hardware.
@@ -58,8 +59,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `345`
 		//  Estimated: `3810`
-		// Minimum execution time: 28_476_000 picoseconds.
-		Weight::from_parts(29_780_000, 3810)
+		// Minimum execution time: 27_469_000 picoseconds.
+		Weight::from_parts(28_838_000, 3810)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -79,10 +80,27 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `306`
 		//  Estimated: `3771`
-		// Minimum execution time: 26_841_000 picoseconds.
-		Weight::from_parts(28_235_000, 3771)
+		// Minimum execution time: 26_581_000 picoseconds.
+		Weight::from_parts(27_526_000, 3771)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
+	}
+	/// Storage: `DepartmentFunding::ValidationBlock` (r:1 w:0)
+	/// Proof: `DepartmentFunding::ValidationBlock` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::PeriodName` (r:1 w:0)
+	/// Proof: `SchellingGameShared::PeriodName` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
+	/// Storage: `SortitionSumGame::SortitionSumTrees` (r:1 w:1)
+	/// Proof: `SortitionSumGame::SortitionSumTrees` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn apply_jurors() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `443`
+		//  Estimated: `3908`
+		// Minimum execution time: 38_811_000 picoseconds.
+		Weight::from_parts(40_559_000, 3908)
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
 }
 
@@ -102,8 +120,8 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `345`
 		//  Estimated: `3810`
-		// Minimum execution time: 28_476_000 picoseconds.
-		Weight::from_parts(29_780_000, 3810)
+		// Minimum execution time: 27_469_000 picoseconds.
+		Weight::from_parts(28_838_000, 3810)
 			.saturating_add(RocksDbWeight::get().reads(4_u64))
 			.saturating_add(RocksDbWeight::get().writes(3_u64))
 	}
@@ -123,9 +141,26 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `306`
 		//  Estimated: `3771`
-		// Minimum execution time: 26_841_000 picoseconds.
-		Weight::from_parts(28_235_000, 3771)
+		// Minimum execution time: 26_581_000 picoseconds.
+		Weight::from_parts(27_526_000, 3771)
 			.saturating_add(RocksDbWeight::get().reads(4_u64))
 			.saturating_add(RocksDbWeight::get().writes(5_u64))
+	}
+	/// Storage: `DepartmentFunding::ValidationBlock` (r:1 w:0)
+	/// Proof: `DepartmentFunding::ValidationBlock` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `SchellingGameShared::PeriodName` (r:1 w:0)
+	/// Proof: `SchellingGameShared::PeriodName` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
+	/// Storage: `SortitionSumGame::SortitionSumTrees` (r:1 w:1)
+	/// Proof: `SortitionSumGame::SortitionSumTrees` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn apply_jurors() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `443`
+		//  Estimated: `3908`
+		// Minimum execution time: 38_811_000 picoseconds.
+		Weight::from_parts(40_559_000, 3908)
+			.saturating_add(RocksDbWeight::get().reads(4_u64))
+			.saturating_add(RocksDbWeight::get().writes(2_u64))
 	}
 }
