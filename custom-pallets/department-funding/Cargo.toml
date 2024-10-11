@@ -29,10 +29,11 @@ trait-schelling-game-shared = { workspace = true }
 pallet-sortition-sum-game = { workspace = true }
 trait-departments = { workspace = true }
 pallet-departments = { workspace = true }
+sp-io = { workspace = true }
+
 
 [dev-dependencies]
 sp-core = { workspace = true }
-sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 frame-support-test = { workspace = true }
 
