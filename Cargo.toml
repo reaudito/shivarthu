@@ -21,6 +21,7 @@ members = [
     "custom-pallets/departments",
     "runtime",
     "custom-pallets/simple-approval-voting",
+    "custom-pallets/first-past-the-post",
 ]
 resolver = "2"
 [profile.release]
@@ -72,6 +73,7 @@ pallet-positive-externality = { path = "custom-pallets/positive-externality", de
 pallet-department-funding = { path = "custom-pallets/department-funding", default-features = false }
 pallet-departments = { path = "custom-pallets/departments", default-features = false }
 pallet-simple-approval-voting = { path = "custom-pallets/simple-approval-voting", default-features = false }
+pallet-first-past-the-post = { path = "custom-pallets/first-past-the-post" }
 
 ## Traits
 trait-sortition-sum-game = { path = "traits/trait-sortition-sum-game", default-features = false }
