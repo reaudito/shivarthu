@@ -7,21 +7,22 @@ homepage = "https://substrate.io"
 
 [workspace]
 members = [
-    "node",
-    "pallets/template",
-    "custom-pallets/department-funding",
-    "custom-pallets/positive-externality",
-    "custom-pallets/profile-validation",
-    "custom-pallets/project-tips",
-    "custom-pallets/schelling-game-shared",
-    "custom-pallets/shared-storage",
-    "custom-pallets/sortition-sum-game",
-    "custom-pallets/spaces",
-    "custom-pallets/support",
-    "custom-pallets/departments",
-    "runtime",
-    "custom-pallets/simple-approval-voting",
-    "custom-pallets/first-past-the-post",
+	"node",
+	"pallets/template",
+	"custom-pallets/department-funding",
+	"custom-pallets/positive-externality",
+	"custom-pallets/profile-validation",
+	"custom-pallets/project-tips",
+	"custom-pallets/schelling-game-shared",
+	"custom-pallets/shared-storage",
+	"custom-pallets/sortition-sum-game",
+	"custom-pallets/spaces",
+	"custom-pallets/support",
+	"custom-pallets/departments",
+	"runtime",
+	"custom-pallets/simple-approval-voting",
+	"custom-pallets/first-past-the-post",
+	"custom-pallets/anonymous-account",
 ]
 resolver = "2"
 [profile.release]
@@ -72,6 +73,7 @@ pallet-project-tips = { path = "custom-pallets/project-tips", default-features =
 pallet-positive-externality = { path = "custom-pallets/positive-externality", default-features = false }
 pallet-department-funding = { path = "custom-pallets/department-funding", default-features = false }
 pallet-departments = { path = "custom-pallets/departments", default-features = false }
+pallet-anonymous-account = { path = "custom-pallets/anonymous-account", default-features = false }
 pallet-simple-approval-voting = { path = "custom-pallets/simple-approval-voting", default-features = false }
 pallet-first-past-the-post = { path = "custom-pallets/first-past-the-post" }
 
@@ -110,10 +112,10 @@ hex-literal = { version = " 0.4.1" }
 ## New end
 
 parity-scale-codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = [
-    "derive",
+	"derive",
 ] }
 scale-info = { version = "2.10.0", default-features = false, features = [
-    "derive",
+	"derive",
 ] }
 
 # frame deps
