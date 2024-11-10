@@ -13,12 +13,14 @@ mod tests;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
+pub mod extras;
 pub mod weights;
 pub use weights::*;
 
 pub type DepartmentId = u64;
+use sp_runtime::AccountId32;
 
-#[frame_support::pallet]
+#[frame_support::pallet(dev_mode)]
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
@@ -55,6 +57,15 @@ pub mod pallet {
 	pub type HashByRange<T: Config> =
 		StorageMap<_, Blake2_128Concat, (DepartmentId, u32, u32), [u8; 32]>;
 
+	#[pallet::type_value]
+	pub fn DefaultSliceRange() -> u32 {
+		100
+	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn slice_range)]
+	pub type SliceRange<T: Config> = StorageValue<_, u32, ValueQuery, DefaultSliceRange>;
+
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/
 	#[pallet::event]
@@ -72,6 +83,7 @@ pub mod pallet {
 		NoneValue,
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
+		InvalidLength,
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -79,21 +91,23 @@ pub mod pallet {
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// An example dispatchable that takes a singles value as a parameter, writes the value to
-		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
 		#[pallet::call_index(0)]
-		#[pallet::weight(T::WeightInfo::do_something())]
-		pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
+		#[pallet::weight(0)]
+		pub fn calculate_hash(origin: OriginFor<T>) -> DispatchResult {
 			// Check that the extrinsic was signed and get the signer.
 			// This function will return an error if the extrinsic is not signed.
 			// https://docs.substrate.io/main-docs/build/origins/
 			let who = ensure_signed(origin)?;
 
-			// Update storage.
-			<Something<T>>::put(something);
+			// let account_id_bytes: [u8; 32] = who.encode();
+			let current_hash: [u8; 32] = [0; 32];
 
-			// Emit an event.
-			Self::deposit_event(Event::SomethingStored { something, who });
+			// let account_id: AccountId32 = AccountId32::new(account_id_bytes);
+
+			let hash = Self::update_hash_incrementally(current_hash, who.encode());
+
+			// println!("hash {:?}", hash);
+
 			// Return a successful DispatchResultWithPostInfo
 			Ok(())
 		}
