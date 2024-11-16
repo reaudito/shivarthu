@@ -1,7 +1,7 @@
 use super::*;
 
+use scale_info::prelude::vec::Vec;
 use sp_io::hashing::blake2_256;
-use sp_runtime::AccountId32;
 
 impl<T: Config> Pallet<T> {
 	pub fn update_hash_incrementally(current_hash: [u8; 32], account_id: Vec<u8>) -> [u8; 32] {
@@ -13,5 +13,12 @@ impl<T: Config> Pallet<T> {
 
 		// Recalculate the hash with the new account ID
 		blake2_256(&input_data)
+	}
+
+	pub fn get_slice_hash(
+		department_id: DepartmentId,
+		slice_number: u32,
+	) -> Result<[u8; 32], DispatchError> {
+		KYCHashes::<T>::get(department_id, slice_number).ok_or(Error::<T>::HashNotFound.into())
 	}
 }

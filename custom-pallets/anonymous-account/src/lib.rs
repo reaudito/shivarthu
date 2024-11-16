@@ -18,13 +18,16 @@ pub mod weights;
 pub use weights::*;
 
 pub type DepartmentId = u64;
-use sp_runtime::AccountId32;
+
+use frame_support::pallet_prelude::DispatchError;
+use sp_std::collections::btree_set::BTreeSet;
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	use scale_info::prelude::vec::Vec;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -48,14 +51,18 @@ pub mod pallet {
 	pub type Something<T> = StorageValue<_, u32>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn kyc_accounts)]
-	pub type KYCAccounts<T: Config> =
-		StorageMap<_, Blake2_128Concat, DepartmentId, Vec<(T::AccountId, [u8; 64])>>;
+	#[pallet::getter(fn kyc_account_ids)]
+	pub type KYCAccountIds<T: Config> =
+		StorageMap<_, Blake2_128Concat, DepartmentId, BTreeSet<T::AccountId>>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn hash_by_range)]
-	pub type HashByRange<T: Config> =
-		StorageMap<_, Blake2_128Concat, (DepartmentId, u32, u32), [u8; 32]>;
+	#[pallet::getter(fn kyc_accounts)]
+	pub type KYCAccounts<T: Config> =
+		StorageMap<_, Blake2_128Concat, DepartmentId, Vec<(T::AccountId, [u8; 64])>>; // Account Id, signature
+	#[pallet::storage]
+	#[pallet::getter(fn kyc_hash)]
+	pub type KYCHashes<T: Config> =
+		StorageDoubleMap<_, Blake2_128Concat, DepartmentId, Blake2_128Concat, u32, [u8; 32]>;
 
 	#[pallet::type_value]
 	pub fn DefaultSliceRange() -> u32 {
@@ -73,7 +80,16 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Event documentation should end with an array that provides descriptive names for event
 		/// parameters. [something, who]
-		SomethingStored { something: u32, who: T::AccountId },
+		SomethingStored {
+			something: u32,
+			who: T::AccountId,
+		},
+
+		EncodeHash {
+			encode: Vec<u8>,
+			hash: [u8; 32],
+			account_id: T::AccountId,
+		},
 	}
 
 	// Errors inform users that something went wrong.
@@ -84,6 +100,10 @@ pub mod pallet {
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
 		InvalidLength,
+		AccountAlreadyAdded,
+		NoAccounts,
+		IncompleteSlice,
+		HashNotFound,
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -93,27 +113,89 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
-		pub fn calculate_hash(origin: OriginFor<T>) -> DispatchResult {
-			// Check that the extrinsic was signed and get the signer.
-			// This function will return an error if the extrinsic is not signed.
-			// https://docs.substrate.io/main-docs/build/origins/
+		pub fn add_kyc_account(
+			origin: OriginFor<T>,
+			department_id: DepartmentId,
+			signature: [u8; 64],
+		) -> DispatchResult {
+			// ToDo! Check who has kyc.
+			// Ensure the caller is a signed origin (authenticated user).
 			let who = ensure_signed(origin)?;
 
-			// let account_id_bytes: [u8; 32] = who.encode();
-			let current_hash: [u8; 32] = [0; 32];
+			// Check if the caller (who) has already completed KYC for this department.
+			KYCAccountIds::<T>::try_mutate(department_id, |account_ids| {
+				let account_ids = account_ids.get_or_insert_with(BTreeSet::new);
 
-			// let account_id: AccountId32 = AccountId32::new(account_id_bytes);
+				// Ensure the account is not already in the KYC list.
+				ensure!(!account_ids.contains(&who), Error::<T>::AccountAlreadyAdded);
+
+				// Add the account ID to the set for quick lookup.
+				account_ids.insert(who.clone());
+
+				// Add the full account information to the main storage.
+				KYCAccounts::<T>::try_mutate(department_id, |accounts| {
+					let accounts = accounts.get_or_insert_with(Vec::new);
+					accounts.push((who, signature));
+					Ok(())
+				})
+			})
+		}
+
+		#[pallet::call_index(1)]
+		#[pallet::weight(0)]
+		pub fn calculate_slice_hash(
+			origin: OriginFor<T>,
+			department_id: DepartmentId,
+			slice_number: u32,
+		) -> DispatchResult {
+			let _ = ensure_signed(origin)?;
+			let slice_range = Self::slice_range() as usize;
+			let start_index = (slice_number as usize) * slice_range;
+			let end_index = start_index + slice_range;
+
+			// Retrieve accounts and ensure the slice exists
+			let accounts = KYCAccounts::<T>::get(department_id).ok_or(Error::<T>::NoAccounts)?;
+			ensure!(accounts.len() >= end_index, Error::<T>::IncompleteSlice);
+
+			// Check if the hash for this slice already exists
+			if KYCHashes::<T>::contains_key(department_id, slice_number) {
+				return Ok(()); // Hash already exists, no need to recalculate
+			}
+
+			// Process accounts in the specified slice
+			let slice = &accounts[start_index..end_index];
+			let mut current_hash = [0; 32]; // Initial hash for the slice
+
+			for (account_id, _) in slice {
+				let encoded_id = account_id.encode();
+				current_hash = Self::update_hash_incrementally(current_hash, encoded_id);
+			}
+
+			// Store the computed hash in storage
+			KYCHashes::<T>::insert(department_id, slice_number, current_hash);
+
+			Ok(())
+		}
+
+		#[pallet::call_index(50)]
+		#[pallet::weight(0)]
+		pub fn calculate_hash(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			let current_hash: [u8; 32] = [0; 32];
+			let encode = who.clone().encode();
 
 			let hash = Self::update_hash_incrementally(current_hash, who.encode());
 
+			Self::deposit_event(Event::EncodeHash { encode, hash, account_id: who });
+
 			// println!("hash {:?}", hash);
 
-			// Return a successful DispatchResultWithPostInfo
 			Ok(())
 		}
 
 		/// An example dispatchable that may throw a custom error.
-		#[pallet::call_index(1)]
+		#[pallet::call_index(51)]
 		#[pallet::weight(T::WeightInfo::cause_error())]
 		pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
 			let _who = ensure_signed(origin)?;

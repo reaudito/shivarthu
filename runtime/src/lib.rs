@@ -299,6 +299,11 @@ impl pallet_departments::Config for Runtime {
 	type WeightInfo = pallet_departments::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_anonymous_account::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_anonymous_account::weights::SubstrateWeight<Runtime>;
+}
+
 impl pallet_department_funding::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_department_funding::weights::SubstrateWeight<Runtime>;
@@ -386,6 +391,9 @@ mod runtime {
 
 	#[runtime::pallet_index(16)]
 	pub type Departments = pallet_departments;
+
+	#[runtime::pallet_index(17)]
+	pub type AnonymousAccount = pallet_anonymous_account;
 }
 
 /// The address format for describing accounts.
