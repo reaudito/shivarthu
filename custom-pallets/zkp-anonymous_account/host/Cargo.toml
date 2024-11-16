@@ -1,0 +1,15 @@
+[package]
+name = "host"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+methods = { path = "../methods" }
+risc0-zkvm = { version = "1.1.2" }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde = "1.0"
+subxt = "0.37.0"
+subxt-signer = "0.37.0"
+sp-io = "38.0.0"
+sp-core = "34.0.0"
+subxt-core = "0.37.0"

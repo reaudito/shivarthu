@@ -77,6 +77,7 @@ pallet-anonymous-account = { path = "custom-pallets/anonymous-account", default-
 pallet-simple-approval-voting = { path = "custom-pallets/simple-approval-voting", default-features = false }
 pallet-first-past-the-post = { path = "custom-pallets/first-past-the-post" }
 
+
 ## Traits
 trait-sortition-sum-game = { path = "traits/trait-sortition-sum-game", default-features = false }
 trait-shared-storage = { path = "traits/trait-shared-storage", default-features = false }
