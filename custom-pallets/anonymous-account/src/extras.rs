@@ -1,5 +1,6 @@
 use super::*;
 
+use parity_scale_codec::Encode;
 use scale_info::prelude::vec::Vec;
 use sp_io::hashing::blake2_256;
 
@@ -12,6 +13,20 @@ impl<T: Config> Pallet<T> {
 		input_data.extend_from_slice(account_id.as_ref());
 
 		// Recalculate the hash with the new account ID
+		blake2_256(&input_data)
+	}
+
+	pub fn calculate_hash_for_accounts(accounts: &[(T::AccountId, [u8; 64])]) -> [u8; 32] {
+		let mut input_data = Vec::new();
+
+		// Concatenate all account IDs into a single byte vector
+		for account in accounts {
+			let encoded_id = account.0.encode();
+			input_data.extend_from_slice(encoded_id.as_ref());
+			input_data.extend_from_slice(account.1.as_ref());
+		}
+
+		// Compute the hash of the combined data
 		blake2_256(&input_data)
 	}
 

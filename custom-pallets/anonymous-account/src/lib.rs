@@ -1,8 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-/// Edit this file to define custom logic or remove it if it is not needed.
-/// Learn more about FRAME and the core library of Substrate FRAME pallets:
-/// <https://docs.substrate.io/reference/frame-pallets/>
 pub use pallet::*;
 
 #[cfg(test)]
@@ -164,15 +161,17 @@ pub mod pallet {
 
 			// Process accounts in the specified slice
 			let slice = &accounts[start_index..end_index];
-			let mut current_hash = [0; 32]; // Initial hash for the slice
+			let hash = Self::calculate_hash_for_accounts(&slice);
 
-			for (account_id, _) in slice {
-				let encoded_id = account_id.encode();
-				current_hash = Self::update_hash_incrementally(current_hash, encoded_id);
-			}
+			// let mut current_hash = [0; 32]; // Initial hash for the slice
+
+			// for (account_id, _) in slice {
+			// 	let encoded_id = account_id.encode();
+			// 	current_hash = Self::update_hash_incrementally(current_hash, encoded_id);
+			// }
 
 			// Store the computed hash in storage
-			KYCHashes::<T>::insert(department_id, slice_number, current_hash);
+			KYCHashes::<T>::insert(department_id, slice_number, hash);
 
 			Ok(())
 		}
