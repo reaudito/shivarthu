@@ -149,6 +149,7 @@ parameter_types! {
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub const SS58Prefix: u8 = 42;
+	pub const AnonymousAccountImageId: [u32; 8] = [1512492500, 2753161227, 4049970770, 2674496521, 3333553514, 2059402670, 1701049823, 2725882521];
 }
 
 /// The default types are being injected by [`derive_impl`](`frame_support::derive_impl`) from
@@ -302,6 +303,7 @@ impl pallet_departments::Config for Runtime {
 impl pallet_anonymous_account::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_anonymous_account::weights::SubstrateWeight<Runtime>;
+	type AnonymousAccountImageId = AnonymousAccountImageId;
 }
 
 impl pallet_department_funding::Config for Runtime {

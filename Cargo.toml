@@ -110,6 +110,9 @@ jsonrpsee = { version = "0.22", features = ["client-core", "macros", "server"] }
 sc-rpc = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 sp-blockchain = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
 hex-literal = { version = " 0.4.1" }
+
+risc0-zkvm = { version = "0.19.1", default-features = false }
+serde_json = { version = "1", default-features = false, features = ["alloc"] }
 ## New end
 
 parity-scale-codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = [

@@ -17,6 +17,8 @@ pub use weights::*;
 pub type DepartmentId = u64;
 
 use frame_support::pallet_prelude::DispatchError;
+use risc0_zkvm::Receipt;
+use scale_info::prelude::string::String;
 use sp_std::collections::btree_set::BTreeSet;
 
 #[frame_support::pallet(dev_mode)]
@@ -37,6 +39,9 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Type representing the weight of this pallet
 		type WeightInfo: WeightInfo;
+
+		#[pallet::constant]
+		type AnonymousAccountImageId: Get<[u32; 8]>;
 	}
 
 	// The pallet's runtime storage items.
@@ -87,6 +92,7 @@ pub mod pallet {
 			hash: [u8; 32],
 			account_id: T::AccountId,
 		},
+		ProofVerified,
 	}
 
 	// Errors inform users that something went wrong.
@@ -101,6 +107,7 @@ pub mod pallet {
 		NoAccounts,
 		IncompleteSlice,
 		HashNotFound,
+		ProofNotVerified,
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -173,6 +180,21 @@ pub mod pallet {
 			// Store the computed hash in storage
 			KYCHashes::<T>::insert(department_id, slice_number, hash);
 
+			Ok(())
+		}
+
+		#[pallet::call_index(2)]
+		#[pallet::weight(0)]
+		pub fn verify_proof(origin: OriginFor<T>, receipt_bytes: Vec<u8>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			let image_id = T::AnonymousAccountImageId::get();
+			let receipt_json: String = Decode::decode(&mut &receipt_bytes[..]).unwrap();
+			let receipt: Receipt = serde_json::from_str(&receipt_json).unwrap();
+			let (output, password_hash): ([u8; 32], [u8; 32]) = receipt.journal.decode().unwrap();
+
+			receipt.verify(image_id).map_err(|_| Error::<T>::ProofNotVerified)?;
+
+			Self::deposit_event(Event::ProofVerified);
 			Ok(())
 		}
 
