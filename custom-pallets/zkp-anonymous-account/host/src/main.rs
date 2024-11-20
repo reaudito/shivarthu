@@ -3,12 +3,18 @@
 use host::accounts_hash::keypair_func;
 use methods::{GUEST_ANONYMOUS_ACCOUNT_ELF, GUEST_ANONYMOUS_ACCOUNT_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
+use std::time::{Instant, SystemTime};
 
 fn main() {
     // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
         .init();
+
+    let start_time = SystemTime::now();
+    println!("Start Time: {:?}", start_time);
+
+    let start = Instant::now();
 
     // An executor environment describes the configurations for the zkVM
     // including program inputs.
@@ -24,6 +30,8 @@ fn main() {
 
     // For example:
     let account_data = keypair_func();
+
+    println!("image id: {:?}", GUEST_ANONYMOUS_ACCOUNT_ID);
 
     let env = ExecutorEnv::builder()
         .write(&account_data)
@@ -53,4 +61,15 @@ fn main() {
     // The receipt was verified at the end of proving, but the below code is an
     // example of how someone else could verify this receipt.
     receipt.verify(GUEST_ANONYMOUS_ACCOUNT_ID).unwrap();
+
+    println!("image id: {:?}", GUEST_ANONYMOUS_ACCOUNT_ID);
+
+    let duration = start.elapsed();
+
+    // Get the end time (system time)
+    let end_time = SystemTime::now();
+    println!("End Time: {:?}", end_time);
+
+    // Print the total elapsed time
+    println!("Total Execution Time: {:?}", duration);
 }
