@@ -61,10 +61,22 @@ pub mod pallet {
 	#[pallet::getter(fn kyc_accounts)]
 	pub type KYCAccounts<T: Config> =
 		StorageMap<_, Blake2_128Concat, DepartmentId, Vec<(T::AccountId, [u8; 64])>>; // Account Id, signature
+
 	#[pallet::storage]
 	#[pallet::getter(fn kyc_hash)]
 	pub type KYCHashes<T: Config> =
 		StorageDoubleMap<_, Blake2_128Concat, DepartmentId, Blake2_128Concat, u32, [u8; 32]>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn password_hash)]
+	pub type PasswordHash<T: Config> = StorageDoubleMap<
+		_,
+		Blake2_128Concat,
+		DepartmentId,
+		Blake2_128Concat,
+		u32,
+		BTreeSet<[u8; 32]>,
+	>;
 
 	#[pallet::type_value]
 	pub fn DefaultSliceRange() -> u32 {
@@ -108,6 +120,8 @@ pub mod pallet {
 		IncompleteSlice,
 		HashNotFound,
 		ProofNotVerified,
+		HashDontMatch,
+		DuplicatePasswordHash,
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -185,54 +199,68 @@ pub mod pallet {
 
 		#[pallet::call_index(2)]
 		#[pallet::weight(0)]
-		pub fn verify_proof(origin: OriginFor<T>, receipt_bytes: Vec<u8>) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+		pub fn verify_proof(
+			origin: OriginFor<T>,
+			slice_number: u32,
+			department_id: DepartmentId,
+			receipt_bytes: Vec<u8>,
+		) -> DispatchResult {
+			// Ensure the origin is signed and retrieve the caller.
+			let _ = ensure_signed(origin)?;
+			// Retrieve the configured image ID.
 			let image_id = T::AnonymousAccountImageId::get();
+
+			// Decode receipt bytes into a `String` and parse into `Receipt`.
 			let receipt_json: String = Decode::decode(&mut &receipt_bytes[..]).unwrap();
 			let receipt: Receipt = serde_json::from_str(&receipt_json).unwrap();
-			let (output, password_hash): ([u8; 32], [u8; 32]) = receipt.journal.decode().unwrap();
 
+			// Extract and decode the hash and password hash from the receipt.
+			let (hash, password_hash): ([u8; 32], [u8; 32]) = receipt.journal.decode().unwrap();
+
+			// Verify the receipt against the provided image ID.
 			receipt.verify(image_id).map_err(|_| Error::<T>::ProofNotVerified)?;
 
+			// Retrieve the expected hash for the department and slice number.
+			let slice_hash = KYCHashes::<T>::get(department_id, slice_number).unwrap();
+
+			// Ensure the provided hash matches the expected hash.
+			ensure!(slice_hash == hash, Error::<T>::HashDontMatch);
+
+			// Access the `PasswordHash` storage and check for uniqueness.
+			PasswordHash::<T>::mutate(department_id, slice_number, |existing_hashes| {
+				// Initialize the storage if not already initialized.
+				let hashes = existing_hashes.get_or_insert_with(BTreeSet::new);
+
+				// Ensure the new password hash is unique.
+				if hashes.contains(&password_hash) {
+					Err(Error::<T>::DuplicatePasswordHash)
+				} else {
+					// Insert the new password hash into the set.
+					hashes.insert(password_hash);
+					Ok(())
+				}
+			})?;
+
+			// Emit an event for successful proof verification
 			Self::deposit_event(Event::ProofVerified);
 			Ok(())
 		}
 
-		#[pallet::call_index(50)]
-		#[pallet::weight(0)]
-		pub fn calculate_hash(origin: OriginFor<T>) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+		// #[pallet::call_index(50)]
+		// #[pallet::weight(0)]
+		// pub fn calculate_hash(origin: OriginFor<T>) -> DispatchResult {
+		// 	let who = ensure_signed(origin)?;
 
-			let current_hash: [u8; 32] = [0; 32];
-			let encode = who.clone().encode();
+		// 	let current_hash: [u8; 32] = [0; 32];
+		// 	let encode = who.clone().encode();
 
-			let hash = Self::update_hash_incrementally(current_hash, who.encode());
+		// 	let hash = Self::update_hash_incrementally(current_hash, who.encode());
 
-			Self::deposit_event(Event::EncodeHash { encode, hash, account_id: who });
+		// 	Self::deposit_event(Event::EncodeHash { encode, hash, account_id: who });
 
-			// println!("hash {:?}", hash);
+		// 	// println!("hash {:?}", hash);
 
-			Ok(())
-		}
-
-		/// An example dispatchable that may throw a custom error.
-		#[pallet::call_index(51)]
-		#[pallet::weight(T::WeightInfo::cause_error())]
-		pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
-			let _who = ensure_signed(origin)?;
-
-			// Read a value from storage.
-			match <Something<T>>::get() {
-				// Return an error if the value has not been set.
-				None => return Err(Error::<T>::NoneValue.into()),
-				Some(old) => {
-					// Increment the value read from storage; will error in the event of overflow.
-					let new = old.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
-					// Update the value in storage with the incremented result.
-					<Something<T>>::put(new);
-					Ok(())
-				},
-			}
-		}
+		// 	Ok(())
+		// }
 	}
 }
