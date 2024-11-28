@@ -5407,6 +5407,7 @@ dependencies = [
  "frame-system",
  "pallet-balances",
  "pallet-schelling-game-shared",
+ "pallet-shared-storage",
  "pallet-sortition-sum-game",
  "pallet-support",
  "pallet-timestamp",
@@ -5417,6 +5418,7 @@ dependencies = [
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk.git?tag=polkadot-v1.9.0)",
  "trait-schelling-game-shared",
+ "trait-shared-storage",
 ]
 
 [[package]]

@@ -20,6 +20,7 @@ use types::ReputationScore;
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type Score = i64;
+type DepartmentId = u64;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -40,6 +41,11 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn approved_citizen_address)]
 	pub type ApprovedCitizenAddress<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>; // Its set, add element through binary_search
+
+	#[pallet::storage]
+	#[pallet::getter(fn approved_citizen_address_by_department)]
+	pub type ApprovedCitizenAddressByDepartment<T: Config> =
+		StorageMap<_, Blake2_128Concat, DepartmentId, Vec<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn positive_externality_score)]
@@ -89,5 +95,6 @@ pub mod pallet {
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
 		CitizenNotApproved,
+		AlreadyMember,
 	}
 }

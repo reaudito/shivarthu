@@ -18,14 +18,15 @@ scale-info = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-sp-std = { workspace = true}
+sp-std = { workspace = true }
 pallet-timestamp = { workspace = true }
-pallet-balances = { workspace = true  }
+pallet-balances = { workspace = true }
 pallet-support = { workspace = true }
 pallet-schelling-game-shared = { workspace = true }
-pallet-sortition-sum-game = { workspace = true}
-trait-schelling-game-shared= { workspace = true }
-
+pallet-sortition-sum-game = { workspace = true }
+trait-schelling-game-shared = { workspace = true }
+pallet-shared-storage = { workspace = true }
+trait-shared-storage = { workspace = true }
 
 
 [dev-dependencies]

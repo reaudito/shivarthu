@@ -278,6 +278,7 @@ impl pallet_profile_validation::Config for Runtime {
 	type WeightInfo = pallet_profile_validation::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
 	type SchellingGameSharedSource = SchellingGameShared;
+	type SharedStorageSource = SharedStorage;
 	type Slash = ();
 	type Reward = ();
 }

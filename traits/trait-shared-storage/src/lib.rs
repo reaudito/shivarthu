@@ -5,6 +5,8 @@ use sp_std::vec::Vec;
 pub trait SharedStorageLink {
 	type AccountId;
 
+	fn add_approved_citizen_address(new_member: Self::AccountId) -> DispatchResult;
+
 	fn check_citizen_is_approved_link(address: Self::AccountId) -> DispatchResult;
 
 	fn get_approved_citizen_count_link() -> u64;

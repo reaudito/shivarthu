@@ -6,6 +6,9 @@ use trait_shared_storage::SharedStorageLink;
 impl<T: Config> SharedStorageLink for Pallet<T> {
 	type AccountId = AccountIdOf<T>;
 
+	fn add_approved_citizen_address(new_member: Self::AccountId) -> DispatchResult {
+		Self::add_approved_citizen_address(new_member)
+	}
 	fn check_citizen_is_approved_link(address: Self::AccountId) -> DispatchResult {
 		Self::check_citizen_is_approved(address)
 	}
@@ -41,6 +44,18 @@ impl<T: Config> SharedStorageLink for Pallet<T> {
 }
 
 impl<T: Config> Pallet<T> {
+	pub(super) fn add_approved_citizen_address(new_member: T::AccountId) -> DispatchResult {
+		let mut members = ApprovedCitizenAddress::<T>::get();
+
+		match members.binary_search(&new_member) {
+			Ok(_) => Err(Error::<T>::AlreadyMember.into()),
+			Err(index) => {
+				members.insert(index, new_member.clone());
+				ApprovedCitizenAddress::<T>::put(members);
+				Ok(())
+			},
+		}
+	}
 	pub(super) fn check_citizen_is_approved(address: T::AccountId) -> DispatchResult {
 		let members = ApprovedCitizenAddress::<T>::get();
 

@@ -45,6 +45,7 @@ use pallet_schelling_game_shared::types::{
 use pallet_sortition_sum_game::types::SumTreeName;
 use pallet_support::{new_who_and_when, Content, WhoAndWhenOf};
 use trait_schelling_game_shared::SchellingGameSharedLink;
+use trait_shared_storage::SharedStorageLink;
 pub use types::{CitizenDetailsPost, FIRST_CHALLENGE_POST_ID, FIRST_CITIZEN_ID};
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balance;
@@ -91,6 +92,8 @@ pub mod pallet {
 			WinningDecision = WinningDecision,
 			PhaseData = PhaseData<Self>,
 		>;
+
+		type SharedStorageSource: SharedStorageLink<AccountId = AccountIdOf<Self>>;
 
 		type Currency: ReservableCurrency<Self::AccountId>;
 		/// Handler for the unbalanced increment when rewarding (minting rewards)
