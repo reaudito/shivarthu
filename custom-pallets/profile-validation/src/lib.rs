@@ -882,6 +882,9 @@ pub mod pallet {
 								who.clone(),
 								profile_fund_info,
 							);
+							T::SharedStorageSource::add_approved_citizen_address(
+								profile_user_account,
+							)?;
 						} else {
 							Err(Error::<T>::ProfileFundAlreadyReturned)?;
 						}
