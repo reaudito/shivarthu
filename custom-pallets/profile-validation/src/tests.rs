@@ -259,6 +259,14 @@ fn return_profile_stake_test() {
 			ProfileValidation::return_profile_stake(RuntimeOrigin::signed(5), 1),
 			Error::<Test>::ProfileFundNotExists
 		);
+
+		// add account to shared storage.
+		assert_ok!(ProfileValidation::add_to_kyc_accounts(RuntimeOrigin::signed(1)));
+
+		assert_noop!(
+			ProfileValidation::add_to_kyc_accounts(RuntimeOrigin::signed(1)),
+			<pallet_shared_storage::Error<Test>>::AlreadyMember
+		);
 	});
 }
 
