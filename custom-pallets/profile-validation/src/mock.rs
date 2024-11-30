@@ -22,6 +22,7 @@ frame_support::construct_runtime!(
 		Timestamp: pallet_timestamp,
 		SchellingGameShared: pallet_schelling_game_shared,
 		SortitionSumGame: pallet_sortition_sum_game,
+		SharedStorage: pallet_shared_storage,
 	}
 );
 
@@ -84,8 +85,13 @@ impl pallet_template::Config for Test {
 	type WeightInfo = ();
 	type Currency = Balances; // New code
 	type SchellingGameSharedSource = SchellingGameShared;
+	type SharedStorageSource = SharedStorage;
 	type Slash = ();
 	type Reward = ();
+}
+
+impl pallet_shared_storage::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
 }
 
 impl pallet_schelling_game_shared::Config for Test {
@@ -145,5 +151,8 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	} // new code
 	.assimilate_storage(&mut t)
 	.unwrap();
+	pallet_shared_storage::GenesisConfig::<Test> { approved_citizen_address: vec![] }
+		.assimilate_storage(&mut t)
+		.unwrap();
 	t.into()
 }

@@ -50,6 +50,7 @@ std = [
 	"pallet-support/std",
 	"pallet-schelling-game-shared/std",
 	"pallet-sortition-sum-game/std",
+	"pallet-shared-storage/std",
 	"frame-support-test/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]

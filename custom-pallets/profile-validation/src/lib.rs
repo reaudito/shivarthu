@@ -265,7 +265,7 @@ pub mod pallet {
 		/// If CitizenId exists update the content, only if `ProfileTotalFundCollected` is zero
 		/// If CitizenId doesn't exists insert the content, and increment the `NextCitizenId`
 		/// </pre>
-		/// #[pallet::weight(<T as pallet::Config>::WeightInfo::add_citizen())]
+
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
 		pub fn add_citizen(origin: OriginFor<T>, content: Content) -> DispatchResult {
@@ -882,9 +882,6 @@ pub mod pallet {
 								who.clone(),
 								profile_fund_info,
 							);
-							T::SharedStorageSource::add_approved_citizen_address(
-								profile_user_account,
-							)?;
 						} else {
 							Err(Error::<T>::ProfileFundAlreadyReturned)?;
 						}
@@ -895,6 +892,32 @@ pub mod pallet {
 				}
 			}
 
+			Ok(())
+		}
+
+		#[pallet::call_index(13)]
+		#[pallet::weight(0)]
+		pub fn add_to_kyc_accounts(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			let block_number = <ValidationBlock<T>>::get(&who);
+			let key = SumTreeName::ProfileValidation { citizen_address: who.clone(), block_number };
+			let now = <frame_system::Pallet<T>>::block_number();
+			let phase_data = Self::get_phase_data();
+
+			let period = T::SchellingGameSharedSource::get_period_link(key.clone()).unwrap();
+
+			if period == Period::Execution {
+				let decision: WinningDecision =
+					T::SchellingGameSharedSource::get_winning_decision_value(key.clone())?;
+				if decision == WinningDecision::WinnerNo {
+					T::SharedStorageSource::add_approved_citizen_address(who.clone())?;
+				}
+			} else if period == Period::Evidence {
+				T::SchellingGameSharedSource::ensure_time_for_staking_over_link(
+					key, phase_data, now,
+				)?;
+				T::SharedStorageSource::add_approved_citizen_address(who.clone())?;
+			}
 			Ok(())
 		}
 	}
