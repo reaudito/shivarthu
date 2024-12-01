@@ -1,10 +1,16 @@
 use crate::*;
 
 impl<T: Config> CitizenDetailsPost<T> {
-	pub fn new(citizen_id: CitizenId, created_by: T::AccountId, content: Content) -> Self {
+	pub fn new(
+		citizen_id: CitizenId,
+		created_by: T::AccountId,
+		content: Content,
+		location: LocationDetails,
+	) -> Self {
 		CitizenDetailsPost {
 			created: new_who_and_when::<T>(created_by.clone()),
 			content,
+			location,
 			citizen_id,
 			owner: created_by,
 			edited: false,

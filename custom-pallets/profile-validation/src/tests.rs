@@ -1,4 +1,4 @@
-use crate::types::CitizenDetailsPost;
+use crate::types::{CitizenDetailsPost, LocationDetails};
 use crate::{mock::*, Error, Event};
 use frame_support::{assert_noop, assert_ok};
 use pallet_schelling_game_shared::types::Period;
@@ -16,11 +16,22 @@ fn add_citizen_profile_check() {
 				.as_bytes()
 				.to_vec(),
 		);
-		assert_ok!(ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()));
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
+		assert_ok!(ProfileValidation::add_citizen(
+			RuntimeOrigin::signed(1),
+			content.clone(),
+			location.clone()
+		));
 		let data = ProfileValidation::citizen_profile(1);
 		let profile = Some(CitizenDetailsPost::<Test> {
 			created: WhoAndWhen { account: 1, block: 1, time: 0 },
 			content,
+			location,
 			citizen_id: 1,
 			owner: 1,
 			edited: false,
@@ -35,11 +46,23 @@ fn add_citizen_profile_check() {
 				.as_bytes()
 				.to_vec(),
 		);
-		assert_ok!(ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()));
+
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
+		assert_ok!(ProfileValidation::add_citizen(
+			RuntimeOrigin::signed(1),
+			content.clone(),
+			location.clone()
+		));
 		let data = ProfileValidation::citizen_profile(1);
 		let profile = Some(CitizenDetailsPost::<Test> {
 			created: WhoAndWhen { account: 1, block: 5, time: 0 },
 			content,
+			location,
 			citizen_id: 1,
 			owner: 1,
 			edited: false,
@@ -61,11 +84,22 @@ fn check_fund_addition() {
 				.as_bytes()
 				.to_vec(),
 		);
-		assert_ok!(ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()));
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
+		assert_ok!(ProfileValidation::add_citizen(
+			RuntimeOrigin::signed(1),
+			content.clone(),
+			location.clone()
+		));
 		let data = ProfileValidation::citizen_profile(1);
 		let profile = Some(CitizenDetailsPost::<Test> {
 			created: WhoAndWhen { account: 1, block: 10, time: 0 },
 			content,
+			location,
 			citizen_id: 1,
 			owner: 1,
 			edited: false,
@@ -84,8 +118,18 @@ fn check_fund_addition() {
 				.as_bytes()
 				.to_vec(),
 		);
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
 		assert_noop!(
-			ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()),
+			ProfileValidation::add_citizen(
+				RuntimeOrigin::signed(1),
+				content.clone(),
+				location.clone()
+			),
 			Error::<Test>::NoMoreUpdates
 		);
 		let data = ProfileValidation::profile_fund_details(1, 3).unwrap();
@@ -124,7 +168,17 @@ fn challenge_evidence() {
 				.as_bytes()
 				.to_vec(),
 		);
-		assert_ok!(ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()));
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
+		assert_ok!(ProfileValidation::add_citizen(
+			RuntimeOrigin::signed(1),
+			content.clone(),
+			location.clone()
+		));
 		assert_ok!(ProfileValidation::add_profile_stake(RuntimeOrigin::signed(3), 1, 1000));
 		let key = SumTreeName::ProfileValidation { citizen_address: 1, block_number: 1 };
 		let period = SchellingGameShared::get_period(key.clone());
@@ -181,7 +235,17 @@ fn challenge_profile_after_time_for_staking_over_test() {
 				.as_bytes()
 				.to_vec(),
 		);
-		assert_ok!(ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()));
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
+		assert_ok!(ProfileValidation::add_citizen(
+			RuntimeOrigin::signed(1),
+			content.clone(),
+			location.clone()
+		));
 		assert_ok!(ProfileValidation::add_profile_stake(RuntimeOrigin::signed(3), 1, 1000));
 		let key = SumTreeName::ProfileValidation { citizen_address: 1, block_number: 1 };
 		let period = SchellingGameShared::get_period(key.clone());
@@ -225,7 +289,17 @@ fn return_profile_stake_test() {
 				.as_bytes()
 				.to_vec(),
 		);
-		assert_ok!(ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()));
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
+		assert_ok!(ProfileValidation::add_citizen(
+			RuntimeOrigin::signed(1),
+			content.clone(),
+			location.clone()
+		));
 		let balance = Balances::free_balance(3);
 		assert_eq!(300000, balance);
 		assert_ok!(ProfileValidation::add_profile_stake(RuntimeOrigin::signed(3), 1, 400));
@@ -279,7 +353,17 @@ fn schelling_game_test() {
 				.as_bytes()
 				.to_vec(),
 		);
-		assert_ok!(ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()));
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
+		assert_ok!(ProfileValidation::add_citizen(
+			RuntimeOrigin::signed(1),
+			content.clone(),
+			location.clone()
+		));
 		assert_ok!(ProfileValidation::add_profile_stake(RuntimeOrigin::signed(3), 1, 1000));
 		let challenge_content: Content = Content::IPFS(
 			"bafkreiaiq24be2iioasr6ftyaum3icmj7amtjkom2jeokov5k5ojwzhabc"
@@ -443,7 +527,17 @@ fn test_draw_juror() {
 				.as_bytes()
 				.to_vec(),
 		);
-		assert_ok!(ProfileValidation::add_citizen(RuntimeOrigin::signed(1), content.clone()));
+		let location: LocationDetails = LocationDetails {
+			country: "India".as_bytes().to_vec(),
+			state: "Odisha".as_bytes().to_vec(),
+			city: "Bhubaneswar".as_bytes().to_vec(),
+			street: None,
+		};
+		assert_ok!(ProfileValidation::add_citizen(
+			RuntimeOrigin::signed(1),
+			content.clone(),
+			location.clone()
+		));
 
 		assert_ok!(ProfileValidation::add_profile_stake(RuntimeOrigin::signed(3), 1, 1000));
 		let challenge_content: Content = Content::IPFS(

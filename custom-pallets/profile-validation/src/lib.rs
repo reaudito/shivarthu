@@ -27,7 +27,7 @@ mod extras;
 mod permissions;
 mod types;
 
-use crate::types::{ChallengeEvidencePost, ChallengerFundInfo, ProfileFundInfo};
+use crate::types::{ChallengeEvidencePost, ChallengerFundInfo, LocationDetails, ProfileFundInfo};
 use frame_support::sp_runtime::traits::AccountIdConversion;
 use frame_support::sp_runtime::traits::{CheckedAdd, CheckedSub};
 use frame_support::sp_runtime::SaturatedConversion;
@@ -268,15 +268,23 @@ pub mod pallet {
 
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
-		pub fn add_citizen(origin: OriginFor<T>, content: Content) -> DispatchResult {
+		pub fn add_citizen(
+			origin: OriginFor<T>,
+			content: Content,
+			location: LocationDetails,
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			let count = Self::next_citizen_id();
 			match <GetCitizenId<T>>::get(&who) {
 				Some(citizen_id) => {
 					let total_funded = <ProfileTotalFundCollected<T>>::get(who.clone());
 					if total_funded == 0u128.saturated_into::<BalanceOf<T>>() {
-						let new_post: CitizenDetailsPost<T> =
-							CitizenDetailsPost::new(citizen_id, who.clone(), content.clone());
+						let new_post: CitizenDetailsPost<T> = CitizenDetailsPost::new(
+							citizen_id,
+							who.clone(),
+							content.clone(),
+							location.clone(),
+						);
 						<CitizenProfile<T>>::insert(who.clone(), new_post);
 						Ok(())
 					} else {
@@ -286,8 +294,12 @@ pub mod pallet {
 				None => {
 					<GetCitizenId<T>>::insert(&who, count);
 
-					let new_post: CitizenDetailsPost<T> =
-						CitizenDetailsPost::new(count, who.clone(), content.clone());
+					let new_post: CitizenDetailsPost<T> = CitizenDetailsPost::new(
+						count,
+						who.clone(),
+						content.clone(),
+						location.clone(),
+					);
 
 					<CitizenProfile<T>>::insert(who.clone(), new_post);
 					NextCitizenId::<T>::mutate(|n| {

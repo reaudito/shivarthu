@@ -13,11 +13,21 @@ pub struct CitizenDetailsPost<T: Config> {
 	pub created: WhoAndWhenOf<T>,
 	pub content: Content,
 	pub citizen_id: CitizenId,
+	pub location: LocationDetails,
 	pub owner: T::AccountId,
 	pub edited: bool,
 	pub hidden: bool,
 	pub upvotes_count: u32,
 	pub downvotes_count: u32,
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
+#[scale_info(skip_type_params(T))]
+pub struct LocationDetails {
+	pub country: Vec<u8>,
+	pub state: Vec<u8>,
+	pub city: Vec<u8>,
+	pub street: Option<Vec<u8>>,
 }
 
 #[derive(
