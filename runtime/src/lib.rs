@@ -695,6 +695,14 @@ impl_runtime_apis! {
 		fn selected_as_juror(user_to_calculate: AccountId, who: AccountId) -> bool {
 			PositiveExternality::selected_as_juror(user_to_calculate, who)
 		}
+		fn post_by_address_length(user: AccountId) -> u64 {
+			PositiveExternality::post_by_address_length(user)
+		}
+
+		fn paginate_posts_by_address(user: AccountId, page: u64, page_size: u64) -> Option<Vec<u64>>{
+			PositiveExternality::paginate_posts_by_address(user, page, page_size)
+		}
+
 	}
 
 	impl project_tips_runtime_api::ProjectTipsApi<Block, AccountId> for Runtime {

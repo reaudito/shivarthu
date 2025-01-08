@@ -168,4 +168,22 @@ impl<T: Config> Pallet<T> {
 	}
 
 	// Block code end
+
+	pub fn post_by_address_length(user: T::AccountId) -> u64 {
+		PostByAddresss::<T>::get(user).len().try_into().unwrap()
+	}
+
+
+	pub fn paginate_posts_by_address(user: T::AccountId, page: u64, page_size: u64) -> Option<Vec<u64>> {
+
+		let data = PostByAddresss::<T>::get(user);
+		let start = page * page_size;
+		let end = start + page_size;
+	
+		if start as usize >= data.len() {
+			None
+		} else {
+			Some(data[start as usize .. (end as usize).min(data.len() as usize)].to_vec())
+		}
+	}
 }

@@ -108,8 +108,8 @@ pub mod pallet {
 	pub type PostById<T: Config> = StorageMap<_, Twox64Concat, PostId, Post<T>>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn evidence)]
-	pub type Evidence<T: Config> =
+	#[pallet::getter(fn post_by_address)]
+	pub type PostByAddresss<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, Vec<PostId>, ValueQuery>;
 
 	#[pallet::type_value]
@@ -207,7 +207,7 @@ pub mod pallet {
 
 			let new_post: Post<T> = Post::new(new_post_id, creator.clone(), content.clone());
 
-			Evidence::<T>::mutate(creator, |ids| ids.push(new_post_id));
+			PostByAddresss::<T>::mutate(creator, |ids| ids.push(new_post_id));
 
 			PostById::insert(new_post_id, new_post);
 			NextPostId::<T>::mutate(|n| {
