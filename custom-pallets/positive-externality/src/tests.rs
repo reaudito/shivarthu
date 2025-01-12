@@ -26,6 +26,9 @@ fn test_positive_externality_post() {
 			downvotes_count: 0,
 		});
 		assert_eq!(post, post_compare);
+
+		let post_ids = TemplateModule::post_by_address(1);
+		assert_eq!(post_ids, vec![1]);
 		//    assert_ok!(TemplateModule::apply_jurors(Origin::signed(1), 2, 60));
 	});
 }
