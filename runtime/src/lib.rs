@@ -703,6 +703,10 @@ impl_runtime_apis! {
 			PositiveExternality::paginate_posts_by_address(user, page, page_size)
 		}
 
+		fn paginate_posts_by_address_latest(user: AccountId, page: u64, page_size: u64) -> Option<Vec<u64>>{
+			PositiveExternality::paginate_posts_by_address_latest(user, page, page_size)
+		}
+
 	}
 
 	impl project_tips_runtime_api::ProjectTipsApi<Block, AccountId> for Runtime {

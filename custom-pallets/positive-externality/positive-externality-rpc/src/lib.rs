@@ -65,6 +65,15 @@ pub trait PositiveExternalityApi<BlockHash, AccountId> {
 		at: Option<BlockHash>,
 	) -> RpcResult<Option<Vec<u64>>>;
 
+	#[method(name = "positiveexternality_paginateposts_latest")]
+	fn paginate_posts_by_address_latest(
+		&self,
+		user: AccountId,
+		page: u64, 
+		page_size: u64,
+		at: Option<BlockHash>,
+	) -> RpcResult<Option<Vec<u64>>>;
+
 
 }
 
@@ -257,6 +266,27 @@ where
 			self.client.info().best_hash);
 
 		let runtime_api_result = api.paginate_posts_by_address(at, user, page, page_size);
+
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
+		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
+		Ok(res)
+	}
+
+	fn paginate_posts_by_address_latest(
+		&self,
+		user: AccountId,
+		page: u64, 
+		page_size: u64,
+		at: Option<Block::Hash>,
+	) -> RpcResult<Option<Vec<u64>>> {
+		let api = self.client.runtime_api();
+		let at = at.unwrap_or_else(||
+			// If the block hash is not supplied assume the best block.
+			self.client.info().best_hash);
+
+		let runtime_api_result = api.paginate_posts_by_address_latest(at, user, page, page_size);
 
 		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
 			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))

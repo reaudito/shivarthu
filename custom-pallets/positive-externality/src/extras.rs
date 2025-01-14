@@ -189,4 +189,23 @@ impl<T: Config> Pallet<T> {
 		let end = (start + page_size).min(all_posts.len() as u64);
 		Some(all_posts[start as usize..end as usize].to_vec())
 	}
+
+	pub fn paginate_posts_by_address_latest(
+		user: T::AccountId,
+		page: u64,
+		page_size: u64,
+	) -> Option<Vec<u64>> {
+		let mut all_posts = PostByAddresss::<T>::get(user);
+		all_posts.reverse();
+	
+		let start = (page - 1) * page_size;
+
+		if start >= all_posts.len() as u64 {
+			// If start exceeds available posts, return None (no more pages).
+			return None;
+		}
+
+		let end = (start + page_size).min(all_posts.len() as u64);
+		Some(all_posts[start as usize..end as usize].to_vec())
+	}
 }
