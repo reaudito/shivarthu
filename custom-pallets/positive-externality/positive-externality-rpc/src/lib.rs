@@ -74,6 +74,21 @@ pub trait PositiveExternalityApi<BlockHash, AccountId> {
 		at: Option<BlockHash>,
 	) -> RpcResult<Option<Vec<u64>>>;
 
+	#[method(name = "positiveexternality_validationlistlength")]
+	fn validation_list_length(
+		&self,
+		at: Option<BlockHash>,
+	) -> RpcResult<u64>;
+
+	#[method(name = "positiveexternality_validationlist_latest")]
+	fn validation_list_latest(
+		&self,
+		page: u64, 
+		page_size: u64,
+		at: Option<BlockHash>,
+	) -> RpcResult<Option<Vec<AccountId>>>;
+
+
 
 }
 
@@ -287,6 +302,44 @@ where
 			self.client.info().best_hash);
 
 		let runtime_api_result = api.paginate_posts_by_address_latest(at, user, page, page_size);
+
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
+		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
+		Ok(res)
+	}
+
+	fn validation_list_length(
+		&self,
+		at: Option<Block::Hash>,
+	) -> RpcResult<u64> {
+		let api = self.client.runtime_api();
+		let at = at.unwrap_or_else(||
+			// If the block hash is not supplied assume the best block.
+			self.client.info().best_hash);
+
+		let runtime_api_result = api.validation_list_length(at);
+
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
+		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
+		Ok(res)
+	}
+
+	fn validation_list_latest(
+		&self,
+		page: u64, 
+		page_size: u64,
+		at: Option<Block::Hash>,
+	) -> RpcResult<Option<Vec<AccountId>>> {
+		let api = self.client.runtime_api();
+		let at = at.unwrap_or_else(||
+			// If the block hash is not supplied assume the best block.
+			self.client.info().best_hash);
+
+		let runtime_api_result = api.validation_list_latest(at, page, page_size);
 
 		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
 			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))

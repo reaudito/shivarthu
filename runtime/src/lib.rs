@@ -707,6 +707,14 @@ impl_runtime_apis! {
 			PositiveExternality::paginate_posts_by_address_latest(user, page, page_size)
 		}
 
+		fn validation_list_length() -> u64 {
+			PositiveExternality::validation_list_length()
+		}
+
+		fn validation_list_latest(page: u64, page_size: u64) -> Option<Vec<AccountId>>{
+			PositiveExternality::validation_list_latest(page, page_size)
+		}
+
 	}
 
 	impl project_tips_runtime_api::ProjectTipsApi<Block, AccountId> for Runtime {

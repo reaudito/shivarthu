@@ -197,7 +197,7 @@ impl<T: Config> Pallet<T> {
 	) -> Option<Vec<u64>> {
 		let mut all_posts = PostByAddresss::<T>::get(user);
 		all_posts.reverse();
-	
+
 		let start = (page - 1) * page_size;
 
 		if start >= all_posts.len() as u64 {
@@ -207,5 +207,30 @@ impl<T: Config> Pallet<T> {
 
 		let end = (start + page_size).min(all_posts.len() as u64);
 		Some(all_posts[start as usize..end as usize].to_vec())
+	}
+
+	pub fn validation_list_length() -> u64 {
+		match <ValidationList<T>>::get() {
+			Some(value) => value.len().try_into().unwrap(),
+			None => 0,
+		}
+	}
+
+	pub fn validation_list_latest(page: u64, page_size: u64) -> Option<Vec<T::AccountId>> {
+		let mut all_accounts = match <ValidationList<T>>::get() {
+			Some(value) => value,
+			None => vec![],
+		};
+		all_accounts.reverse();
+
+		let start = (page - 1) * page_size;
+
+		if start >= all_accounts.len() as u64 {
+			// If start exceeds available posts, return None (no more pages).
+			return None;
+		}
+
+		let end = (start + page_size).min(all_accounts.len() as u64);
+		Some(all_accounts[start as usize..end as usize].to_vec())
 	}
 }

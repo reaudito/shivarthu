@@ -138,6 +138,10 @@ pub mod pallet {
 		StorageMap<_, Blake2_128Concat, T::AccountId, BlockNumberOf<T>, ValueQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn validaton_list)]
+	pub type ValidationList<T: Config> = StorageValue<_, Vec<T::AccountId>>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn got_incentives_positive_externality)]
 	pub type GotPositiveExternality<T: Config> =
 		StorageMap<_, Blake2_128Concat, SumTreeNameType<T>, bool, ValueQuery>;
@@ -175,6 +179,7 @@ pub mod pallet {
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
 		NotAPostOwner,
+		UserDontMatch,
 		ValidationPositiveExternalityIsOff,
 		LessThanMinStake,
 		CannotStakeNow,
@@ -240,6 +245,7 @@ pub mod pallet {
 			user_to_calculate: T::AccountId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+			ensure!(who == user_to_calculate, Error::<T>::UserDontMatch);
 
 			Self::ensure_validation_on_positive_externality(user_to_calculate.clone())?;
 
@@ -277,6 +283,18 @@ pub mod pallet {
 
 			if storage_main_block > pe_block_number || pe_block_number == zero_block_number {
 				<ValidationBlock<T>>::insert(user_to_calculate.clone(), storage_main_block);
+
+			    match <ValidationList<T>>::get() {
+					Some(mut value) => {
+						value.push(user_to_calculate.clone());
+						<ValidationList<T>>::put(value);
+					}
+					None => {
+						let mut value = Vec::new();
+						value.push(user_to_calculate.clone());
+						<ValidationList<T>>::put(value);
+					}
+				}
 				// check what if called again
 				T::SchellingGameSharedSource::set_to_staking_period_pe_link(key.clone(), now)?;
 				T::SchellingGameSharedSource::create_tree_helper_link(key, 3)?;

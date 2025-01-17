@@ -17,6 +17,7 @@ sp_api::decl_runtime_apis! {
 		fn post_by_address_length(user: AccountId) -> u64;
 		fn paginate_posts_by_address(user: AccountId, page: u64, page_size: u64) -> Option<Vec<u64>>;
 		fn paginate_posts_by_address_latest(user: AccountId, page: u64, page_size: u64) -> Option<Vec<u64>>;
-
+		fn validation_list_length() -> u64;
+		fn validation_list_latest(page: u64, page_size: u64) -> Option<Vec<AccountId>>;
 	}
 }
