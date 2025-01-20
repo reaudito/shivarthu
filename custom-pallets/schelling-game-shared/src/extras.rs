@@ -268,6 +268,26 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
+	pub(super) fn has_user_staked(key:SumTreeNameType<T>, who: AccountIdOf<T>
+	) -> bool {
+		let stake_of = T::SortitionSumGameSource::stake_of_link(key.clone(), who.clone()).unwrap();
+
+		match stake_of {
+			Some(_) => true,
+			None => false
+		}
+	}
+
+	pub(super) fn user_staked_value(key:SumTreeNameType<T>, who: AccountIdOf<T>
+	) -> u64 {
+		let stake_of = T::SortitionSumGameSource::stake_of_link(key.clone(), who.clone()).unwrap();
+
+		match stake_of {
+			Some(value) => value,
+			None => 0
+		}
+	}
+
 	// Improvements: Set stake to zero after a juror is drawn, so that they are not drawn again. Store the stake in storage map in DrawnJurors, and use it in get_incentives_helper
 	pub(super) fn draw_jurors_helper(
 		key: SumTreeNameType<T>,

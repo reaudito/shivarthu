@@ -88,6 +88,23 @@ pub trait PositiveExternalityApi<BlockHash, AccountId> {
 		at: Option<BlockHash>,
 	) -> RpcResult<Option<Vec<AccountId>>>;
 
+	#[method(name = "positiveexternality_has_user_staked")]
+	fn has_user_staked(
+		&self,
+		user_to_calculate: AccountId,
+		who: AccountId,
+		at: Option<BlockHash>,
+	) -> RpcResult<bool>;
+
+	#[method(name = "positiveexternality_user_staked_value")]
+	fn user_staked_value(
+		&self,
+		user_to_calculate: AccountId,
+		who: AccountId,
+		at: Option<BlockHash>,
+	) -> RpcResult<u64>;
+
+
 
 
 }
@@ -340,6 +357,46 @@ where
 			self.client.info().best_hash);
 
 		let runtime_api_result = api.validation_list_latest(at, page, page_size);
+
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
+		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
+		Ok(res)
+	}
+
+	fn has_user_staked(
+		&self,
+		user_to_calculate: AccountId,
+		who: AccountId,
+		at: Option<Block::Hash>,
+	) -> RpcResult<bool> {
+		let api = self.client.runtime_api();
+		let at = at.unwrap_or_else(||
+			// If the block hash is not supplied assume the best block.
+			self.client.info().best_hash);
+
+		let runtime_api_result = api.has_user_staked(at, user_to_calculate, who);
+
+		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
+		}
+		let res = runtime_api_result.map_err(|e| map_err(e, "Unable to query dispatch info."))?;
+		Ok(res)
+	}
+
+	fn user_staked_value(
+		&self,
+		user_to_calculate: AccountId,
+		who: AccountId,
+		at: Option<Block::Hash>,
+	) -> RpcResult<u64> {
+		let api = self.client.runtime_api();
+		let at = at.unwrap_or_else(||
+			// If the block hash is not supplied assume the best block.
+			self.client.info().best_hash);
+
+		let runtime_api_result = api.user_staked_value(at, user_to_calculate, who);
 
 		fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
 			ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))

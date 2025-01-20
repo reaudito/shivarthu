@@ -162,4 +162,7 @@ pub trait SchellingGameSharedLink {
 	fn set_new_mean_value(key: Self::SumTreeName) -> DispatchResult;
 
 	fn add_to_incentives_count(key: Self::SumTreeName, who: Self::AccountId) -> DispatchResult;
+
+	fn has_user_staked(key: Self::SumTreeName, who: Self::AccountId ) -> bool;
+	fn user_staked_value(key: Self::SumTreeName, who: Self::AccountId) -> u64;
 }

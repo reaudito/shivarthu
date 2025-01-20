@@ -167,6 +167,30 @@ impl<T: Config> Pallet<T> {
 		result
 	}
 
+	pub fn has_user_staked(user_to_calculate: T::AccountId, who: T::AccountId) -> bool {
+		let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
+
+		let key = SumTreeName::PositiveExternality {
+			user_address: user_to_calculate,
+			block_number: pe_block_number.clone(),
+		};
+
+		let result = T::SchellingGameSharedSource::has_user_staked(key, who);
+		result
+	}
+
+pub fn user_staked_value(user_to_calculate: T::AccountId, who: T::AccountId) -> u64 {
+	let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
+
+		let key = SumTreeName::PositiveExternality {
+			user_address: user_to_calculate,
+			block_number: pe_block_number.clone(),
+		};
+
+		let result = T::SchellingGameSharedSource::user_staked_value(key, who);
+		result
+}
+
 	// Block code end
 
 	pub fn post_by_address_length(user: T::AccountId) -> u64 {

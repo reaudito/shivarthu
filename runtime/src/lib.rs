@@ -715,6 +715,13 @@ impl_runtime_apis! {
 			PositiveExternality::validation_list_latest(page, page_size)
 		}
 
+		fn has_user_staked(user_to_calculate: AccountId, who: AccountId) -> bool {
+			PositiveExternality::has_user_staked(user_to_calculate, who)
+		}
+		fn user_staked_value(user_to_calculate: AccountId, who: AccountId) -> u64 {
+			PositiveExternality::user_staked_value(user_to_calculate, who)
+		}
+
 	}
 
 	impl project_tips_runtime_api::ProjectTipsApi<Block, AccountId> for Runtime {

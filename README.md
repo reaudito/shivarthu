@@ -93,7 +93,9 @@ RUST_BACKTRACE=1 ./target/release/node-template -ldebug --dev
 ```
 
 Code lines
+Jan 2025
 Shivarthu: 23586
+Client:  17699
 
 
 

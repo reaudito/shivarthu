@@ -157,6 +157,19 @@ impl<T: Config> SchellingGameSharedLink for Pallet<T> {
 		Self::apply_jurors_helper(key, phase_data, who, stake)
 	}
 
+	fn has_user_staked(
+		key: Self::SumTreeName,
+		who: Self::AccountId,
+
+	) -> bool {
+		Self::has_user_staked(key, who)
+	}
+
+	fn user_staked_value(key: Self::SumTreeName,
+		who: Self::AccountId) -> u64 {
+			Self::user_staked_value(key, who)
+		}
+
 	/// Draw Jurors  
 	/// Ensure `Period` is `Drawing`  
 	/// `iterations` is number of jurors drawn per call  
