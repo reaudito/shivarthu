@@ -722,6 +722,14 @@ impl_runtime_apis! {
 			PositiveExternality::user_staked_value(user_to_calculate, who)
 		}
 
+		fn paginate_all_post(page: u64, page_size: u64) -> Option<Vec<u64>> {
+			PositiveExternality::paginate_all_post(page, page_size)
+		}
+
+		fn all_post_length() -> u64 {
+			PositiveExternality::all_post_length()	
+		}
+
 	}
 
 	impl project_tips_runtime_api::ProjectTipsApi<Block, AccountId> for Runtime {
@@ -746,6 +754,8 @@ impl_runtime_apis! {
 		fn selected_as_juror(project_id: ProjectId, who: AccountId) -> bool {
 			ProjectTips::selected_as_juror(project_id, who)
 		}
+
+		
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]

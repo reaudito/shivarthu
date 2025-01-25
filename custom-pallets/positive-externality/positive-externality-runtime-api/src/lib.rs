@@ -21,5 +21,7 @@ sp_api::decl_runtime_apis! {
 		fn validation_list_latest(page: u64, page_size: u64) -> Option<Vec<AccountId>>;
 		fn has_user_staked(user_to_calculate: AccountId, who: AccountId) -> bool;
 		fn user_staked_value(user_to_calculate: AccountId, who: AccountId) -> u64;
+		fn paginate_all_post(page: u64, page_size: u64) -> Option<Vec<u64>>;
+		fn all_post_length() -> u64;
 	}
 }

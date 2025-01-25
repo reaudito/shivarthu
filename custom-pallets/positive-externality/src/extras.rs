@@ -257,4 +257,25 @@ pub fn user_staked_value(user_to_calculate: T::AccountId, who: T::AccountId) -> 
 		let end = (start + page_size).min(all_accounts.len() as u64);
 		Some(all_accounts[start as usize..end as usize].to_vec())
 	}
+
+	pub fn paginate_all_post(page: u64, page_size: u64) -> Option<Vec<u64>> {
+		let last_post = NextPostId::<T>::get() - 1;
+
+		let all_posts: Vec<u64>= (1..=last_post).rev().collect();
+
+		let start = (page - 1) * page_size;
+
+		if start >= all_posts.len() as u64 {
+			// If start exceeds available posts, return None (no more pages).
+			return None;
+		}
+
+		let end = (start + page_size).min(all_posts.len() as u64);
+		Some(all_posts[start as usize..end as usize].to_vec())
+	}
+
+	pub fn all_post_length() -> u64 {
+		let last_post = NextPostId::<T>::get();
+		last_post - 1
+	}
 }
