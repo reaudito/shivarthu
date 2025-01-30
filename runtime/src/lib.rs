@@ -150,6 +150,23 @@ parameter_types! {
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub const SS58Prefix: u8 = 42;
 	pub const AnonymousAccountImageId: [u32; 8] = [957845215, 2138764848, 3436027531, 926522363, 4221982768, 3434214646, 699310563, 1063924749];
+
+	
+}
+
+// Positive Externality
+parameter_types! {
+	pub const EvidenceLengthPositiveExternality: u64 = 50;
+	pub const EndOfStakingTimePositiveExternality: u64 = 50;
+	pub const StakingLengthPositiveExternality: u64 = 50;
+	pub const DrawingLengthPositiveExternality: u64 = 50;
+	pub const CommitLengthPositiveExternality: u64 = 50;
+	pub const VoteLengthPositiveExternality: u64 = 50;
+	pub const AppealLengthPositiveExternality: u64 = 50 ;
+	pub const MaxDrawsPositiveExternality: u64 = 5;
+	pub const MinNumberJurorStakedPositiveExternality: u64 = 3;
+	pub const MinJurorStakePositiveExternality: u64 = 100;
+	pub const JurorIncentivesPositiveExternality: (u64, u64) = (100, 100);
 }
 
 /// The default types are being injected by [`derive_impl`](`frame_support::derive_impl`) from
@@ -294,6 +311,18 @@ impl pallet_positive_externality::Config for Runtime {
 	type Currency = Balances;
 	type SchellingGameSharedSource = SchellingGameShared;
 	type Reward = ();
+	type EvidenceLength = EvidenceLengthPositiveExternality;
+	type EndOfStakingTime = EndOfStakingTimePositiveExternality;
+	type StakingLength = StakingLengthPositiveExternality;
+	type DrawingLength = DrawingLengthPositiveExternality;
+	type CommitLength = CommitLengthPositiveExternality;
+	type VoteLength = VoteLengthPositiveExternality;
+	type AppealLength = AppealLengthPositiveExternality;
+	type MaxDraws = MaxDrawsPositiveExternality;
+	type MinNumberJurorStaked = MinNumberJurorStakedPositiveExternality;
+	type MinJurorStake = MinJurorStakePositiveExternality;
+	type JurorIncentives = JurorIncentivesPositiveExternality;
+
 }
 
 impl pallet_departments::Config for Runtime {

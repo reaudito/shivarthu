@@ -28,7 +28,20 @@ impl<T: Config> Post<T> {
 
 impl<T: Config> Pallet<T> {
 	pub(super) fn get_phase_data() -> PhaseData<T> {
-		T::SchellingGameSharedSource::create_phase_data(50, 5, 3, 100, (100, 100))
+
+		let evidence_length: u64 = T::EvidenceLength::get();
+		let end_of_staking_time: u64 = T::EndOfStakingTime::get();
+		let staking_length: u64 = T::StakingLength::get();
+		let drawing_length: u64 = T::DrawingLength::get();
+		let commit_length: u64 = T::CommitLength::get();
+		let vote_length: u64 = T::VoteLength::get();
+		let appeal_length: u64 = T::AppealLength::get();
+		let max_draws: u64 = T::MaxDraws::get();
+		let min_number_juror_staked: u64 = T::MinNumberJurorStaked::get();
+		let min_juror_stake: u64 = T::MinJurorStake::get();
+		let juror_incentives: (u64, u64) = T::JurorIncentives::get();
+     
+		T::SchellingGameSharedSource::create_phase_with_all_data(evidence_length, end_of_staking_time, staking_length, drawing_length, commit_length, vote_length, appeal_length, max_draws, min_number_juror_staked, min_juror_stake, juror_incentives)
 	}
 
 	pub fn ensure_validation_on_positive_externality(account: T::AccountId) -> DispatchResult {

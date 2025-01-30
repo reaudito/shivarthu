@@ -82,6 +82,40 @@ pub mod pallet {
 		type Currency: ReservableCurrency<Self::AccountId>;
 		/// Handler for the unbalanced increment when rewarding (minting rewards)
 		type Reward: OnUnbalanced<PositiveImbalanceOf<Self>>;
+
+		#[pallet::constant]
+        type EvidenceLength: Get<u64>;
+
+		#[pallet::constant]
+        type EndOfStakingTime: Get<u64>;
+
+
+		#[pallet::constant]
+        type StakingLength: Get<u64>;
+
+		#[pallet::constant]
+        type DrawingLength: Get<u64>;
+
+		#[pallet::constant]
+        type CommitLength: Get<u64>;
+
+		#[pallet::constant]
+        type VoteLength: Get<u64>;
+
+		#[pallet::constant]
+        type AppealLength: Get<u64>;
+
+		#[pallet::constant]
+        type MaxDraws: Get<u64>;
+
+		#[pallet::constant]
+        type MinNumberJurorStaked : Get<u64>;
+
+		#[pallet::constant]
+        type MinJurorStake: Get<u64>;
+
+		#[pallet::constant]
+        type JurorIncentives: Get<(u64, u64)>;
 	}
 
 	// The pallet's runtime storage items.
@@ -245,7 +279,7 @@ pub mod pallet {
 			user_to_calculate: T::AccountId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			ensure!(who == user_to_calculate, Error::<T>::UserDontMatch);
+			// ensure!(who == user_to_calculate, Error::<T>::UserDontMatch);
 
 			Self::ensure_validation_on_positive_externality(user_to_calculate.clone())?;
 
