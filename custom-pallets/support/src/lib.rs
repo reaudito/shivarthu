@@ -116,10 +116,10 @@ pub fn ensure_content_is_valid(content: Content) -> DispatchResult {
 		Content::None => Ok(()),
 		Content::Other(_) => Err(ContentError::OtherContentTypeNotSupported.into()),
 		Content::IPFS(ipfs_cid) => {
-			let len = ipfs_cid.len();
+			// let len = ipfs_cid.len();
 			// IPFS CID v0 is 46 bytes.
 			// IPFS CID v1 is 59 bytes.
-			ensure!(len == 46 || len == 59, ContentError::InvalidIpfsCid);
+			// ensure!(len == 46 || len == 59, ContentError::InvalidIpfsCid);
 			Ok(())
 		},
 	}
