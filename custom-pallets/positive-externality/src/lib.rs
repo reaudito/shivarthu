@@ -84,38 +84,49 @@ pub mod pallet {
 		type Reward: OnUnbalanced<PositiveImbalanceOf<Self>>;
 
 		#[pallet::constant]
-        type EvidenceLength: Get<u64>;
+		type EvidenceLength: Get<u64>;
 
 		#[pallet::constant]
-        type EndOfStakingTime: Get<u64>;
-
-
-		#[pallet::constant]
-        type StakingLength: Get<u64>;
+		type EndOfStakingTime: Get<u64>;
 
 		#[pallet::constant]
-        type DrawingLength: Get<u64>;
+		type StakingLength: Get<u64>;
 
 		#[pallet::constant]
-        type CommitLength: Get<u64>;
+		type DrawingLength: Get<u64>;
 
 		#[pallet::constant]
-        type VoteLength: Get<u64>;
+		type CommitLength: Get<u64>;
 
 		#[pallet::constant]
-        type AppealLength: Get<u64>;
+		type VoteLength: Get<u64>;
 
 		#[pallet::constant]
-        type MaxDraws: Get<u64>;
+		type AppealLength: Get<u64>;
 
 		#[pallet::constant]
-        type MinNumberJurorStaked : Get<u64>;
+		type MaxDraws: Get<u64>;
 
 		#[pallet::constant]
-        type MinJurorStake: Get<u64>;
+		type MinNumberJurorStaked: Get<u64>;
 
 		#[pallet::constant]
-        type JurorIncentives: Get<(u64, u64)>;
+		type MinJurorStake: Get<u64>;
+
+		#[pallet::constant]
+		type JurorIncentives: Get<(u64, u64)>;
+
+		#[pallet::constant]
+		type TotalNumbersGamesForIncentives: Get<u64>;
+
+		#[pallet::constant]
+		type JurorWinMultiplier: Get<u64>;
+
+		#[pallet::constant]
+		type JurorLossMultiplier: Get<u64>;
+
+		#[pallet::constant]
+		type JurorIncentivesTotalBlock: Get<u64>;
 	}
 
 	// The pallet's runtime storage items.
@@ -318,16 +329,16 @@ pub mod pallet {
 			if storage_main_block > pe_block_number || pe_block_number == zero_block_number {
 				<ValidationBlock<T>>::insert(user_to_calculate.clone(), storage_main_block);
 
-			    match <ValidationList<T>>::get() {
+				match <ValidationList<T>>::get() {
 					Some(mut value) => {
 						value.push(user_to_calculate.clone());
 						<ValidationList<T>>::put(value);
-					}
+					},
 					None => {
 						let mut value = Vec::new();
 						value.push(user_to_calculate.clone());
 						<ValidationList<T>>::put(value);
-					}
+					},
 				}
 				// check what if called again
 				T::SchellingGameSharedSource::set_to_staking_period_pe_link(key.clone(), now)?;
@@ -600,13 +611,14 @@ pub mod pallet {
 		}
 
 		// Provide incentives
+		// Provide incentives to juror based on number of games played and their win/loss ratio
+		// Provide incentives when total_numbers of games is reached
 
 		#[pallet::call_index(12)]
 		#[pallet::weight(0)]
 		pub fn get_incentives(origin: OriginFor<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let incentive_meta = <IncentivesMeta<T>>::get();
-			let total_games_allowed = incentive_meta.total_number;
+			let total_games_allowed = T::TotalNumbersGamesForIncentives::get();
 			let incentive_count_option = <IncentiveCount<T>>::get(&who);
 			match incentive_count_option {
 				Some(incentive) => {
@@ -621,8 +633,8 @@ pub mod pallet {
 						let total_lost = incentive.loser;
 
 						// Define multipliers
-						let win_multiplier = 10 * 100;
-						let lost_multiplier = incentive_meta.disincentive_times * 100;
+						let win_multiplier = T::JurorWinMultiplier::get();
+						let lost_multiplier = T::JurorLossMultiplier::get();
 
 						// Calculate total_win_incentives and total_lost_incentives
 						let total_win_incentives = total_win.checked_mul(win_multiplier);

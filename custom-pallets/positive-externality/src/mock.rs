@@ -25,6 +25,10 @@ parameter_types! {
 	pub const MinNumberJurorStakedPositiveExternality: u64 = 3;
 	pub const MinJurorStakePositiveExternality: u64 = 100;
 	pub const JurorIncentivesPositiveExternality: (u64, u64) = (100, 100);
+	pub const TotalNumbersGamesForIncentives: u64 = 20;
+	pub const JurorWinMultiplier: u64 = 10 * 100;
+	pub const JurorLossMultiplier: u64 = 15 * 100;
+	pub const JurorIncentivesTotalBlock: u64 = 432000; // 30 days = (24*60*60)/6 * 30
 }
 
 // Configure a mock runtime to test the pallet.
@@ -129,7 +133,10 @@ impl pallet_template::Config for Test {
 	type MinNumberJurorStaked = MinNumberJurorStakedPositiveExternality;
 	type MinJurorStake = MinJurorStakePositiveExternality;
 	type JurorIncentives = JurorIncentivesPositiveExternality;
-
+	type TotalNumbersGamesForIncentives = TotalNumbersGamesForIncentives;
+	type JurorWinMultiplier = JurorWinMultiplier;
+	type JurorLossMultiplier = JurorLossMultiplier;
+	type JurorIncentivesTotalBlock = JurorIncentivesTotalBlock;
 }
 
 // Build genesis storage according to the mock runtime.

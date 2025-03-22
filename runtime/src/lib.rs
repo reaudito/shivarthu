@@ -151,7 +151,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 	pub const AnonymousAccountImageId: [u32; 8] = [957845215, 2138764848, 3436027531, 926522363, 4221982768, 3434214646, 699310563, 1063924749];
 
-	
+
 }
 
 // Positive Externality
@@ -167,6 +167,11 @@ parameter_types! {
 	pub const MinNumberJurorStakedPositiveExternality: u64 = 3;
 	pub const MinJurorStakePositiveExternality: u64 = 100;
 	pub const JurorIncentivesPositiveExternality: (u64, u64) = (100, 100);
+	pub const TotalNumbersGamesForIncentives: u64 = 20;
+	pub const JurorWinMultiplier: u64 = 10 * 100;
+	pub const JurorLossMultiplier: u64 = 15 * 100;
+	pub const JurorIncentivesTotalBlock: u64 = 432000; // 30 days = (24*60*60)/6 * 30
+
 }
 
 /// The default types are being injected by [`derive_impl`](`frame_support::derive_impl`) from
@@ -322,7 +327,10 @@ impl pallet_positive_externality::Config for Runtime {
 	type MinNumberJurorStaked = MinNumberJurorStakedPositiveExternality;
 	type MinJurorStake = MinJurorStakePositiveExternality;
 	type JurorIncentives = JurorIncentivesPositiveExternality;
-
+	type TotalNumbersGamesForIncentives = TotalNumbersGamesForIncentives;
+	type JurorWinMultiplier = JurorWinMultiplier;
+	type JurorLossMultiplier = JurorLossMultiplier;
+	type JurorIncentivesTotalBlock = JurorIncentivesTotalBlock;
 }
 
 impl pallet_departments::Config for Runtime {
@@ -756,7 +764,7 @@ impl_runtime_apis! {
 		}
 
 		fn all_post_length() -> u64 {
-			PositiveExternality::all_post_length()	
+			PositiveExternality::all_post_length()
 		}
 
 	}
@@ -784,7 +792,7 @@ impl_runtime_apis! {
 			ProjectTips::selected_as_juror(project_id, who)
 		}
 
-		
+
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
