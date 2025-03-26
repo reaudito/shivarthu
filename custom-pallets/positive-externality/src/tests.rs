@@ -354,12 +354,12 @@ fn full_schelling_game_func(user_to_calculate: u64, start_block_number: u64) {
 
 	assert_ok!(TemplateModule::set_new_mean_value(RuntimeOrigin::signed(13), user_to_calculate));
 
-	assert_noop!(
-		TemplateModule::add_incentive_count(RuntimeOrigin::signed(13), user_to_calculate),
-		<pallet_schelling_game_shared::Error<Test>>::VoteNotRevealed
-	);
-	assert_ok!(TemplateModule::add_incentive_count(RuntimeOrigin::signed(14), user_to_calculate));
-	assert_ok!(TemplateModule::add_incentive_count(RuntimeOrigin::signed(15), user_to_calculate));
+	// assert_noop!(
+	// 	TemplateModule::add_incentive_count(RuntimeOrigin::signed(13), user_to_calculate),
+	// 	<pallet_schelling_game_shared::Error<Test>>::VoteNotRevealed
+	// );
+	// assert_ok!(TemplateModule::add_incentive_count(RuntimeOrigin::signed(14), user_to_calculate));
+	// assert_ok!(TemplateModule::add_incentive_count(RuntimeOrigin::signed(15), user_to_calculate));
 }
 
 fn full_schelling_game_func2(user_to_calculate: u64, start_block_number: u64) {
@@ -500,159 +500,159 @@ fn full_schelling_game_func2(user_to_calculate: u64, start_block_number: u64) {
 
 	assert_ok!(TemplateModule::set_new_mean_value(RuntimeOrigin::signed(13), user_to_calculate));
 
-	assert_noop!(
-		TemplateModule::add_incentive_count(RuntimeOrigin::signed(13), user_to_calculate),
-		<pallet_schelling_game_shared::Error<Test>>::VoteNotRevealed
-	);
-	assert_ok!(TemplateModule::add_incentive_count(RuntimeOrigin::signed(14), user_to_calculate));
-	assert_ok!(TemplateModule::add_incentive_count(RuntimeOrigin::signed(15), user_to_calculate));
+	// assert_noop!(
+	// 	TemplateModule::add_incentive_count(RuntimeOrigin::signed(13), user_to_calculate),
+	// 	<pallet_schelling_game_shared::Error<Test>>::VoteNotRevealed
+	// );
+	// assert_ok!(TemplateModule::add_incentive_count(RuntimeOrigin::signed(14), user_to_calculate));
+	// assert_ok!(TemplateModule::add_incentive_count(RuntimeOrigin::signed(15), user_to_calculate));
 }
 
-#[test]
-fn schelling_game_incentives_get_test() {
-	new_test_ext().execute_with(|| {
-		System::set_block_number(1);
+// #[test]
+// fn schelling_game_incentives_get_test() {
+// 	new_test_ext().execute_with(|| {
+// 		System::set_block_number(1);
 
-		let startblock1 = 1 * (3 * 30 * 24 * 60 * 60) / 6;
+// 		let startblock1 = 1 * (3 * 30 * 24 * 60 * 60) / 6;
 
-		let startblock2 = 2 * (3 * 30 * 24 * 60 * 60) / 6;
+// 		let startblock2 = 2 * (3 * 30 * 24 * 60 * 60) / 6;
 
-		let startblock3 = 3 * (3 * 30 * 24 * 60 * 60) / 6;
+// 		let startblock3 = 3 * (3 * 30 * 24 * 60 * 60) / 6;
 
-		let startblock4 = 4 * (3 * 30 * 24 * 60 * 60) / 6;
+// 		let startblock4 = 4 * (3 * 30 * 24 * 60 * 60) / 6;
 
-		full_schelling_game_func(2, 1);
+// 		full_schelling_game_func(2, 1);
 
-		let balance = Balances::free_balance(2);
-		println!("{}", balance);
-		// assert_eq!(300025, balance);
-		assert_ok!(TemplateModule::release_positive_externality_fund(RuntimeOrigin::signed(14), 2));
+// 		let balance = Balances::free_balance(2);
+// 		println!("{}", balance);
+// 		// assert_eq!(300025, balance);
+// 		assert_ok!(TemplateModule::release_positive_externality_fund(RuntimeOrigin::signed(14), 2));
 
-		let balance = Balances::free_balance(2);
-		println!("{}", balance);
+// 		let balance = Balances::free_balance(2);
+// 		println!("{}", balance);
 
-		assert_noop!(
-			TemplateModule::release_positive_externality_fund(RuntimeOrigin::signed(13), 2),
-			Error::<Test>::AlreadyFunded
-		);
+// 		assert_noop!(
+// 			TemplateModule::release_positive_externality_fund(RuntimeOrigin::signed(13), 2),
+// 			Error::<Test>::AlreadyFunded
+// 		);
 
-		full_schelling_game_func(2, startblock1);
+// 		full_schelling_game_func(2, startblock1);
 
-		let incentive_count = TemplateModule::incentives_count(14).unwrap();
+// 		let incentive_count = TemplateModule::incentives_count(14).unwrap();
 
-		let incentive_count_eq: Incentives<Test> = Incentives {
-			number_of_games: 2,
-			winner: 2,
-			loser: 0,
-			total_stake: 14 * 100 + 14 * 100,
-			start: WhenDetails { block: 201, time: 0 },
-		};
+// 		let incentive_count_eq: Incentives<Test> = Incentives {
+// 			number_of_games: 2,
+// 			winner: 2,
+// 			loser: 0,
+// 			total_stake: 14 * 100 + 14 * 100,
+// 			start: WhenDetails { block: 201, time: 0 },
+// 		};
 
-		assert_eq!(incentive_count, incentive_count_eq);
-		// println!("{:?}", incentive_count);
+// 		assert_eq!(incentive_count, incentive_count_eq);
+// 		// println!("{:?}", incentive_count);
 
-		let incentive_count = TemplateModule::incentives_count(15).unwrap();
+// 		let incentive_count = TemplateModule::incentives_count(15).unwrap();
 
-		// println!("{:?}", incentive_count);
+// 		// println!("{:?}", incentive_count);
 
-		let incentive_count_eq: Incentives<Test> = Incentives {
-			number_of_games: 2,
-			winner: 0,
-			loser: 2,
-			total_stake: 15 * 100 + 15 * 100,
-			start: WhenDetails { block: 201, time: 0 },
-		};
+// 		let incentive_count_eq: Incentives<Test> = Incentives {
+// 			number_of_games: 2,
+// 			winner: 0,
+// 			loser: 2,
+// 			total_stake: 15 * 100 + 15 * 100,
+// 			start: WhenDetails { block: 201, time: 0 },
+// 		};
 
-		assert_eq!(incentive_count, incentive_count_eq);
+// 		assert_eq!(incentive_count, incentive_count_eq);
 
-		// draw twenty schelling game
-		// use 14 and 15, increase both loser and winner count.
+// 		// draw twenty schelling game
+// 		// use 14 and 15, increase both loser and winner count.
 
-		assert_noop!(
-			TemplateModule::get_incentives(RuntimeOrigin::signed(15)),
-			Error::<Test>::NotReachedMinimumDecision
-		);
+// 		// assert_noop!(
+// 		// 	TemplateModule::get_incentives(RuntimeOrigin::signed(15)),
+// 		// 	Error::<Test>::NotReachedMinimumDecision
+// 		// );
 
-		full_schelling_game_func2(4, startblock2);
+// 		full_schelling_game_func2(4, startblock2);
 
-		full_schelling_game_func2(5, startblock3);
+// 		full_schelling_game_func2(5, startblock3);
 
-		let incentive_count = TemplateModule::incentives_count(14).unwrap();
+// 		let incentive_count = TemplateModule::incentives_count(14).unwrap();
 
-		// println!("incentive count:{:?}", incentive_count);
+// 		// println!("incentive count:{:?}", incentive_count);
 
-		let incentive_count_eq: Incentives<Test> = Incentives {
-			number_of_games: 4,
-			winner: 2,
-			loser: 2,
-			total_stake: 14 * 100 + 14 * 100 + 14 * 100 + 14 * 100,
-			start: WhenDetails { block: 201, time: 0 },
-		};
+// 		let incentive_count_eq: Incentives<Test> = Incentives {
+// 			number_of_games: 4,
+// 			winner: 2,
+// 			loser: 2,
+// 			total_stake: 14 * 100 + 14 * 100 + 14 * 100 + 14 * 100,
+// 			start: WhenDetails { block: 201, time: 0 },
+// 		};
 
-		assert_eq!(incentive_count, incentive_count_eq);
+// 		assert_eq!(incentive_count, incentive_count_eq);
 
-		let incentive_count = TemplateModule::incentives_count(15).unwrap();
+// 		let incentive_count = TemplateModule::incentives_count(15).unwrap();
 
-		// println!("{:?}", incentive_count);
+// 		// println!("{:?}", incentive_count);
 
-		let incentive_count_eq: Incentives<Test> = Incentives {
-			number_of_games: 4,
-			winner: 2,
-			loser: 2,
-			total_stake: 15 * 100 + 15 * 100 + 15 * 100 + 15 * 100,
-			start: WhenDetails { block: 201, time: 0 },
-		};
+// 		let incentive_count_eq: Incentives<Test> = Incentives {
+// 			number_of_games: 4,
+// 			winner: 2,
+// 			loser: 2,
+// 			total_stake: 15 * 100 + 15 * 100 + 15 * 100 + 15 * 100,
+// 			start: WhenDetails { block: 201, time: 0 },
+// 		};
 
-		assert_eq!(incentive_count, incentive_count_eq);
-		for x in 4..20 {
-			System::set_block_number(x * startblock4);
-			full_schelling_game_func(x, x * startblock4);
-		}
+// 		assert_eq!(incentive_count, incentive_count_eq);
+// 		for x in 4..20 {
+// 			System::set_block_number(x * startblock4);
+// 			full_schelling_game_func(x, x * startblock4);
+// 		}
 
-		let incentive_count = TemplateModule::incentives_count(14).unwrap();
+// 		let incentive_count = TemplateModule::incentives_count(14).unwrap();
 
-		let incentive_count_eq: Incentives<Test> = Incentives {
-			number_of_games: 20,
-			winner: 18,
-			loser: 2,
-			total_stake: 14 * 100 * 20,
-			start: WhenDetails { block: 201, time: 0 },
-		};
+// 		let incentive_count_eq: Incentives<Test> = Incentives {
+// 			number_of_games: 20,
+// 			winner: 18,
+// 			loser: 2,
+// 			total_stake: 14 * 100 * 20,
+// 			start: WhenDetails { block: 201, time: 0 },
+// 		};
 
-		assert_eq!(incentive_count, incentive_count_eq);
-		// println!("incentive count:{:?}", incentive_count);
+// 		assert_eq!(incentive_count, incentive_count_eq);
+// 		// println!("incentive count:{:?}", incentive_count);
 
-		let _balance = Balances::free_balance(14);
+// 		let _balance = Balances::free_balance(14);
 
-		// println!("balance account before(14):{:?}", balance);
+// 		// println!("balance account before(14):{:?}", balance);
 
-		assert_ok!(TemplateModule::get_incentives(RuntimeOrigin::signed(14)));
+// 		assert_ok!(TemplateModule::get_incentives(RuntimeOrigin::signed(14)));
 
-		let _balance = Balances::free_balance(14);
+// 		let _balance = Balances::free_balance(14);
 
-		// println!("balance account after(14):{:?}", balance);
+// 		// println!("balance account after(14):{:?}", balance);
 
-		let incentive_count = TemplateModule::incentives_count(15).unwrap();
+// 		let incentive_count = TemplateModule::incentives_count(15).unwrap();
 
-		let incentive_count_eq: Incentives<Test> = Incentives {
-			number_of_games: 20,
-			winner: 2,
-			loser: 18,
-			total_stake: 15 * 100 * 20,
-			start: WhenDetails { block: 201, time: 0 },
-		};
+// 		let incentive_count_eq: Incentives<Test> = Incentives {
+// 			number_of_games: 20,
+// 			winner: 2,
+// 			loser: 18,
+// 			total_stake: 15 * 100 * 20,
+// 			start: WhenDetails { block: 201, time: 0 },
+// 		};
 
-		assert_eq!(incentive_count, incentive_count_eq);
-		// println!("incentive count:{:?}", incentive_count);
+// 		assert_eq!(incentive_count, incentive_count_eq);
+// 		// println!("incentive count:{:?}", incentive_count);
 
-		let _balance = Balances::free_balance(15);
+// 		let _balance = Balances::free_balance(15);
 
-		// println!("balance account before(15):{:?}", balance);
+// 		// println!("balance account before(15):{:?}", balance);
 
-		assert_ok!(TemplateModule::get_incentives(RuntimeOrigin::signed(15)));
+// 		assert_ok!(TemplateModule::get_incentives(RuntimeOrigin::signed(15)));
 
-		let _balance = Balances::free_balance(15);
+// 		let _balance = Balances::free_balance(15);
 
-		// println!("balance account after(15):{:?}", balance);
-	})
-}
+// 		// println!("balance account after(15):{:?}", balance);
+// 	})
+// }

@@ -543,69 +543,97 @@ pub mod pallet {
 			Ok(())
 		}
 
+		// #[pallet::call_index(11)]
+		// #[pallet::weight(0)]
+		// pub fn add_incentive_count(
+		// 	origin: OriginFor<T>,
+		// 	user_to_calculate: T::AccountId,
+		// ) -> DispatchResult {
+		// 	let who = ensure_signed(origin)?;
+		// 	let block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
+
+		// 	let key = SumTreeName::PositiveExternality {
+		// 		user_address: user_to_calculate,
+		// 		block_number: block_number.clone(),
+		// 	};
+		// 	let (juror_game_result, stake) =
+		// 		T::SchellingGameSharedSource::get_result_of_juror_score(
+		// 			key.clone(),
+		// 			who.clone(),
+		// 			RangePoint::ZeroToFive,
+		// 		)?;
+
+		// 	T::SchellingGameSharedSource::add_to_incentives_count(key, who.clone())?;
+		// 	let incentive_count_option = <IncentiveCount<T>>::get(&who);
+		// 	match incentive_count_option {
+		// 		Some(mut incentive) => {
+		// 			match juror_game_result {
+		// 				JurorGameResult::Won => {
+		// 					incentive.number_of_games += 1;
+		// 					incentive.winner += 1;
+		// 					incentive.total_stake += stake;
+		// 				},
+		// 				JurorGameResult::Lost => {
+		// 					incentive.number_of_games += 1;
+		// 					incentive.loser += 1;
+		// 					incentive.total_stake += stake;
+		// 				},
+
+		// 				JurorGameResult::Draw => {
+		// 					incentive.number_of_games += 1;
+		// 					incentive.total_stake += stake;
+		// 				},
+		// 			};
+		// 			<IncentiveCount<T>>::mutate(&who, |incentive_option| {
+		// 				*incentive_option = Some(incentive);
+		// 			});
+		// 		},
+		// 		None => {
+		// 			let mut winner = 0;
+		// 			let mut loser = 0;
+		// 			match juror_game_result {
+		// 				JurorGameResult::Won => {
+		// 					winner = 1;
+		// 				},
+		// 				JurorGameResult::Lost => {
+		// 					loser = 1;
+		// 				},
+		// 				JurorGameResult::Draw => {},
+		// 			};
+		// 			let number_of_games = 1;
+		// 			let new_incentives: Incentives<T> =
+		// 				Incentives::new(number_of_games, winner, loser, stake);
+		// 			<IncentiveCount<T>>::insert(&who, new_incentives);
+		// 		},
+		// 	}
+
+		// 	Ok(())
+		// }
+
 		#[pallet::call_index(11)]
 		#[pallet::weight(0)]
-		pub fn add_incentive_count(
+		pub fn get_incentives(
 			origin: OriginFor<T>,
 			user_to_calculate: T::AccountId,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-			let block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
+			let _who = ensure_signed(origin)?;
+			let pe_block_number = <ValidationBlock<T>>::get(user_to_calculate.clone());
 
 			let key = SumTreeName::PositiveExternality {
-				user_address: user_to_calculate,
-				block_number: block_number.clone(),
+				user_address: user_to_calculate.clone(),
+				block_number: pe_block_number.clone(),
 			};
-			let (juror_game_result, stake) =
-				T::SchellingGameSharedSource::get_result_of_juror_score(
-					key.clone(),
-					who.clone(),
-					RangePoint::ZeroToFive,
-				)?;
 
-			T::SchellingGameSharedSource::add_to_incentives_count(key, who.clone())?;
-			let incentive_count_option = <IncentiveCount<T>>::get(&who);
-			match incentive_count_option {
-				Some(mut incentive) => {
-					match juror_game_result {
-						JurorGameResult::Won => {
-							incentive.number_of_games += 1;
-							incentive.winner += 1;
-							incentive.total_stake += stake;
-						},
-						JurorGameResult::Lost => {
-							incentive.number_of_games += 1;
-							incentive.loser += 1;
-							incentive.total_stake += stake;
-						},
+			let phase_data = Self::get_phase_data();
+			T::SchellingGameSharedSource::get_incentives_score_schelling_helper_link(
+				key.clone(),
+				phase_data,
+				RangePoint::ZeroToFive,
+			)?;
 
-						JurorGameResult::Draw => {
-							incentive.number_of_games += 1;
-							incentive.total_stake += stake;
-						},
-					};
-					<IncentiveCount<T>>::mutate(&who, |incentive_option| {
-						*incentive_option = Some(incentive);
-					});
-				},
-				None => {
-					let mut winner = 0;
-					let mut loser = 0;
-					match juror_game_result {
-						JurorGameResult::Won => {
-							winner = 1;
-						},
-						JurorGameResult::Lost => {
-							loser = 1;
-						},
-						JurorGameResult::Draw => {},
-					};
-					let number_of_games = 1;
-					let new_incentives: Incentives<T> =
-						Incentives::new(number_of_games, winner, loser, stake);
-					<IncentiveCount<T>>::insert(&who, new_incentives);
-				},
-			}
+			let score = T::SchellingGameSharedSource::get_mean_value_link(key.clone())?;
+			// println!("Score {:?}", score);
+			T::SharedStorageSource::set_positive_externality_link(user_to_calculate, score)?;
 
 			Ok(())
 		}
@@ -614,64 +642,64 @@ pub mod pallet {
 		// Provide incentives to juror based on number of games played and their win/loss ratio
 		// Provide incentives when total_numbers of games is reached
 
-		#[pallet::call_index(12)]
-		#[pallet::weight(0)]
-		pub fn get_incentives(origin: OriginFor<T>) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-			let total_games_allowed = T::TotalNumbersGamesForIncentives::get();
-			let incentive_count_option = <IncentiveCount<T>>::get(&who);
-			match incentive_count_option {
-				Some(incentive) => {
-					let total_number_games = incentive.number_of_games;
-					if total_number_games >= total_games_allowed {
-						let new_incentives: Incentives<T> = Incentives::new(0, 0, 0, 0);
-						<IncentiveCount<T>>::mutate(&who, |incentive_option| {
-							*incentive_option = Some(new_incentives);
-						});
+		// #[pallet::call_index(12)]
+		// #[pallet::weight(0)]
+		// pub fn get_incentives(origin: OriginFor<T>) -> DispatchResult {
+		// 	let who = ensure_signed(origin)?;
+		// 	let total_games_allowed = T::TotalNumbersGamesForIncentives::get();
+		// 	let incentive_count_option = <IncentiveCount<T>>::get(&who);
+		// 	match incentive_count_option {
+		// 		Some(incentive) => {
+		// 			let total_number_games = incentive.number_of_games;
+		// 			if total_number_games >= total_games_allowed {
+		// 				let new_incentives: Incentives<T> = Incentives::new(0, 0, 0, 0);
+		// 				<IncentiveCount<T>>::mutate(&who, |incentive_option| {
+		// 					*incentive_option = Some(new_incentives);
+		// 				});
 
-						let total_win = incentive.winner;
-						let total_lost = incentive.loser;
+		// 				let total_win = incentive.winner;
+		// 				let total_lost = incentive.loser;
 
-						// Define multipliers
-						let win_multiplier = T::JurorWinMultiplier::get();
-						let lost_multiplier = T::JurorLossMultiplier::get();
+		// 				// Define multipliers
+		// 				let win_multiplier = T::JurorWinMultiplier::get();
+		// 				let lost_multiplier = T::JurorLossMultiplier::get();
 
-						// Calculate total_win_incentives and total_lost_incentives
-						let total_win_incentives = total_win.checked_mul(win_multiplier);
-						let total_lost_incentives = total_lost.checked_mul(lost_multiplier);
+		// 				// Calculate total_win_incentives and total_lost_incentives
+		// 				let total_win_incentives = total_win.checked_mul(win_multiplier);
+		// 				let total_lost_incentives = total_lost.checked_mul(lost_multiplier);
 
-						// Calculate total_incentives, handling overflow or negative errors
-						let total_incentives = match (total_win_incentives, total_lost_incentives) {
-							(Some(win), Some(lost)) => win.checked_sub(lost).unwrap_or(0),
-							_ => 0, // If multiplication overflowed, set total_incentives to 0
-						};
+		// 				// Calculate total_incentives, handling overflow or negative errors
+		// 				let total_incentives = match (total_win_incentives, total_lost_incentives) {
+		// 					(Some(win), Some(lost)) => win.checked_sub(lost).unwrap_or(0),
+		// 					_ => 0, // If multiplication overflowed, set total_incentives to 0
+		// 				};
 
-						let mut stake = incentive.total_stake;
-						// Deduct 1% of the stake if total_lost > total_win
-						if total_lost > total_win {
-							let stake_deduction = stake / 100; // 1% of the stake
-							stake = stake.checked_sub(stake_deduction).unwrap_or(stake);
-							// Safe subtraction
-							// println!("Stake deducted by 1%: {}", stake);
-						}
+		// 				let mut stake = incentive.total_stake;
+		// 				// Deduct 1% of the stake if total_lost > total_win
+		// 				if total_lost > total_win {
+		// 					let stake_deduction = stake / 100; // 1% of the stake
+		// 					stake = stake.checked_sub(stake_deduction).unwrap_or(stake);
+		// 					// Safe subtraction
+		// 					// println!("Stake deducted by 1%: {}", stake);
+		// 				}
 
-						let total_fund = stake.checked_add(total_incentives).unwrap_or(0);
+		// 				let total_fund = stake.checked_add(total_incentives).unwrap_or(0);
 
-						let balance = Self::u64_to_balance_saturated(total_fund);
+		// 				let balance = Self::u64_to_balance_saturated(total_fund);
 
-						let r =
-							<T as pallet::Config>::Currency::deposit_into_existing(&who, balance)
-								.ok()
-								.unwrap();
-						<T as pallet::Config>::Reward::on_unbalanced(r);
-					// Provide the incentives
-					} else {
-						Err(Error::<T>::NotReachedMinimumDecision)?
-					}
-				},
-				None => Err(Error::<T>::NoIncentiveCount)?,
-			}
-			Ok(())
-		}
+		// 				let r =
+		// 					<T as pallet::Config>::Currency::deposit_into_existing(&who, balance)
+		// 						.ok()
+		// 						.unwrap();
+		// 				<T as pallet::Config>::Reward::on_unbalanced(r);
+		// 			// Provide the incentives
+		// 			} else {
+		// 				Err(Error::<T>::NotReachedMinimumDecision)?
+		// 			}
+		// 		},
+		// 		None => Err(Error::<T>::NoIncentiveCount)?,
+		// 	}
+		// 	Ok(())
+		// }
 	}
 }
