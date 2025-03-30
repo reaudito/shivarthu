@@ -20,6 +20,7 @@ members = [
 	"custom-pallets/support",
 	"custom-pallets/departments",
 	"runtime",
+	"custom-pallets/approval-voting",
 	# "custom-pallets/simple-approval-voting",
 	# "custom-pallets/first-past-the-post",
 	"custom-pallets/anonymous-account",
