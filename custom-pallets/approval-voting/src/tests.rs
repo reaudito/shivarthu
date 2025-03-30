@@ -76,6 +76,10 @@ fn vote_fails_if_user_already_voted() {
 #[test]
 fn vote_fails_if_candidate_does_not_exist() {
 	new_test_ext().execute_with(|| {
+		System::set_block_number(1);
+
+		// Add candidates
+		assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(1), 3));
 		// Try to vote for a non-existent candidate
 		assert_noop!(
 			TemplateModule::vote(RuntimeOrigin::signed(4), vec![2]),

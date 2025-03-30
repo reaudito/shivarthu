@@ -84,6 +84,7 @@ pub mod pallet {
 		CandidateExists,
 		NoSuchCandidate,
 		AlreadyVoted,
+		NoCandidatesAvailable,
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -96,16 +97,25 @@ pub mod pallet {
 		pub fn add_candidate(origin: OriginFor<T>, candidate: T::AccountId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			// Ensure candidate is not already added
-			ensure!(!Candidates::<T>::get().contains(&candidate), Error::<T>::CandidateExists);
+			// Ensure the candidate is not already added
+			let mut candidates = Candidates::<T>::get();
+			match candidates.binary_search(&candidate) {
+				// If the search succeeds, the candidate is already present
+				Ok(_) => Err(Error::<T>::CandidateExists.into()),
+				// If the search fails, the candidate is not present, and we learn the insertion index
+				Err(index) => {
+					// Insert the candidate at the correct position to maintain sorted order
+					candidates.insert(index, candidate.clone());
 
-			// Add the candidate
-			Candidates::<T>::mutate(|candidates| candidates.push(candidate.clone()));
+					// Update the storage with the modified list
+					Candidates::<T>::put(candidates);
 
-			// Emit an event
-			Self::deposit_event(Event::CandidateAdded { candidate });
+					// Emit an event
+					Self::deposit_event(Event::CandidateAdded { candidate });
 
-			Ok(())
+					Ok(())
+				},
+			}
 		}
 
 		#[pallet::call_index(1)]
@@ -114,13 +124,31 @@ pub mod pallet {
 			let voter = ensure_signed(origin)?;
 			ensure!(!Votes::<T>::contains_key(&voter), Error::<T>::AlreadyVoted);
 
+			// Fetch the sorted list of candidates
+			let candidate_list = Candidates::<T>::get();
+			ensure!(!candidate_list.is_empty(), Error::<T>::NoCandidatesAvailable);
+
+			// Get the total votes storage
 			let mut total_votes = TotalVotes::<T>::get();
+
 			for candidate in &candidates {
-				ensure!(Candidates::<T>::get().contains(candidate), Error::<T>::NoSuchCandidate);
-				*total_votes.entry(candidate.clone()).or_insert(0) += 1;
+				// Use binary search to check if the candidate exists
+				match candidate_list.binary_search(candidate) {
+					Ok(_) => {
+						// Candidate exists, increment their vote count
+						*total_votes.entry(candidate.clone()).or_insert(0) += 1;
+					},
+					Err(_) => {
+						// Candidate does not exist, return an error
+						return Err(Error::<T>::NoSuchCandidate.into());
+					},
+				}
 			}
 
+			// Update the total votes storage
 			TotalVotes::<T>::put(total_votes);
+
+			// Record the voter's vote
 			Votes::<T>::insert(&voter, candidates.clone());
 
 			// Emit an event for the vote
