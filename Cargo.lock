@@ -6318,22 +6318,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-assets"
-version = "42.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47e7b226dac42400ed2bac82ecdb672413f805c7b48e481875c3ecb7f517bfcf"
-dependencies = [
- "frame-support 40.1.0",
- "frame-system 40.1.0",
- "impl-trait-for-tuples",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core 36.1.0",
- "sp-runtime 41.1.0",
-]
-
-[[package]]
 name = "pallet-aura"
 version = "38.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6388,13 +6372,7 @@ dependencies = [
  "frame-support 39.1.0",
  "frame-system 39.1.0",
  "log",
- "pallet-assets",
  "pallet-balances",
- "pallet-conviction-voting",
- "pallet-preimage",
- "pallet-referenda",
- "pallet-scheduler",
- "pallet-sudo",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
@@ -6469,23 +6447,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-preimage"
-version = "40.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "becb813ca45bef02a52869c3c865f84be01d6b92d0b6c411c3e219e95907dbbd"
-dependencies = [
- "frame-benchmarking 40.0.0",
- "frame-support 40.1.0",
- "frame-system 40.1.0",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core 36.1.0",
- "sp-io 40.0.0",
- "sp-runtime 41.1.0",
-]
-
-[[package]]
 name = "pallet-profile-validation"
 version = "4.0.0-dev"
 dependencies = [
@@ -6506,43 +6467,6 @@ dependencies = [
  "sp-std",
  "trait-schelling-game-shared",
  "trait-shared-storage",
-]
-
-[[package]]
-name = "pallet-referenda"
-version = "40.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac3d59e9e5b9f6c3c5b7db8bbec7fc937fdc8212b9393647aea7f91413264762"
-dependencies = [
- "assert_matches",
- "frame-benchmarking 40.0.0",
- "frame-support 40.1.0",
- "frame-system 40.1.0",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-arithmetic",
- "sp-io 40.0.0",
- "sp-runtime 41.1.0",
-]
-
-[[package]]
-name = "pallet-scheduler"
-version = "41.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7de58764e1499f570f180c81ba1fff24a1a3d5c9bfdcf76b6a384a985dcdd39"
-dependencies = [
- "docify",
- "frame-benchmarking 40.0.0",
- "frame-support 40.1.0",
- "frame-system 40.1.0",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-io 40.0.0",
- "sp-runtime 41.1.0",
- "sp-weights",
 ]
 
 [[package]]

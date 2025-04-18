@@ -57,14 +57,28 @@ mod tests;
 // for each dispatchable and generates this pallet's weight.rs file. Learn more about benchmarking here: https://docs.substrate.io/test/benchmark/
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
-
-mod traits;
-mod types;
 pub mod weights;
 pub use weights::*;
 
+pub mod conviction;
+pub mod types;
+
+use crate::conviction::Conviction;
+use crate::types::Vote;
+use crate::types::VoteRecord;
+use frame_support::traits::LockIdentifier;
+use frame_support::traits::LockableCurrency;
+use frame_support::traits::{
+    Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
+};
+use sp_runtime::Saturating;
+use sp_std::collections::btree_map::BTreeMap;
+
+type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
+type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balance;
+
 // All pallet logic is defined in its own module and must be annotated by the `pallet` attribute.
-#[frame_support::pallet]
+#[frame_support::pallet(dev_mode)]
 pub mod pallet {
     // Import various useful types required by all FRAME pallets.
     use super::*;
@@ -85,6 +99,8 @@ pub mod pallet {
     pub trait Config: frame_system::Config {
         /// The overarching runtime event type.
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+        type Currency: LockableCurrency<Self::AccountId, Moment = BlockNumberFor<Self>>;
+        type MaxLockId: Get<LockIdentifier>;
         /// A type representing the weights required by the dispatchables of this pallet.
         type WeightInfo: WeightInfo;
     }
@@ -95,6 +111,26 @@ pub mod pallet {
     /// `u32` value. Learn more about runtime storage here: <https://docs.substrate.io/build/runtime-storage/>
     #[pallet::storage]
     pub type Something<T> = StorageValue<_, u32>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn group_votes)]
+    pub type GroupVotes<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        u64, // group_id
+        BTreeMap<T::AccountId, VoteRecord<BalanceOf<T>, BlockNumberFor<T>>>,
+        ValueQuery,
+    >;
+
+    #[pallet::storage]
+    #[pallet::getter(fn vote_tally)]
+    pub type VoteTally<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        u64,                          // group_id
+        (BalanceOf<T>, BalanceOf<T>), // (aye_total, nay_total)
+        ValueQuery,
+    >;
 
     /// Events that functions in this pallet can emit.
     ///
@@ -116,6 +152,14 @@ pub mod pallet {
             /// The account who set the new value.
             who: T::AccountId,
         },
+        Voted {
+            group_id: u64,
+            voter: T::AccountId,
+            conviction: Conviction,
+            aye: bool,
+            weight: BalanceOf<T>,
+            capital: BalanceOf<T>,
+        },
     }
 
     /// Errors that can be returned by this pallet.
@@ -132,6 +176,7 @@ pub mod pallet {
         NoneValue,
         /// There was an attempt to increment the value in storage over `u32::MAX`.
         StorageOverflow,
+        ZeroBalance,
     }
 
     /// The pallet's dispatchable functions ([`Call`]s).
@@ -154,6 +199,76 @@ pub mod pallet {
         /// It checks that the _origin_ for this call is _Signed_ and returns a dispatch
         /// error if it isn't. Learn more about origins here: <https://docs.substrate.io/build/origins/>
         #[pallet::call_index(0)]
+        #[pallet::weight(0)]
+        pub fn vote(
+            origin: OriginFor<T>,
+            group_id: u64,
+            aye: bool,
+            conviction: Conviction,
+            balance: BalanceOf<T>,
+        ) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            ensure!(!balance.is_zero(), Error::<T>::ZeroBalance);
+
+            let new_vote = Vote {
+                aye,
+                conviction,
+                balance,
+            };
+            let new_weighted = conviction.votes(balance).votes;
+
+            // Remove previous vote if exists
+            let mut group_votes = GroupVotes::<T>::get(group_id);
+            if let Some(prev_record) = group_votes.get(&who) {
+                let prev = &prev_record.vote;
+                let prev_weight = prev.conviction.votes(prev.balance).votes;
+                VoteTally::<T>::mutate(group_id, |(ayes, nays)| {
+                    if prev.aye {
+                        *ayes = ayes.saturating_sub(prev_weight);
+                    } else {
+                        *nays = nays.saturating_sub(prev_weight);
+                    }
+                });
+            }
+
+            // Apply lock
+            T::Currency::set_lock(T::MaxLockId::get(), &who, balance, WithdrawReasons::all());
+
+            // Store vote record
+            let expiry = <frame_system::Pallet<T>>::block_number()
+                + BlockNumberFor::<T>::from(conviction.lock_periods());
+            group_votes.insert(
+                who.clone(),
+                VoteRecord {
+                    vote: new_vote.clone(),
+                    expiry,
+                },
+            );
+            GroupVotes::<T>::insert(group_id, group_votes);
+
+            // Update tally
+            VoteTally::<T>::mutate(group_id, |(ayes, nays)| {
+                if aye {
+                    *ayes += new_weighted;
+                } else {
+                    *nays += new_weighted;
+                }
+            });
+
+            // Emit vote event
+            Self::deposit_event(Event::Voted {
+                group_id,
+                voter: who,
+                conviction,
+                aye,
+                weight: new_weighted,
+                capital: balance,
+            });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(1)]
         #[pallet::weight(T::WeightInfo::do_something())]
         pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
             // Check that the extrinsic was signed and get the signer.
@@ -182,7 +297,7 @@ pub mod pallet {
         /// - If no value has been set ([`Error::NoneValue`])
         /// - If incrementing the value in storage causes an arithmetic overflow
         ///   ([`Error::StorageOverflow`])
-        #[pallet::call_index(1)]
+        #[pallet::call_index(2)]
         #[pallet::weight(T::WeightInfo::cause_error())]
         pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
             let _who = ensure_signed(origin)?;

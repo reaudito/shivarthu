@@ -20,8 +20,6 @@ frame-support.workspace = true
 frame-system.workspace = true
 sp-runtime = { default-features = false, workspace = true }
 log = { workspace = true }
-pallet-conviction-voting = { workspace = true }
-pallet-referenda = { workspace = true }
 serde = { features = ["derive"], optional = true, workspace = true }
 sp-std = { workspace = true }
 
@@ -29,11 +27,7 @@ sp-std = { workspace = true }
 [dev-dependencies]
 sp-core = { default-features = true, workspace = true }
 sp-io = { default-features = true, workspace = true }
-pallet-assets = { workspace = true }
 pallet-balances = { workspace = true }
-pallet-preimage = { workspace = true }
-pallet-scheduler = { workspace = true }
-pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 
 
@@ -46,10 +40,7 @@ std = [
     "frame-system/std",
     "scale-info/std",
     "sp-runtime/std",
-    "pallet-conviction-voting/std",
-    "pallet-preimage/std",
-    "pallet-referenda/std",
-    "pallet-scheduler/std",
+    "pallet-balances/std",
     "pallet-timestamp/std",
     "scale-info/std",
     "serde?/std",
@@ -63,10 +54,6 @@ runtime-benchmarks = [
     "frame-support/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
-    "pallet-conviction-voting/runtime-benchmarks",
-    "pallet-preimage/runtime-benchmarks",
-    "pallet-referenda/runtime-benchmarks",
-    "pallet-scheduler/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
 ]
