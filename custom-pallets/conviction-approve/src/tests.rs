@@ -65,8 +65,8 @@ fn user_can_vote_and_tally_updates() {
         assert_eq!(nays, 0);
 
         // // Check lock applied
-        // let locks = Balances::locks(voter);
-        // assert!(locks.iter().any(|l| l.amount >= balance));
+        let locks = Balances::locks(&voter);
+        assert!(locks.iter().any(|l| l.amount >= balance));
     });
 }
 
