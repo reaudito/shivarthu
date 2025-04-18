@@ -13,17 +13,17 @@ repository = "https://github.com/substrate-developer-hub/substrate-node-template
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-parity-scale-codec = { workspace = true }
+codec = { workspace = true }
 scale-info = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-sp-std = { workspace = true}
+sp-std = { workspace = true }
 pallet-balances = { workspace = true }
 sp-io = { workspace = true }
 num-integer = { workspace = true }
-pallet-sortition-sum-game = { workspace = true}
-trait-sortition-sum-game = { workspace = true}
+pallet-sortition-sum-game = { workspace = true }
+trait-sortition-sum-game = { workspace = true }
 trait-schelling-game-shared = { workspace = true }
 
 
@@ -31,28 +31,24 @@ trait-schelling-game-shared = { workspace = true }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
-frame-support-test = { workspace = true }
-
 
 [features]
 default = ["std"]
 std = [
-	"parity-scale-codec/std",
-	"frame-benchmarking?/std",
-	"frame-support/std",
-	"frame-system/std",
-	"scale-info/std",
-	"sp-std/std",
-	"pallet-balances/std",
-	"sp-io/std",
-	"num-integer/std",
-	"pallet-sortition-sum-game/std",
-	"trait-sortition-sum-game/std",
-	"trait-schelling-game-shared/std",
-	"frame-support-test/std",
+    "codec/std",
+    "frame-benchmarking?/std",
+    "frame-support/std",
+    "frame-system/std",
+    "scale-info/std",
+    "sp-std/std",
+    "pallet-balances/std",
+    "sp-io/std",
+    "num-integer/std",
+    "pallet-sortition-sum-game/std",
+    "trait-sortition-sum-game/std",
+    "trait-schelling-game-shared/std",
 ]
 
 
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]
-

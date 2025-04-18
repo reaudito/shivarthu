@@ -13,7 +13,7 @@ repository = "https://github.com/substrate-developer-hub/substrate-node-template
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-parity-scale-codec = { workspace = true }
+codec = { workspace = true }
 scale-info = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 frame-support = { workspace = true }
@@ -33,25 +33,22 @@ trait-shared-storage = { workspace = true }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
-frame-support-test = { workspace = true }
-
 
 [features]
 default = ["std"]
 std = [
-	"parity-scale-codec/std",
-	"frame-benchmarking?/std",
-	"frame-support/std",
-	"frame-system/std",
-	"scale-info/std",
-	"sp-std/std",
-	"pallet-timestamp/std",
-	"pallet-balances/std",
-	"pallet-support/std",
-	"pallet-schelling-game-shared/std",
-	"pallet-sortition-sum-game/std",
-	"pallet-shared-storage/std",
-	"frame-support-test/std",
+    "codec/std",
+    "frame-benchmarking?/std",
+    "frame-support/std",
+    "frame-system/std",
+    "scale-info/std",
+    "sp-std/std",
+    "pallet-timestamp/std",
+    "pallet-balances/std",
+    "pallet-support/std",
+    "pallet-schelling-game-shared/std",
+    "pallet-sortition-sum-game/std",
+    "pallet-shared-storage/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]

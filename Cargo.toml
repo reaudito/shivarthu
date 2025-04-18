@@ -1,83 +1,45 @@
 [workspace.package]
-authors = ["Substrate DevHub <https://github.com/substrate-developer-hub>"]
-edition = "2021"
-repository = "https://github.com/substrate-developer-hub/substrate-node-template/"
 license = "MIT-0"
-homepage = "https://substrate.io"
+authors = ["Parity Technologies <admin@parity.io>"]
+homepage = "https://paritytech.github.io/polkadot-sdk/"
+repository = "https://github.com/paritytech/polkadot-sdk-solochain-template.git"
+edition = "2021"
 
 [workspace]
 members = [
-	"node",
-	"pallets/template",
-	"custom-pallets/department-funding",
-	"custom-pallets/positive-externality",
-	"custom-pallets/profile-validation",
-	"custom-pallets/project-tips",
-	"custom-pallets/schelling-game-shared",
-	"custom-pallets/shared-storage",
-	"custom-pallets/sortition-sum-game",
-	"custom-pallets/spaces",
-	"custom-pallets/support",
-	"custom-pallets/departments",
-	"runtime",
-	"custom-pallets/approval-voting",
-	# "custom-pallets/simple-approval-voting",
-	# "custom-pallets/first-past-the-post",
-	"custom-pallets/anonymous-account",
+    "node",
+    "pallets/template",
+    "runtime",
+    "custom-pallets/schelling-game-shared",
+    "custom-pallets/shared-storage",
+    "custom-pallets/sortition-sum-game",
+    "custom-pallets/spaces",
+    "custom-pallets/support",
+    "custom-pallets/positive-externality",
+    "custom-pallets/approval-voting",
+    # "custom-pallets/conviction-voting",
+    "custom-pallets/profile-validation",
+    "custom-pallets/conviction-approve",
 ]
 resolver = "2"
-[profile.release]
-panic = "unwind"
-
-[workspace.lints.rust]
-suspicious_double_ref_op = { level = "allow", priority = 2 }
-
-[workspace.lints.clippy]
-all = { level = "allow", priority = 0 }
-correctness = { level = "warn", priority = 1 }
-complexity = { level = "warn", priority = 1 }
-if-same-then-else = { level = "allow", priority = 2 }
-zero-prefixed-literal = { level = "allow", priority = 2 }            # 00_1000_000
-type_complexity = { level = "allow", priority = 2 }                  # raison d'etre
-nonminimal-bool = { level = "allow", priority = 2 }                  # maybe
-borrowed-box = { level = "allow", priority = 2 }                     # Reasonable to fix this one
-too-many-arguments = { level = "allow", priority = 2 }               # (Turning this on would lead to)
-needless-lifetimes = { level = "allow", priority = 2 }               # generated code
-unnecessary_cast = { level = "allow", priority = 2 }                 # Types may change
-identity-op = { level = "allow", priority = 2 }                      # One case where we do 0 +
-useless_conversion = { level = "allow", priority = 2 }               # Types may change
-unit_arg = { level = "allow", priority = 2 }                         # stylistic
-option-map-unit-fn = { level = "allow", priority = 2 }               # stylistic
-bind_instead_of_map = { level = "allow", priority = 2 }              # stylistic
-erasing_op = { level = "allow", priority = 2 }                       # E.g. 0 * DOLLARS
-eq_op = { level = "allow", priority = 2 }                            # In tests we test equality.
-while_immutable_condition = { level = "allow", priority = 2 }        # false positives
-needless_option_as_deref = { level = "allow", priority = 2 }         # false positives
-derivable_impls = { level = "allow", priority = 2 }                  # false positives
-stable_sort_primitive = { level = "allow", priority = 2 }            # prefer stable sort
-extra-unused-type-parameters = { level = "allow", priority = 2 }     # stylistic
-default_constructed_unit_structs = { level = "allow", priority = 2 } # stylistic
-
 
 [workspace.dependencies]
-## New start
 
-## New pallets
-pallet-template = { path = "custom-pallets/template", default-features = false }
+solochain-template-runtime = { path = "./runtime", default-features = false }
+pallet-template = { path = "./pallets/template", default-features = false }
+pallet-conviction-voting = { version = "40.1.0", default-features = false }
+
 pallet-support = { path = "custom-pallets/support", default-features = false }
 pallet-spaces = { path = "custom-pallets/spaces", default-features = false }
 pallet-sortition-sum-game = { path = "custom-pallets/sortition-sum-game", default-features = false }
 pallet-shared-storage = { path = "custom-pallets/shared-storage", default-features = false }
 pallet-schelling-game-shared = { path = "custom-pallets/schelling-game-shared", default-features = false }
-pallet-profile-validation = { path = "custom-pallets/profile-validation", default-features = false }
-pallet-project-tips = { path = "custom-pallets/project-tips", default-features = false }
 pallet-positive-externality = { path = "custom-pallets/positive-externality", default-features = false }
-pallet-department-funding = { path = "custom-pallets/department-funding", default-features = false }
-pallet-departments = { path = "custom-pallets/departments", default-features = false }
-pallet-anonymous-account = { path = "custom-pallets/anonymous-account", default-features = false }
-pallet-simple-approval-voting = { path = "custom-pallets/simple-approval-voting", default-features = false }
-pallet-first-past-the-post = { path = "custom-pallets/first-past-the-post" }
+pallet-approval-voting = { path = "custom-pallets/approval-voting", default-features = false }
+# pallet-conviction-voting = { path = "custom-pallets/conviction-voting", default-features = false }
+pallet-profile-validation = { path = "custom-pallets/profile-validation", default-features = false }
 
+pallet-conviction-approve = { path = "custom-pallets/conviction-approve", default-features = false }
 
 ## Traits
 trait-sortition-sum-game = { path = "traits/trait-sortition-sum-game", default-features = false }
@@ -85,53 +47,83 @@ trait-shared-storage = { path = "traits/trait-shared-storage", default-features 
 trait-schelling-game-shared = { path = "traits/trait-schelling-game-shared", default-features = false }
 trait-departments = { path = "traits/trait-departments", default-features = false }
 
+
 ## Api
-profile-validation-runtime-api = { path = "custom-pallets/profile-validation/profile-validation-runtime-api", default-features = false }
-project-tips-runtime-api = { path = "custom-pallets/project-tips/project-tips-runtime-api", default-features = false }
 positive-externality-runtime-api = { path = "custom-pallets/positive-externality/positive-externality-runtime-api", default-features = false }
-department-funding-runtime-api = { path = "custom-pallets/department-funding/department-funding-runtime-api", default-features = false }
+profile-validation-runtime-api = { path = "custom-pallets/profile-validation/profile-validation-runtime-api", default-features = false }
 
 
 ## Rpc
-profile-validation-rpc = { path = "custom-pallets/profile-validation/profile-validation-rpc", default-features = false }
-project-tips-rpc = { path = "custom-pallets/project-tips/project-tips-rpc", default-features = false }
 positive-externality-rpc = { path = "custom-pallets/positive-externality/positive-externality-rpc", default-features = false }
-department-funding-rpc = { path = "custom-pallets/department-funding/department-funding-rpc", default-features = false }
+profile-validation-rpc = { path = "custom-pallets/profile-validation/profile-validation-rpc", default-features = false }
 
-
-## Additional dependancies
-sp-arithmetic = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-strum = { version = "0.26.2", default-features = false, features = ["derive"] }
-num-integer = { default-features = false, version = "0.1.44" }
-frame-support-test = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-pallet-insecure-randomness-collective-flip = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-npos-elections = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+### Additional Dependencies
+num-integer = { default-features = false, version = "0.1.46" }
+strum = { version = "0.27.1", default-features = false, features = ["derive"] }
 log = { version = "0.4.17", default-features = false }
-jsonrpsee = { version = "0.22", features = ["client-core", "macros", "server"] }
-sc-rpc = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-blockchain = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+pallet-insecure-randomness-collective-flip = { default-features = false, version = "27.0.0" }
+sp-arithmetic = { default-features = false, version = "26.0.0" }
 hex-literal = { version = " 0.4.1" }
-
-risc0-zkvm = { version = "0.19.1", default-features = false }
-serde_json = { version = "1", default-features = false, features = ["alloc"] }
-## New end
-
-parity-scale-codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = [
-	"derive",
-] }
-scale-info = { version = "2.10.0", default-features = false, features = [
-	"derive",
-] }
-
-# frame deps
-frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-frame-support = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-frame-system = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-std = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-pallet-timestamp = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-
-sp-core = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-io = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
-sp-api = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-v1.9.0", default-features = false }
+serde = { version = "1.0.218" }
+assert_matches = { version = "1.5.0" }
+sp-std = { version = "14.0.0" }
+pallet-scheduler = { version = "41.0.0", default-features = false }
+pallet-referenda = { version = "40.1.0", default-features = false }
+pallet-assets = { version = "42.0.0", default-features = false }
+pallet-preimage = { version = "40.0.0", default-features = false }
+clap = { version = "4.5.13" }
+frame-benchmarking-cli = { version = "46.1.0", default-features = false }
+frame-metadata-hash-extension = { version = "0.7.0", default-features = false }
+frame-system = { version = "39.1.0", default-features = false }
+futures = { version = "0.3.31" }
+jsonrpsee = { version = "0.24.3" }
+pallet-transaction-payment = { version = "39.1.0", default-features = false }
+pallet-transaction-payment-rpc = { version = "42.0.0", default-features = false }
+sc-basic-authorship = { version = "0.48.0", default-features = false }
+sc-cli = { version = "0.50.1", default-features = false }
+sc-client-api = { version = "38.0.0", default-features = false }
+sc-consensus = { version = "0.47.0", default-features = false }
+sc-consensus-aura = { version = "0.48.0", default-features = false }
+sc-consensus-grandpa = { version = "0.33.0", default-features = false }
+sc-executor = { version = "0.41.0", default-features = false }
+sc-network = { version = "0.48.3", default-features = false }
+sc-offchain = { version = "43.0.0", default-features = false }
+sc-service = { version = "0.49.0", default-features = false }
+sc-telemetry = { version = "28.0.0", default-features = false }
+sc-transaction-pool = { version = "38.1.0", default-features = false }
+sc-transaction-pool-api = { version = "38.1.0", default-features = false }
+serde_json = { version = "1.0.132", default-features = false }
+sp-api = { version = "35.0.0", default-features = false }
+sp-block-builder = { version = "35.0.0", default-features = false }
+sp-blockchain = { version = "38.0.0", default-features = false }
+sp-consensus-aura = { version = "0.41.0", default-features = false }
+sp-consensus-grandpa = { version = "22.0.0", default-features = false }
+sp-core = { version = "35.0.0", default-features = false }
+sp-genesis-builder = { version = "0.16.0", default-features = false }
+sp-inherents = { version = "35.0.0", default-features = false }
+sp-io = { version = "39.0.0", default-features = false }
+sp-keyring = { version = "40.0.0", default-features = false }
+sp-runtime = { version = "40.1.0", default-features = false }
+sp-timestamp = { version = "35.0.0", default-features = false }
+substrate-frame-rpc-system = { version = "42.0.0", default-features = false }
+substrate-build-script-utils = { version = "11.0.0", default-features = false }
+codec = { version = "3.6.12", default-features = false, package = "parity-scale-codec" }
+frame-benchmarking = { version = "39.0.0", default-features = false }
+frame-executive = { version = "39.1.0", default-features = false }
+frame-support = { version = "39.1.0", default-features = false }
+frame-system-benchmarking = { version = "39.0.0", default-features = false }
+frame-system-rpc-runtime-api = { version = "35.0.0", default-features = false }
+frame-try-runtime = { version = "0.45.0", default-features = false }
+pallet-aura = { version = "38.1.0", default-features = false }
+pallet-balances = { version = "40.1.0", default-features = false }
+pallet-grandpa = { version = "39.1.0", default-features = false }
+pallet-sudo = { version = "39.0.0", default-features = false }
+pallet-timestamp = { version = "38.0.0", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { version = "39.0.0", default-features = false }
+scale-info = { version = "2.11.1", default-features = false }
+sp-offchain = { version = "35.0.0", default-features = false }
+sp-session = { version = "37.0.0", default-features = false }
+sp-storage = { version = "22.0.0", default-features = false }
+sp-transaction-pool = { version = "35.0.0", default-features = false }
+sp-version = { version = "38.0.0", default-features = false }
+substrate-wasm-builder = { version = "25.0.0", default-features = false }

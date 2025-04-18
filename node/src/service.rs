@@ -1,13 +1,13 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
 use futures::FutureExt;
-use node_template_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::{Backend, BlockBackend};
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_consensus_grandpa::SharedVoterState;
-use sc_service::{error::Error as ServiceError, Configuration, TaskManager, WarpSyncParams};
+use sc_service::{error::Error as ServiceError, Configuration, TaskManager, WarpSyncConfig};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
+use solochain_template_runtime::{self, apis::RuntimeApi, opaque::Block};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use std::{sync::Arc, time::Duration};
 
@@ -28,7 +28,7 @@ pub type Service = sc_service::PartialComponents<
 	FullBackend,
 	FullSelectChain,
 	sc_consensus::DefaultImportQueue<Block>,
-	sc_transaction_pool::FullPool<Block, FullClient>,
+	sc_transaction_pool::TransactionPoolHandle<Block, FullClient>,
 	(
 		sc_consensus_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>,
 		sc_consensus_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
@@ -48,7 +48,7 @@ pub fn new_partial(config: &Configuration) -> Result<Service, ServiceError> {
 		})
 		.transpose()?;
 
-	let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(config);
+	let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config.executor);
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
 			config,
@@ -64,12 +64,15 @@ pub fn new_partial(config: &Configuration) -> Result<Service, ServiceError> {
 
 	let select_chain = sc_consensus::LongestChain::new(backend.clone());
 
-	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
-		task_manager.spawn_essential_handle(),
-		client.clone(),
+	let transaction_pool = Arc::from(
+		sc_transaction_pool::Builder::new(
+			task_manager.spawn_essential_handle(),
+			client.clone(),
+			config.role.is_authority().into(),
+		)
+		.with_options(config.transaction_pool.clone())
+		.with_prometheus(config.prometheus_registry())
+		.build(),
 	);
 
 	let (grandpa_block_import, grandpa_link) = sc_consensus_grandpa::block_import(
@@ -124,7 +127,11 @@ pub fn new_partial(config: &Configuration) -> Result<Service, ServiceError> {
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
+pub fn new_full<
+	N: sc_network::NetworkBackend<Block, <Block as sp_runtime::traits::Block>::Hash>,
+>(
+	config: Configuration,
+) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -136,14 +143,24 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		other: (block_import, grandpa_link, mut telemetry),
 	} = new_partial(&config)?;
 
-	let mut net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
+	let mut net_config = sc_network::config::FullNetworkConfiguration::<
+		Block,
+		<Block as sp_runtime::traits::Block>::Hash,
+		N,
+	>::new(&config.network, config.prometheus_registry().cloned());
+	let metrics = N::register_notification_metrics(config.prometheus_registry());
 
+	let peer_store_handle = net_config.peer_store_handle();
 	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
 		&client.block_hash(0).ok().flatten().expect("Genesis block exists; qed"),
 		&config.chain_spec,
 	);
 	let (grandpa_protocol_config, grandpa_notification_service) =
-		sc_consensus_grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
+		sc_consensus_grandpa::grandpa_peers_set_config::<_, N>(
+			grandpa_protocol_name.clone(),
+			metrics.clone(),
+			peer_store_handle,
+		);
 	net_config.add_notification_protocol(grandpa_protocol_config);
 
 	let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
@@ -161,14 +178,13 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
+			warp_sync_config: Some(WarpSyncConfig::WithProvider(warp_sync)),
 			block_relay: None,
+			metrics,
 		})?;
 
 	if config.offchain_worker.enabled {
-		task_manager.spawn_handle().spawn(
-			"offchain-workers-runner",
-			"offchain-worker",
+		let offchain_workers =
 			sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
 				runtime_api_provider: client.clone(),
 				is_validator: config.role.is_authority(),
@@ -177,16 +193,18 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 				transaction_pool: Some(OffchainTransactionPoolFactory::new(
 					transaction_pool.clone(),
 				)),
-				network_provider: network.clone(),
+				network_provider: Arc::new(network.clone()),
 				enable_http_requests: true,
 				custom_extensions: |_| vec![],
-			})
-			.run(client.clone(), task_manager.spawn_handle())
-			.boxed(),
+			})?;
+		task_manager.spawn_handle().spawn(
+			"offchain-workers-runner",
+			"offchain-worker",
+			offchain_workers.run(client.clone(), task_manager.spawn_handle()).boxed(),
 		);
 	}
 
-	let role = config.role.clone();
+	let role = config.role;
 	let force_authoring = config.force_authoring;
 	let backoff_authoring_blocks: Option<()> = None;
 	let name = config.network.node_name.clone();
@@ -197,15 +215,14 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 
-		Box::new(move |deny_unsafe, _| {
-			let deps =
-				crate::rpc::FullDeps { client: client.clone(), pool: pool.clone(), deny_unsafe };
+		Box::new(move |_| {
+			let deps = crate::rpc::FullDeps { client: client.clone(), pool: pool.clone() };
 			crate::rpc::create_full(deps).map_err(Into::into)
 		})
 	};
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		network: network.clone(),
+		network: Arc::new(network.clone()),
 		client: client.clone(),
 		keystore: keystore_container.keystore(),
 		task_manager: &mut task_manager,

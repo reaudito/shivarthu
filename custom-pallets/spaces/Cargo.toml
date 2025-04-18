@@ -13,13 +13,13 @@ publish = false
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-parity-scale-codec = { workspace = true }
+codec = { workspace = true }
 scale-info = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-timestamp = { workspace = true }
-sp-std = { workspace = true}
+sp-std = { workspace = true }
 
 
 pallet-support = { workspace = true }
@@ -33,11 +33,11 @@ sp-runtime = { workspace = true }
 [features]
 default = ["std"]
 std = [
-	"parity-scale-codec/std",
-	"frame-benchmarking?/std",
-	"frame-support/std",
-	"frame-system/std",
-	"scale-info/std",
+    "codec/std",
+    "frame-benchmarking?/std",
+    "frame-support/std",
+    "frame-system/std",
+    "scale-info/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]

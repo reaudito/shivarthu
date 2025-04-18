@@ -8,13 +8,11 @@
 use std::sync::Arc;
 
 use jsonrpsee::RpcModule;
-use node_template_runtime::{opaque::Block, AccountId, Balance, Nonce};
 use sc_transaction_pool_api::TransactionPool;
+use solochain_template_runtime::{opaque::Block, AccountId, Balance, Nonce};
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-
-pub use sc_rpc_api::DenyUnsafe;
 
 /// Full client dependencies.
 pub struct FullDeps<C, P> {
@@ -22,8 +20,6 @@ pub struct FullDeps<C, P> {
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
-	/// Whether to deny unsafe calls
-	pub deny_unsafe: DenyUnsafe,
 }
 
 /// Instantiate all full RPC extensions.
@@ -38,27 +34,15 @@ where
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + 'static,
-	C::Api: profile_validation_runtime_api::ProfileValidationApi<Block, AccountId>,
-	C::Api: department_funding_runtime_api::DepartmentFundingApi<Block, AccountId>,
-	C::Api: positive_externality_runtime_api::PositiveExternalityApi<Block, AccountId>,
-	C::Api: project_tips_runtime_api::ProjectTipsApi<Block, AccountId>,
 {
-	use department_funding_rpc::{DepartmentFunding, DepartmentFundingApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-	use positive_externality_rpc::{PositiveExternality, PositiveExternalityApiServer};
-	use profile_validation_rpc::{ProfileValidation, ProfileValidationApiServer};
-	use project_tips_rpc::{ProjectTips, ProjectTipsApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcModule::new(());
-	let FullDeps { client, pool, deny_unsafe } = deps;
+	let FullDeps { client, pool } = deps;
 
-	module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
-	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
-	module.merge(ProfileValidation::new(client.clone()).into_rpc())?;
-	module.merge(DepartmentFunding::new(client.clone()).into_rpc())?;
-	module.merge(PositiveExternality::new(client.clone()).into_rpc())?;
-	module.merge(ProjectTips::new(client.clone()).into_rpc())?;
+	module.merge(System::new(client.clone(), pool).into_rpc())?;
+	module.merge(TransactionPayment::new(client).into_rpc())?;
 
 	// Extend this RPC with a custom API by using the following syntax.
 	// `YourRpcStruct` should have a reference to a client, which is needed
