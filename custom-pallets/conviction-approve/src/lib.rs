@@ -84,6 +84,7 @@ pub mod pallet {
     use super::*;
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
+    use sp_runtime::print;
 
     // The `Pallet` struct serves as a placeholder to implement traits, methods and dispatchables
     // (`Call`s) in this pallet.
@@ -160,6 +161,10 @@ pub mod pallet {
             weight: BalanceOf<T>,
             capital: BalanceOf<T>,
         },
+        Unlocked {
+            group_id: u64,
+            voter: T::AccountId,
+        },
     }
 
     /// Errors that can be returned by this pallet.
@@ -177,6 +182,8 @@ pub mod pallet {
         /// There was an attempt to increment the value in storage over `u32::MAX`.
         StorageOverflow,
         ZeroBalance,
+        NoVoteFound,
+        VoteStillLocked,
     }
 
     /// The pallet's dispatchable functions ([`Call`]s).
@@ -237,6 +244,10 @@ pub mod pallet {
             // Store vote record
             let expiry = <frame_system::Pallet<T>>::block_number()
                 + BlockNumberFor::<T>::from(conviction.lock_periods());
+            // println!("expiry: {:?}", expiry.clone());
+
+            // println!("Conviction lock period: {}", conviction.lock_periods());
+
             group_votes.insert(
                 who.clone(),
                 VoteRecord {
@@ -269,6 +280,36 @@ pub mod pallet {
         }
 
         #[pallet::call_index(1)]
+        #[pallet::weight(0)]
+        pub fn unlock(origin: OriginFor<T>, group_id: u64) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+
+            // Get group votes
+            let mut group_votes = GroupVotes::<T>::get(group_id);
+
+            let vote_record = group_votes.get(&who).ok_or(Error::<T>::NoVoteFound)?;
+
+            // Ensure expiry block has passed
+            let now = <frame_system::Pallet<T>>::block_number();
+            ensure!(now >= vote_record.expiry, Error::<T>::VoteStillLocked);
+
+            // Remove lock
+            T::Currency::remove_lock(T::MaxLockId::get(), &who);
+
+            // Remove vote record
+            group_votes.remove(&who);
+            GroupVotes::<T>::insert(group_id, group_votes);
+
+            // Emit event
+            Self::deposit_event(Event::Unlocked {
+                group_id,
+                voter: who,
+            });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(10)]
         #[pallet::weight(T::WeightInfo::do_something())]
         pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
             // Check that the extrinsic was signed and get the signer.
@@ -297,7 +338,7 @@ pub mod pallet {
         /// - If no value has been set ([`Error::NoneValue`])
         /// - If incrementing the value in storage causes an arithmetic overflow
         ///   ([`Error::StorageOverflow`])
-        #[pallet::call_index(2)]
+        #[pallet::call_index(11)]
         #[pallet::weight(T::WeightInfo::cause_error())]
         pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
             let _who = ensure_signed(origin)?;
