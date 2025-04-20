@@ -6,6 +6,7 @@ use codec::Codec;
 use sp_std::prelude::*;
 
 sp_api::decl_runtime_apis! {
+     #[api_version(4)]
     pub trait PositiveExternalityApi<AccountId> where AccountId: Codec {
 
         fn get_evidence_period_end_block(user_to_calculate: AccountId) -> Option<u32>;

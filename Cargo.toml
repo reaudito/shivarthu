@@ -57,6 +57,10 @@ profile-validation-runtime-api = { path = "custom-pallets/profile-validation/pro
 positive-externality-rpc = { path = "custom-pallets/positive-externality/positive-externality-rpc", default-features = false }
 profile-validation-rpc = { path = "custom-pallets/profile-validation/profile-validation-rpc", default-features = false }
 
+## Others
+sc-rpc = "43.0.0"
+# risc0-zkvm = { version = "2.0.1", default-features = false }
+
 ### Additional Dependencies
 num-integer = { default-features = false, version = "0.1.46" }
 strum = { version = "0.27.1", default-features = false, features = ["derive"] }

@@ -8,6 +8,7 @@ use sp_std::prelude::*;
 type ChallengePostId = u64;
 
 sp_api::decl_runtime_apis! {
+    #[api_version(4)]
     pub trait ProfileValidationApi<AccountId> where AccountId: Codec {
 
         fn get_challengers_evidence(profile_user_account: AccountId, offset: u64, limit: u16) -> Vec<ChallengePostId>;

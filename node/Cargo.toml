@@ -83,6 +83,17 @@ frame-benchmarking-cli.workspace = true
 frame-benchmarking-cli.default-features = true
 solochain-template-runtime.workspace = true
 
+pallet-shared-storage = { workspace = true }
+
+# profile valdiation rpc
+profile-validation-runtime-api = { workspace = true }
+profile-validation-rpc = { workspace = true }
+
+
+# Postive exterality rpc
+positive-externality-runtime-api = { workspace = true }
+positive-externality-rpc = { workspace = true }
+
 [build-dependencies]
 substrate-build-script-utils.workspace = true
 substrate-build-script-utils.default-features = true
@@ -92,18 +103,18 @@ default = ["std"]
 std = ["solochain-template-runtime/std"]
 # Dependencies that are only required if runtime benchmarking should be build.
 runtime-benchmarks = [
-	"frame-benchmarking-cli/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"pallet-transaction-payment/runtime-benchmarks",
-	"sc-service/runtime-benchmarks",
-	"solochain-template-runtime/runtime-benchmarks",
-	"sp-runtime/runtime-benchmarks",
+    "frame-benchmarking-cli/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "pallet-transaction-payment/runtime-benchmarks",
+    "sc-service/runtime-benchmarks",
+    "solochain-template-runtime/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
 ]
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change
 # in the near future.
 try-runtime = [
-	"frame-system/try-runtime",
-	"pallet-transaction-payment/try-runtime",
-	"solochain-template-runtime/try-runtime",
-	"sp-runtime/try-runtime",
+    "frame-system/try-runtime",
+    "pallet-transaction-payment/try-runtime",
+    "solochain-template-runtime/try-runtime",
+    "sp-runtime/try-runtime",
 ]

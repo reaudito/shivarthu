@@ -7700,6 +7700,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "350e9b48cbc6b0e028b0473b114454c6316e57336ee184ceab6e53f72c178b3e"
 
 [[package]]
+name = "positive-externality-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee 0.24.9",
+ "parity-scale-codec",
+ "positive-externality-runtime-api",
+ "sc-rpc",
+ "sp-api 35.0.0",
+ "sp-blockchain",
+ "sp-runtime 40.1.0",
+]
+
+[[package]]
 name = "positive-externality-runtime-api"
 version = "0.1.0"
 dependencies = [
@@ -7889,6 +7902,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "profile-validation-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee 0.24.9",
+ "parity-scale-codec",
+ "profile-validation-runtime-api",
+ "sc-rpc",
+ "sp-api 35.0.0",
+ "sp-blockchain",
+ "sp-runtime 40.1.0",
 ]
 
 [[package]]
@@ -10714,8 +10740,13 @@ dependencies = [
  "frame-system 39.1.0",
  "futures",
  "jsonrpsee 0.24.9",
+ "pallet-shared-storage",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
+ "positive-externality-rpc",
+ "positive-externality-runtime-api",
+ "profile-validation-rpc",
+ "profile-validation-runtime-api",
  "sc-basic-authorship",
  "sc-cli",
  "sc-client-api",
@@ -10759,6 +10790,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
+ "hex-literal",
  "pallet-aura",
  "pallet-balances",
  "pallet-grandpa",
