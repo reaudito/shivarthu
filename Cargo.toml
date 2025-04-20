@@ -66,7 +66,7 @@ sp-arithmetic = { default-features = false, version = "26.0.0" }
 hex-literal = { version = " 0.4.1" }
 serde = { version = "1.0.218" }
 assert_matches = { version = "1.5.0" }
-sp-std = { version = "14.0.0" }
+sp-std = { version = "14.0.0", default-features = false }
 pallet-scheduler = { version = "41.0.0", default-features = false }
 pallet-referenda = { version = "40.1.0", default-features = false }
 pallet-assets = { version = "42.0.0", default-features = false }
