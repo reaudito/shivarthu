@@ -1,0 +1,471 @@
+use codec::{Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
+use sp_runtime::{
+    traits::{Bounded, CheckedDiv, CheckedMul, Zero},
+    RuntimeDebug,
+};
+
+use crate::types::Delegations;
+
+/// A value denoting the strength of conviction of a vote.
+#[derive(
+    Encode,
+    Decode,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    RuntimeDebug,
+    TypeInfo,
+    MaxEncodedLen,
+)]
+pub enum Conviction {
+    /// 0.1x votes, unlocked.
+    None,
+    /// 1x votes, locked for an enactment period following a successful vote.
+    Locked1x,
+    /// 2x votes, locked for 2x enactment periods following a successful vote.
+    Locked2x,
+    /// 3x votes, locked for 4x...
+    Locked3x,
+    /// 4x votes, locked for 8x...
+    Locked4x,
+    /// 5x votes, locked for 16x...
+    Locked5x,
+    /// 6x votes, locked for 32x...
+    Locked6x,
+}
+
+impl Default for Conviction {
+    fn default() -> Self {
+        Conviction::None
+    }
+}
+
+impl From<Conviction> for u8 {
+    fn from(c: Conviction) -> u8 {
+        match c {
+            Conviction::None => 0,
+            Conviction::Locked1x => 1,
+            Conviction::Locked2x => 2,
+            Conviction::Locked3x => 3,
+            Conviction::Locked4x => 4,
+            Conviction::Locked5x => 5,
+            Conviction::Locked6x => 6,
+        }
+    }
+}
+
+impl TryFrom<u8> for Conviction {
+    type Error = ();
+    fn try_from(i: u8) -> Result<Conviction, ()> {
+        Ok(match i {
+            0 => Conviction::None,
+            1 => Conviction::Locked1x,
+            2 => Conviction::Locked2x,
+            3 => Conviction::Locked3x,
+            4 => Conviction::Locked4x,
+            5 => Conviction::Locked5x,
+            6 => Conviction::Locked6x,
+            _ => return Err(()),
+        })
+    }
+}
+
+impl Conviction {
+    /// The amount of time (in number of periods) that our conviction implies a successful voter's
+    /// balance should be locked for.
+    pub fn lock_periods(self) -> u32 {
+        match self {
+            Conviction::None => 0,
+            Conviction::Locked1x => 1,
+            Conviction::Locked2x => 2,
+            Conviction::Locked3x => 4,
+            Conviction::Locked4x => 8,
+            Conviction::Locked5x => 16,
+            Conviction::Locked6x => 32,
+        }
+    }
+
+    /// The votes of a voter of the given `balance` with our conviction.
+    pub fn votes<B: From<u8> + Zero + Copy + CheckedMul + CheckedDiv + Bounded>(
+        self,
+        capital: B,
+    ) -> Delegations<B> {
+        let votes = match self {
+            Conviction::None => capital.checked_div(&10u8.into()).unwrap_or_else(Zero::zero),
+            x => capital
+                .checked_mul(&u8::from(x).into())
+                .unwrap_or_else(B::max_value),
+        };
+        Delegations { votes, capital }
+    }
+}
+
+impl Bounded for Conviction {
+    fn min_value() -> Self {
+        Conviction::None
+    }
+    fn max_value() -> Self {
+        Conviction::Locked6x
+    }
+}
+
+
+
+// We make sure this pallet uses `no_std` for compiling to Wasm.
+#![cfg_attr(not(feature = "std"), no_std)]
+
+// Re-export pallet items so that they can be accessed from the crate namespace.
+pub use pallet::*;
+
+// FRAME pallets require their own "mock runtimes" to be able to run unit tests. This module
+// contains a mock runtime specific for testing this pallet's functionality.
+#[cfg(test)]
+mod mock;
+
+// This module contains the unit tests for this pallet.
+// Learn about pallet unit testing here: https://docs.substrate.io/test/unit-testing/
+#[cfg(test)]
+mod tests;
+
+// Every callable function or "dispatchable" a pallet exposes must have weight values that correctly
+// estimate a dispatchable's execution time. The benchmarking module is used to calculate weights
+// for each dispatchable and generates this pallet's weight.rs file. Learn more about benchmarking here: https://docs.substrate.io/test/benchmark/
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
+pub mod weights;
+pub use weights::*;
+
+pub mod conviction;
+pub mod types;
+
+use crate::conviction::Conviction;
+use crate::types::Vote;
+use crate::types::VoteRecord;
+use frame_support::traits::LockIdentifier;
+use frame_support::traits::LockableCurrency;
+use frame_support::traits::{
+    Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
+};
+use sp_runtime::Saturating;
+use sp_std::collections::btree_map::BTreeMap;
+
+type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
+type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balance;
+
+// All pallet logic is defined in its own module and must be annotated by the `pallet` attribute.
+#[frame_support::pallet(dev_mode)]
+pub mod pallet {
+    // Import various useful types required by all FRAME pallets.
+    use super::*;
+    use frame_support::pallet_prelude::*;
+    use frame_system::pallet_prelude::*;
+    use sp_runtime::print;
+
+    // The `Pallet` struct serves as a placeholder to implement traits, methods and dispatchables
+    // (`Call`s) in this pallet.
+    #[pallet::pallet]
+    pub struct Pallet<T>(_);
+
+    /// The pallet's configuration trait.
+    ///
+    /// All our types and constants a pallet depends on must be declared here.
+    /// These types are defined generically and made concrete when the pallet is declared in the
+    /// `runtime/src/lib.rs` file of your chain.
+    #[pallet::config]
+    pub trait Config: frame_system::Config {
+        /// The overarching runtime event type.
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+        type Currency: LockableCurrency<Self::AccountId, Moment = BlockNumberFor<Self>>;
+        type MaxLockId: Get<LockIdentifier>;
+        /// A type representing the weights required by the dispatchables of this pallet.
+        type WeightInfo: WeightInfo;
+    }
+
+    /// A storage item for this pallet.
+    ///
+    /// In this template, we are declaring a storage item called `Something` that stores a single
+    /// `u32` value. Learn more about runtime storage here: <https://docs.substrate.io/build/runtime-storage/>
+    #[pallet::storage]
+    pub type Something<T> = StorageValue<_, u32>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn group_votes)]
+    pub type GroupVotes<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        u64, // group_id
+        BTreeMap<T::AccountId, VoteRecord<BalanceOf<T>, BlockNumberFor<T>>>,
+        ValueQuery,
+    >;
+
+    #[pallet::storage]
+    #[pallet::getter(fn vote_tally)]
+    pub type VoteTally<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        u64,                          // group_id
+        (BalanceOf<T>, BalanceOf<T>), // (aye_total, nay_total)
+        ValueQuery,
+    >;
+
+    /// Events that functions in this pallet can emit.
+    ///
+    /// Events are a simple means of indicating to the outside world (such as dApps, chain explorers
+    /// or other users) that some notable update in the runtime has occurred. In a FRAME pallet, the
+    /// documentation for each event field and its parameters is added to a node's metadata so it
+    /// can be used by external interfaces or tools.
+    ///
+    ///	The `generate_deposit` macro generates a function on `Pallet` called `deposit_event` which
+    /// will convert the event type of your pallet into `RuntimeEvent` (declared in the pallet's
+    /// [`Config`] trait) and deposit it using [`frame_system::Pallet::deposit_event`].
+    #[pallet::event]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
+    pub enum Event<T: Config> {
+        /// A user has successfully set a new value.
+        SomethingStored {
+            /// The new value set.
+            something: u32,
+            /// The account who set the new value.
+            who: T::AccountId,
+        },
+        Voted {
+            group_id: u64,
+            voter: T::AccountId,
+            conviction: Conviction,
+            aye: bool,
+            weight: BalanceOf<T>,
+            capital: BalanceOf<T>,
+        },
+        Unlocked {
+            group_id: u64,
+            voter: T::AccountId,
+        },
+    }
+
+    /// Errors that can be returned by this pallet.
+    ///
+    /// Errors tell users that something went wrong so it's important that their naming is
+    /// informative. Similar to events, error documentation is added to a node's metadata so it's
+    /// equally important that they have helpful documentation associated with them.
+    ///
+    /// This type of runtime error can be up to 4 bytes in size should you want to return additional
+    /// information.
+    #[pallet::error]
+    pub enum Error<T> {
+        /// The value retrieved was `None` as no value was previously set.
+        NoneValue,
+        /// There was an attempt to increment the value in storage over `u32::MAX`.
+        StorageOverflow,
+        ZeroBalance,
+        NoVoteFound,
+        VoteStillLocked,
+    }
+
+    /// The pallet's dispatchable functions ([`Call`]s).
+    ///
+    /// Dispatchable functions allows users to interact with the pallet and invoke state changes.
+    /// These functions materialize as "extrinsics", which are often compared to transactions.
+    /// They must always return a `DispatchResult` and be annotated with a weight and call index.
+    ///
+    /// The [`call_index`] macro is used to explicitly
+    /// define an index for calls in the [`Call`] enum. This is useful for pallets that may
+    /// introduce new dispatchables over time. If the order of a dispatchable changes, its index
+    /// will also change which will break backwards compatibility.
+    ///
+    /// The [`weight`] macro is used to assign a weight to each call.
+    #[pallet::call]
+    impl<T: Config> Pallet<T> {
+        /// An example dispatchable that takes a single u32 value as a parameter, writes the value
+        /// to storage and emits an event.
+        ///
+        /// It checks that the _origin_ for this call is _Signed_ and returns a dispatch
+        /// error if it isn't. Learn more about origins here: <https://docs.substrate.io/build/origins/>
+        #[pallet::call_index(0)]
+        #[pallet::weight(0)]
+        pub fn vote(
+            origin: OriginFor<T>,
+            group_id: u64,
+            aye: bool,
+            conviction: Conviction,
+            balance: BalanceOf<T>,
+        ) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            ensure!(!balance.is_zero(), Error::<T>::ZeroBalance);
+
+            let new_vote = Vote {
+                aye,
+                conviction,
+                balance,
+            };
+            let new_weighted = conviction.votes(balance).votes;
+
+            // Remove previous vote if exists
+            let mut group_votes = GroupVotes::<T>::get(group_id);
+            if let Some(prev_record) = group_votes.get(&who) {
+                let prev = &prev_record.vote;
+                let prev_weight = prev.conviction.votes(prev.balance).votes;
+                VoteTally::<T>::mutate(group_id, |(ayes, nays)| {
+                    if prev.aye {
+                        *ayes = ayes.saturating_sub(prev_weight);
+                    } else {
+                        *nays = nays.saturating_sub(prev_weight);
+                    }
+                });
+            }
+
+            // Apply lock
+            T::Currency::set_lock(T::MaxLockId::get(), &who, balance, WithdrawReasons::all());
+
+            // Store vote record
+            let expiry = <frame_system::Pallet<T>>::block_number()
+                + BlockNumberFor::<T>::from(conviction.lock_periods());
+            // println!("expiry: {:?}", expiry.clone());
+
+            // println!("Conviction lock period: {}", conviction.lock_periods());
+
+            group_votes.insert(
+                who.clone(),
+                VoteRecord {
+                    vote: new_vote.clone(),
+                    expiry,
+                },
+            );
+            GroupVotes::<T>::insert(group_id, group_votes);
+
+            // Update tally
+            VoteTally::<T>::mutate(group_id, |(ayes, nays)| {
+                if aye {
+                    *ayes += new_weighted;
+                } else {
+                    *nays += new_weighted;
+                }
+            });
+
+            // Emit vote event
+            Self::deposit_event(Event::Voted {
+                group_id,
+                voter: who,
+                conviction,
+                aye,
+                weight: new_weighted,
+                capital: balance,
+            });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(1)]
+        #[pallet::weight(0)]
+        pub fn unlock(origin: OriginFor<T>, group_id: u64) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+
+            // Get group votes
+            let mut group_votes = GroupVotes::<T>::get(group_id);
+
+            let vote_record = group_votes.get(&who).ok_or(Error::<T>::NoVoteFound)?;
+
+            // Ensure expiry block has passed
+            let now = <frame_system::Pallet<T>>::block_number();
+            ensure!(now >= vote_record.expiry, Error::<T>::VoteStillLocked);
+
+            // Remove lock
+            T::Currency::remove_lock(T::MaxLockId::get(), &who);
+
+            // Remove vote record
+            group_votes.remove(&who);
+            GroupVotes::<T>::insert(group_id, group_votes);
+
+            // Emit event
+            Self::deposit_event(Event::Unlocked {
+                group_id,
+                voter: who,
+            });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(10)]
+        #[pallet::weight(T::WeightInfo::do_something())]
+        pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
+            // Check that the extrinsic was signed and get the signer.
+            let who = ensure_signed(origin)?;
+
+            // Update storage.
+            Something::<T>::put(something);
+
+            // Emit an event.
+            Self::deposit_event(Event::SomethingStored { something, who });
+
+            // Return a successful `DispatchResult`
+            Ok(())
+        }
+
+        /// An example dispatchable that may throw a custom error.
+        ///
+        /// It checks that the caller is a signed origin and reads the current value from the
+        /// `Something` storage item. If a current value exists, it is incremented by 1 and then
+        /// written back to storage.
+        ///
+        /// ## Errors
+        ///
+        /// The function will return an error under the following conditions:
+        ///
+        /// - If no value has been set ([`Error::NoneValue`])
+        /// - If incrementing the value in storage causes an arithmetic overflow
+        ///   ([`Error::StorageOverflow`])
+        #[pallet::call_index(11)]
+        #[pallet::weight(T::WeightInfo::cause_error())]
+        pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
+            let _who = ensure_signed(origin)?;
+
+            // Read a value from storage.
+            match Something::<T>::get() {
+                // Return an error if the value has not been set.
+                None => Err(Error::<T>::NoneValue.into()),
+                Some(old) => {
+                    // Increment the value read from storage. This will cause an error in the event
+                    // of overflow.
+                    let new = old.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
+                    // Update the value in storage with the incremented result.
+                    Something::<T>::put(new);
+                    Ok(())
+                }
+            }
+        }
+    }
+}
+
+use crate::conviction::Conviction;
+use codec::Decode;
+use codec::Encode;
+use codec::MaxEncodedLen;
+use scale_info::TypeInfo;
+use sp_runtime::RuntimeDebug;
+
+/// Amount of votes and capital placed in delegation for an account.
+#[derive(
+    Encode, Decode, Default, Copy, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen,
+)]
+pub struct Delegations<Balance> {
+    /// The number of votes (this is post-conviction).
+    pub votes: Balance,
+    /// The amount of raw capital, used for the support.
+    pub capital: Balance,
+}
+
+#[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+pub struct Vote<Balance> {
+    pub aye: bool,
+    pub conviction: Conviction,
+    pub balance: Balance,
+}
+
+#[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+pub struct VoteRecord<Balance, BlockNumber> {
+    pub vote: Vote<Balance>,
+    pub expiry: BlockNumber, // expiry block for lock
+}
