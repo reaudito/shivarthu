@@ -34,6 +34,7 @@ use frame_support::{
 };
 use frame_system::limits::{BlockLength, BlockWeights};
 use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter, Multiplier};
+use scale_info::TypeInfo;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_runtime::{traits::One, Perbill};
 use sp_version::RuntimeVersion;
@@ -185,6 +186,12 @@ parameter_types! {
     pub const JurorIncentivesTotalBlock: u64 = 432000; // 30 days = (24*60*60)/6 * 30
 }
 
+parameter_types! {
+    pub const MaxDepartmentsPerGroup: u32 = 3;
+    pub const MaxMembersPerDepartment: u32 = 1000;
+    pub const MaxMembersPerGroup: u32 = 10000;
+}
+
 impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
 
 impl pallet_sortition_sum_game::Config for Runtime {
@@ -212,6 +219,9 @@ impl pallet_profile_validation::Config for Runtime {
 
 impl pallet_shared_storage::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
+    type MaxDepartmentsPerGroup = MaxDepartmentsPerGroup;
+    type MaxMembersPerDepartment = MaxMembersPerDepartment;
+    type MaxMembersPerGroup = MaxMembersPerGroup;
 }
 
 impl pallet_positive_externality::Config for Runtime {
