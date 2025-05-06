@@ -8,8 +8,21 @@ use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub struct ReputationScore {
-    pub departments: BTreeMap<Vec<u8>, i64>,
+    pub departments: BTreeMap<Department, i64>,
     pub total_score: i64,
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, PartialOrd, Ord, RuntimeDebug, TypeInfo)]
+pub enum DepartmentType {
+    Locality,
+    Specialization,
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, PartialOrd, Ord, RuntimeDebug, TypeInfo)]
+pub struct Department {
+    pub name: Vec<u8>,
+    pub department_type: DepartmentType,
+    pub id: u64,
 }
 
 impl ReputationScore {
@@ -20,12 +33,12 @@ impl ReputationScore {
         }
     }
 
-    pub fn add_department(&mut self, department: Vec<u8>, score: i64) {
+    pub fn add_department(&mut self, department: Department, score: i64) {
         self.departments.insert(department, score);
         self.total_score = self.total_score.checked_add(score).unwrap_or(i64::MAX);
     }
 
-    pub fn update_department(&mut self, department: Vec<u8>, score: i64) {
+    pub fn update_department(&mut self, department: Department, score: i64) {
         if let Some(existing_score) = self.departments.get_mut(&department) {
             self.total_score = self
                 .total_score
@@ -38,35 +51,42 @@ impl ReputationScore {
         }
     }
 
-    pub fn get_department_score(&self, department: Vec<u8>) -> Option<i64> {
+    pub fn get_department_score(&self, department: Department) -> Option<i64> {
         self.departments.get(&department).copied()
     }
 
-    pub fn get_all_departments(&self) -> Vec<(Vec<u8>, i64)> {
+    pub fn get_all_departments(&self) -> Vec<(Department, i64)> {
         self.departments
             .iter()
             .map(|(v, i)| (v.clone(), i.clone()))
             .collect()
     }
 
-    pub fn add_score(&mut self, department: Vec<u8>, amount: i64) {
+    pub fn add_score(&mut self, department: Department, amount: i64) {
         if let Some(score) = self.departments.get_mut(&department) {
-            *score = score.checked_add(amount).unwrap_or(i64::MAX);
-            self.total_score = self.total_score.checked_add(amount).unwrap_or(i64::MAX);
-        }
-    }
-
-    pub fn subtract_score(&mut self, department: Vec<u8>, amount: i64) -> bool {
-        if let Some(score) = self.departments.get_mut(&department) {
-            if *score >= amount {
-                *score = score.checked_sub(amount).unwrap_or(i64::MIN);
-                self.total_score = self.total_score.checked_sub(amount).unwrap_or(i64::MIN);
-                true
-            } else {
-                false
+            // Update department score with overflow check
+            match score.checked_add(amount) {
+                Some(new_score) => *score = new_score,
+                None => {
+                    if amount.is_negative() {
+                        *score = i64::MIN;
+                    } else {
+                        *score = i64::MAX;
+                    }
+                }
             }
-        } else {
-            false
+
+            // Update total score with overflow check
+            match self.total_score.checked_add(amount) {
+                Some(new_total) => self.total_score = new_total,
+                None => {
+                    if amount.is_negative() {
+                        self.total_score = i64::MIN;
+                    } else {
+                        self.total_score = i64::MAX;
+                    }
+                }
+            }
         }
     }
 
