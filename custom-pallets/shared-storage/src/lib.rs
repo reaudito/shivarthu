@@ -97,15 +97,6 @@ pub mod pallet {
         ValueQuery,
     >;
 
-    #[pallet::storage]
-    pub type DepartmentGroupMembers<T: Config> = StorageMap<
-        _,
-        Blake2_128Concat,
-        u64,
-        BoundedBTreeSet<T::AccountId, T::MaxMembersPerGroup>,
-        ValueQuery,
-    >;
-
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub approved_citizen_address: Vec<T::AccountId>,
@@ -134,6 +125,14 @@ pub mod pallet {
         /// Event documentation should end with an array that provides descriptive names for event
         /// parameters. [something, who]
         SomethingStored { something: u32, who: T::AccountId },
+        MemberAddedToDepartment {
+            member: T::AccountId,
+            department_id: u64,
+        },
+        DepartmentGroupCreated {
+            group_id: u64,
+            departments: Vec<u64>,
+        },
     }
 
     // Errors inform users that something went wrong.
@@ -145,8 +144,10 @@ pub mod pallet {
         StorageOverflow,
         CitizenNotApproved,
         AlreadyMember,
-        DepartmentAlreadyExists,
-        DepartmentDoesNotExist,
+        DepartmentNotFound,
+        MemberAlreadyInDepartment,
+        TooManyMembers,
+        GroupAlreadyExists,
         TooManyDepartmentsInGroup,
     }
 
@@ -177,67 +178,87 @@ pub mod pallet {
 
             Ok(())
         }
+        #[pallet::call_index(1)]
+        #[pallet::weight(0)]
+        pub fn add_member_to_department(
+            origin: OriginFor<T>,
+            department_id: u64,
+            member: T::AccountId,
+        ) -> DispatchResult {
+            let _who = ensure_signed(origin)?;
+
+            // Ensure department exists
+            ensure!(
+                Departments::<T>::contains_key(&department_id),
+                Error::<T>::DepartmentNotFound
+            );
+
+            DepartmentMembers::<T>::try_mutate(
+                department_id,
+                |members| -> Result<(), DispatchError> {
+                    members
+                        .try_insert(member.clone())
+                        .map_err(|_| Error::<T>::MemberAlreadyInDepartment)?;
+                    Ok(())
+                },
+            )?;
+
+            Self::deposit_event(Event::MemberAddedToDepartment {
+                member,
+                department_id,
+            });
+
+            Ok(())
+        }
 
         #[pallet::call_index(2)]
         #[pallet::weight(0)]
         pub fn create_department_group(
             origin: OriginFor<T>,
             group_id: u64,
-            department_ids: Vec<u64>,
-        ) -> DispatchResult {
-            ensure_root(origin)?;
-
-            for id in &department_ids {
-                ensure!(
-                    Departments::<T>::contains_key(id),
-                    Error::<T>::DepartmentDoesNotExist
-                );
-            }
-
-            let bounded_departments: BoundedVec<u64, T::MaxDepartmentsPerGroup> =
-                BoundedVec::try_from(department_ids.clone())
-                    .map_err(|_| Error::<T>::TooManyDepartmentsInGroup)?;
-
-            DepartmentGroups::<T>::insert(group_id, bounded_departments);
-            // Populate members from included departments
-            let mut group_members = BoundedBTreeSet::new();
-            for dept_id in &department_ids {
-                let members = DepartmentMembers::<T>::get(dept_id);
-                for m in members {
-                    group_members.try_insert(m).ok(); // Ignore overflow
-                }
-            }
-            DepartmentGroupMembers::<T>::insert(group_id, group_members);
-            Ok(())
-        }
-
-        #[pallet::call_index(3)]
-        #[pallet::weight(0)]
-        pub fn add_member_to_department(
-            origin: OriginFor<T>,
-            dept_id: u64,
-            account: T::AccountId,
+            departments: BoundedVec<u64, T::MaxDepartmentsPerGroup>,
         ) -> DispatchResult {
             ensure_root(origin)?;
 
             ensure!(
-                Departments::<T>::contains_key(dept_id),
-                Error::<T>::DepartmentDoesNotExist
+                !DepartmentGroups::<T>::contains_key(&group_id),
+                Error::<T>::GroupAlreadyExists
             );
-            DepartmentMembers::<T>::mutate(dept_id, |members| {
-                members.try_insert(account.clone()).ok();
-            });
 
-            // Update department group membership
-            for (group_id, dept_ids) in DepartmentGroups::<T>::iter() {
-                if dept_ids.contains(&dept_id) {
-                    DepartmentGroupMembers::<T>::mutate(group_id, |group_members| {
-                        group_members.try_insert(account.clone()).ok();
-                    });
-                }
+            for dept_id in departments.iter() {
+                ensure!(
+                    Departments::<T>::contains_key(dept_id),
+                    Error::<T>::DepartmentNotFound
+                );
             }
 
+            DepartmentGroups::<T>::insert(&group_id, departments.clone());
+
+            Self::deposit_event(Event::DepartmentGroupCreated {
+                group_id,
+                departments: departments.into_inner(),
+            });
+
             Ok(())
+        }
+    }
+
+    impl<T: Config> Pallet<T> {
+        pub fn is_member_in_department(department_id: u64, account: &T::AccountId) -> bool {
+            DepartmentMembers::<T>::get(department_id).contains(account)
+        }
+
+        pub fn is_member_in_department_group(group_id: u64, account: &T::AccountId) -> bool {
+            let departments = DepartmentGroups::<T>::get(group_id);
+
+            // departments.iter()
+            // Loops over each department ID in the departments collection (which is likely a Vec<u64>).
+
+            // .all(...)
+            // Returns true only if the predicate inside returns true for every item — in this case, for every department ID.
+            departments
+                .iter()
+                .all(|dept_id| DepartmentMembers::<T>::get(*dept_id).contains(account))
         }
     }
 }
