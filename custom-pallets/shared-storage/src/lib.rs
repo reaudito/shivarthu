@@ -266,5 +266,33 @@ pub mod pallet {
                 .iter()
                 .all(|dept_id| DepartmentMembers::<T>::get(*dept_id).contains(account))
         }
+
+        pub fn do_add_member_to_department(
+            department_id: u64,
+            member: T::AccountId,
+        ) -> DispatchResult {
+            // Ensure department exists
+            ensure!(
+                Departments::<T>::contains_key(&department_id),
+                Error::<T>::DepartmentNotFound
+            );
+
+            DepartmentMembers::<T>::try_mutate(
+                department_id,
+                |members| -> Result<(), DispatchError> {
+                    members
+                        .try_insert(member.clone())
+                        .map_err(|_| Error::<T>::MemberAlreadyInDepartment)?;
+                    Ok(())
+                },
+            )?;
+
+            Self::deposit_event(Event::MemberAddedToDepartment {
+                member,
+                department_id,
+            });
+
+            Ok(())
+        }
     }
 }
