@@ -77,6 +77,9 @@ pub mod pallet {
     pub type DepartmentCount<T: Config> = StorageValue<_, u64, ValueQuery>;
 
     #[pallet::storage]
+    pub type DepartmentGroupCount<T: Config> = StorageValue<_, u64, ValueQuery>;
+
+    #[pallet::storage]
     pub type Departments<T: Config> = StorageMap<_, Blake2_128Concat, u64, Department, OptionQuery>;
 
     #[pallet::storage]
@@ -215,10 +218,11 @@ pub mod pallet {
         #[pallet::weight(0)]
         pub fn create_department_group(
             origin: OriginFor<T>,
-            group_id: u64,
             departments: BoundedVec<u64, T::MaxDepartmentsPerGroup>,
         ) -> DispatchResult {
             ensure_root(origin)?;
+            let group_id = DepartmentGroupCount::<T>::get();
+            let next_id = group_id.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
 
             ensure!(
                 !DepartmentGroups::<T>::contains_key(&group_id),
@@ -233,6 +237,8 @@ pub mod pallet {
             }
 
             DepartmentGroups::<T>::insert(&group_id, departments.clone());
+
+            DepartmentGroupCount::<T>::put(next_id);
 
             Self::deposit_event(Event::DepartmentGroupCreated {
                 group_id,
