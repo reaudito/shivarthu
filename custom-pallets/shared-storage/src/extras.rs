@@ -154,3 +154,37 @@ impl<T: Config> Pallet<T> {
             .map_or(0, |reputation_score| reputation_score.get_total_score())
     }
 }
+
+impl<T: Config> Pallet<T> {
+    pub fn is_member_in_group_district(
+        group_id: u64,
+        member: &T::AccountId,
+    ) -> Result<bool, Error<T>> {
+        let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
+
+        for dept_id in group.district_departments.iter() {
+            let members = DepartmentMembers::<T>::get(dept_id);
+            if members.contains(member) {
+                return Ok(true);
+            }
+        }
+
+        Ok(false)
+    }
+
+    pub fn is_member_in_group_specialization(
+        group_id: u64,
+        member: &T::AccountId,
+    ) -> Result<bool, Error<T>> {
+        let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
+
+        for dept_id in group.specialization_departments.iter() {
+            let members = DepartmentMembers::<T>::get(dept_id);
+            if members.contains(member) {
+                return Ok(true);
+            }
+        }
+
+        Ok(false)
+    }
+}

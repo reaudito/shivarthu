@@ -14,15 +14,23 @@ pub struct ReputationScore {
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, PartialOrd, Ord, RuntimeDebug, TypeInfo)]
 pub enum DepartmentType {
-    Locality,
+    District,
     Specialization,
 }
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, PartialOrd, Ord, RuntimeDebug, TypeInfo)]
 pub struct Department {
-    pub name: Vec<u8>,
+    pub name: BoundedVec<u8, MaxNameLength>,
     pub department_type: DepartmentType,
     pub id: u64,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+pub struct Group {
+    pub id: u64,
+    pub name: BoundedVec<u8, MaxNameLength>,
+    pub specialization_departments: BoundedVec<u64, MaxDepartmentsPerGroup>,
+    pub district_departments: BoundedVec<u64, MaxDepartmentsPerGroup>,
 }
 
 impl ReputationScore {

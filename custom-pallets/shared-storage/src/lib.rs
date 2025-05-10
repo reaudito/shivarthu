@@ -15,23 +15,26 @@ pub mod extras;
 pub mod types;
 
 use codec::{Decode, Encode};
+use frame_support::pallet_prelude::*;
 use frame_support::traits::BuildGenesisConfig;
 use frame_support::BoundedVec;
 use frame_system::ensure_root;
+use frame_system::pallet_prelude::*;
 use sp_std::prelude::*;
 use types::ReputationScore;
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type Score = i64;
 type DepartmentId = u64;
-use crate::types::Department;
+pub type MaxNameLength = ConstU32<64>;
+pub type MaxDepartmentsPerGroup = ConstU32<50>;
+pub type MaxMembersPerDepartment = ConstU32<100000>;
 use crate::types::DepartmentType;
+use crate::types::{Department, Group};
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
     use super::*;
-    use frame_support::pallet_prelude::*;
-    use frame_system::pallet_prelude::*;
 
     #[pallet::pallet]
     #[pallet::without_storage_info]
@@ -42,15 +45,6 @@ pub mod pallet {
     pub trait Config: frame_system::Config {
         /// Because this pallet emits events, it depends on the runtime's definition of an event.
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
-        #[pallet::constant]
-        type MaxDepartmentsPerGroup: Get<u32>;
-
-        #[pallet::constant]
-        type MaxMembersPerDepartment: Get<u32>;
-
-        #[pallet::constant]
-        type MaxMembersPerGroup: Get<u32>;
     }
     #[pallet::storage]
     #[pallet::getter(fn approved_citizen_address)]
@@ -77,28 +71,23 @@ pub mod pallet {
     pub type DepartmentCount<T: Config> = StorageValue<_, u64, ValueQuery>;
 
     #[pallet::storage]
-    pub type DepartmentGroupCount<T: Config> = StorageValue<_, u64, ValueQuery>;
+    pub type GroupCount<T: Config> = StorageValue<_, u64, ValueQuery>;
 
     #[pallet::storage]
     pub type Departments<T: Config> = StorageMap<_, Blake2_128Concat, u64, Department, OptionQuery>;
-
-    #[pallet::storage]
-    pub type DepartmentGroups<T: Config> = StorageMap<
-        _,
-        Blake2_128Concat,
-        u64,
-        BoundedVec<u64, T::MaxDepartmentsPerGroup>,
-        ValueQuery,
-    >;
 
     #[pallet::storage]
     pub type DepartmentMembers<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
         u64,
-        BoundedBTreeSet<T::AccountId, T::MaxMembersPerDepartment>,
+        BoundedBTreeSet<T::AccountId, MaxMembersPerDepartment>,
         ValueQuery,
     >;
+
+    #[pallet::storage]
+    #[pallet::getter(fn groups)]
+    pub type Groups<T: Config> = StorageMap<_, Blake2_128Concat, u64, Group, OptionQuery>;
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
@@ -152,6 +141,9 @@ pub mod pallet {
         TooManyMembers,
         GroupAlreadyExists,
         TooManyDepartmentsInGroup,
+        InvalidDepartmentType,
+        GroupNotFound,
+        TooManyDepartments,
     }
 
     #[pallet::call]
@@ -160,7 +152,7 @@ pub mod pallet {
         #[pallet::weight(0)]
         pub fn create_department(
             origin: OriginFor<T>,
-            name: Vec<u8>,
+            name: BoundedVec<u8, MaxNameLength>,
             department_type: DepartmentType,
         ) -> DispatchResult {
             ensure_root(origin)?;
@@ -216,83 +208,120 @@ pub mod pallet {
 
         #[pallet::call_index(2)]
         #[pallet::weight(0)]
-        pub fn create_department_group(
+        pub fn create_group(
             origin: OriginFor<T>,
-            departments: BoundedVec<u64, T::MaxDepartmentsPerGroup>,
+            name: BoundedVec<u8, MaxNameLength>,
         ) -> DispatchResult {
             ensure_root(origin)?;
-            let group_id = DepartmentGroupCount::<T>::get();
+
+            let group_id = GroupCount::<T>::get();
+
+            // Use checked_add to avoid overflow
             let next_id = group_id.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
 
-            ensure!(
-                !DepartmentGroups::<T>::contains_key(&group_id),
-                Error::<T>::GroupAlreadyExists
-            );
+            let new_group = Group {
+                id: group_id,
+                name,
+                specialization_departments: BoundedVec::default(),
+                district_departments: BoundedVec::default(),
+            };
 
-            for dept_id in departments.iter() {
-                ensure!(
-                    Departments::<T>::contains_key(dept_id),
-                    Error::<T>::DepartmentNotFound
-                );
-            }
-
-            DepartmentGroups::<T>::insert(&group_id, departments.clone());
-
-            DepartmentGroupCount::<T>::put(next_id);
-
-            Self::deposit_event(Event::DepartmentGroupCreated {
-                group_id,
-                departments: departments.into_inner(),
-            });
+            Groups::<T>::insert(group_id, new_group);
+            GroupCount::<T>::put(next_id);
 
             Ok(())
         }
-    }
 
-    impl<T: Config> Pallet<T> {
-        pub fn is_member_in_department(department_id: u64, account: &T::AccountId) -> bool {
-            DepartmentMembers::<T>::get(department_id).contains(account)
-        }
-
-        pub fn is_member_in_department_group(group_id: u64, account: &T::AccountId) -> bool {
-            let departments = DepartmentGroups::<T>::get(group_id);
-
-            // departments.iter()
-            // Loops over each department ID in the departments collection (which is likely a Vec<u64>).
-
-            // .all(...)
-            // Returns true only if the predicate inside returns true for every item — in this case, for every department ID.
-            departments
-                .iter()
-                .all(|dept_id| DepartmentMembers::<T>::get(*dept_id).contains(account))
-        }
-
-        pub fn do_add_member_to_department(
+        #[pallet::call_index(3)]
+        #[pallet::weight(0)]
+        pub fn add_specialization_department_to_group(
+            origin: OriginFor<T>,
+            group_id: u64,
             department_id: u64,
-            member: T::AccountId,
         ) -> DispatchResult {
-            // Ensure department exists
+            ensure_root(origin)?;
+
+            let department =
+                Departments::<T>::get(department_id).ok_or(Error::<T>::DepartmentNotFound)?;
+
             ensure!(
-                Departments::<T>::contains_key(&department_id),
-                Error::<T>::DepartmentNotFound
+                matches!(department.department_type, DepartmentType::Specialization),
+                Error::<T>::InvalidDepartmentType
             );
 
-            DepartmentMembers::<T>::try_mutate(
-                department_id,
-                |members| -> Result<(), DispatchError> {
-                    members
-                        .try_insert(member.clone())
-                        .map_err(|_| Error::<T>::MemberAlreadyInDepartment)?;
-                    Ok(())
-                },
-            )?;
+            Groups::<T>::try_mutate(group_id, |maybe_group| -> DispatchResult {
+                let group = maybe_group.as_mut().ok_or(Error::<T>::GroupNotFound)?;
+                if !group.specialization_departments.contains(&department_id) {
+                    group
+                        .specialization_departments
+                        .try_push(department_id)
+                        .map_err(|_| Error::<T>::TooManyDepartments)?;
+                }
+                Ok(())
+            })
+        }
 
-            Self::deposit_event(Event::MemberAddedToDepartment {
-                member,
-                department_id,
-            });
+        #[pallet::call_index(4)]
+        #[pallet::weight(0)]
+        pub fn remove_specialization_department_from_group(
+            origin: OriginFor<T>,
+            group_id: u64,
+            department_id: u64,
+        ) -> DispatchResult {
+            ensure_root(origin)?;
 
-            Ok(())
+            Groups::<T>::try_mutate(group_id, |maybe_group| -> DispatchResult {
+                let group = maybe_group.as_mut().ok_or(Error::<T>::GroupNotFound)?;
+                group
+                    .specialization_departments
+                    .retain(|&id| id != department_id);
+                Ok(())
+            })
+        }
+
+        #[pallet::call_index(5)]
+        #[pallet::weight(0)]
+        pub fn add_district_department_to_group(
+            origin: OriginFor<T>,
+            group_id: u64,
+            department_id: u64,
+        ) -> DispatchResult {
+            ensure_root(origin)?;
+
+            let department =
+                Departments::<T>::get(department_id).ok_or(Error::<T>::DepartmentNotFound)?;
+
+            ensure!(
+                matches!(department.department_type, DepartmentType::District),
+                Error::<T>::InvalidDepartmentType
+            );
+
+            Groups::<T>::try_mutate(group_id, |maybe_group| -> DispatchResult {
+                let group = maybe_group.as_mut().ok_or(Error::<T>::GroupNotFound)?;
+                if !group.district_departments.contains(&department_id) {
+                    group
+                        .district_departments
+                        .try_push(department_id)
+                        .map_err(|_| Error::<T>::TooManyDepartments)?;
+                }
+                Ok(())
+            })
+        }
+
+        #[pallet::call_index(6)]
+        #[pallet::weight(0)]
+        pub fn remove_district_department_from_group(
+            origin: OriginFor<T>,
+            group_id: u64,
+            department_id: u64,
+        ) -> DispatchResult {
+            ensure_root(origin)?;
+
+            Groups::<T>::try_mutate(group_id, |maybe_group| -> DispatchResult {
+                let group = maybe_group.as_mut().ok_or(Error::<T>::GroupNotFound)?;
+                group.district_departments.retain(|&id| id != department_id);
+                Ok(())
+            })
         }
     }
 }

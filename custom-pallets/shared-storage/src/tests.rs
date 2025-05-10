@@ -1,14 +1,18 @@
 use crate::mock::*;
 use crate::types::{Department, DepartmentType};
+use crate::MaxNameLength;
 use frame_support::assert_ok;
+use frame_support::BoundedVec;
 
 #[test]
 fn test_set_department_reputation_score() {
     new_test_ext().execute_with(|| {
         let address = 1;
+
+        let name: BoundedVec<u8, MaxNameLength> = BoundedVec::try_from(vec![1, 2, 3]).unwrap();
         let department = Department {
-            name: vec![1, 2, 3],
-            department_type: DepartmentType::Locality,
+            name,
+            department_type: DepartmentType::District,
             id: 1,
         };
         let score = 10;
@@ -33,9 +37,10 @@ fn test_set_department_reputation_score() {
 fn test_update_department_reputation_score() {
     new_test_ext().execute_with(|| {
         let address = 1;
+        let name: BoundedVec<u8, MaxNameLength> = BoundedVec::try_from(vec![1, 2, 3]).unwrap();
         let department = Department {
-            name: vec![1, 2, 3],
-            department_type: DepartmentType::Locality,
+            name,
+            department_type: DepartmentType::District,
             id: 1,
         };
         let score = 10;
@@ -67,9 +72,10 @@ fn test_update_department_reputation_score() {
 fn test_add_score_to_department() {
     new_test_ext().execute_with(|| {
         let address = 1;
+        let name: BoundedVec<u8, MaxNameLength> = BoundedVec::try_from(vec![1, 2, 3]).unwrap();
         let department = Department {
-            name: vec![1, 2, 3],
-            department_type: DepartmentType::Locality,
+            name,
+            department_type: DepartmentType::District,
             id: 1,
         };
         let score = 10;
@@ -101,9 +107,10 @@ fn test_add_score_to_department() {
 fn test_get_department_reputation_score() {
     new_test_ext().execute_with(|| {
         let address = 1;
+        let name: BoundedVec<u8, MaxNameLength> = BoundedVec::try_from(vec![1, 2, 3]).unwrap();
         let department = Department {
-            name: vec![1, 2, 3],
-            department_type: DepartmentType::Locality,
+            name,
+            department_type: DepartmentType::District,
             id: 1,
         };
         let score = 10;
@@ -124,15 +131,16 @@ fn test_get_department_reputation_score() {
 fn test_get_all_department_reputation_scores() {
     new_test_ext().execute_with(|| {
         let address = 1;
+        let name: BoundedVec<u8, MaxNameLength> = BoundedVec::try_from(vec![1, 2, 3]).unwrap();
         let department1 = Department {
-            name: vec![1, 2, 3],
-            department_type: DepartmentType::Locality,
+            name,
+            department_type: DepartmentType::District,
             id: 1,
         };
-
+        let name: BoundedVec<u8, MaxNameLength> = BoundedVec::try_from(vec![4, 5, 6]).unwrap();
         let department2 = Department {
-            name: vec![4, 5, 6],
-            department_type: DepartmentType::Locality,
+            name,
+            department_type: DepartmentType::District,
             id: 2,
         };
 
@@ -161,15 +169,16 @@ fn test_get_all_department_reputation_scores() {
 fn test_get_total_reputation_score() {
     new_test_ext().execute_with(|| {
         let address = 1;
+        let name: BoundedVec<u8, MaxNameLength> = BoundedVec::try_from(vec![1, 2, 3]).unwrap();
         let department1 = Department {
-            name: vec![1, 2, 3],
-            department_type: DepartmentType::Locality,
+            name,
+            department_type: DepartmentType::District,
             id: 1,
         };
-
+        let name: BoundedVec<u8, MaxNameLength> = BoundedVec::try_from(vec![4, 5, 6]).unwrap();
         let department2 = Department {
-            name: vec![4, 5, 6],
-            department_type: DepartmentType::Locality,
+            name,
+            department_type: DepartmentType::District,
             id: 2,
         };
         let score1 = 10;
