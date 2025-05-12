@@ -14,14 +14,12 @@ pub trait SharedStorageLink {
     fn set_positive_externality_link(address: Self::AccountId, score: i64) -> DispatchResult;
     fn add_reputation_score_to_department(
         address: Self::AccountId,
-        department: Self::Department,
+        department_id: u64,
         amount: i64,
     ) -> DispatchResult;
 
-    fn get_department_reputation_score(
-        address: Self::AccountId,
-        department: Self::Department,
-    ) -> Option<i64>;
+    fn get_department_reputation_score(address: Self::AccountId, department_id: u64)
+        -> Option<i64>;
 
     fn get_total_reputation_score(address: Self::AccountId) -> i64;
 }

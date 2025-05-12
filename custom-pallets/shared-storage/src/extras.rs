@@ -24,17 +24,14 @@ impl<T: Config> SharedStorageLink for Pallet<T> {
 
     fn add_reputation_score_to_department(
         address: T::AccountId,
-        department: Department,
+        department_id: u64,
         amount: i64,
     ) -> DispatchResult {
-        Self::add_reputation_score_to_department(address, department, amount)
+        Self::add_reputation_score_to_department(address, department_id, amount)
     }
 
-    fn get_department_reputation_score(
-        address: T::AccountId,
-        department: Department,
-    ) -> Option<i64> {
-        Self::get_department_reputation_score(address, department)
+    fn get_department_reputation_score(address: T::AccountId, department_id: u64) -> Option<i64> {
+        Self::get_department_reputation_score(address, department_id)
     }
     fn get_total_reputation_score(address: T::AccountId) -> i64 {
         Self::get_total_reputation_score(address)
@@ -75,18 +72,18 @@ impl<T: Config> Pallet<T> {
 
     pub fn set_department_reputation_score(
         address: T::AccountId,
-        department: Department,
+        department_id: u64,
         score: i64,
     ) -> DispatchResult {
         ReputationScoreOfAccount::<T>::mutate(address, |reputation_score| {
             if let Some(reputation_score) = reputation_score.as_mut() {
-                reputation_score.add_department(department.clone(), score);
+                reputation_score.add_department(department_id.clone(), score);
             } else {
                 *reputation_score = Some(ReputationScore::new());
                 reputation_score
                     .as_mut()
                     .unwrap()
-                    .add_department(department.clone(), score);
+                    .add_department(department_id.clone(), score);
             }
         });
         Ok(())
@@ -94,18 +91,18 @@ impl<T: Config> Pallet<T> {
 
     pub fn update_department_reputation_score(
         address: T::AccountId,
-        department: Department,
+        department_id: u64,
         score: i64,
     ) -> DispatchResult {
         ReputationScoreOfAccount::<T>::mutate(address, |reputation_score| {
             if let Some(reputation_score) = reputation_score.as_mut() {
-                reputation_score.update_department(department.clone(), score);
+                reputation_score.update_department(department_id.clone(), score);
             } else {
                 *reputation_score = Some(ReputationScore::new());
                 reputation_score
                     .as_mut()
                     .unwrap()
-                    .update_department(department.clone(), score);
+                    .update_department(department_id.clone(), score);
             }
         });
         Ok(())
@@ -113,18 +110,18 @@ impl<T: Config> Pallet<T> {
 
     pub fn add_reputation_score_to_department(
         address: T::AccountId,
-        department: Department,
+        department_id: u64,
         amount: i64,
     ) -> DispatchResult {
         ReputationScoreOfAccount::<T>::mutate(address, |reputation_score| {
             if let Some(reputation_score) = reputation_score.as_mut() {
-                reputation_score.add_score(department.clone(), amount);
+                reputation_score.add_score(department_id.clone(), amount);
             } else {
                 *reputation_score = Some(ReputationScore::new());
                 reputation_score
                     .as_mut()
                     .unwrap()
-                    .add_score(department.clone(), amount);
+                    .add_score(department_id.clone(), amount);
             }
         });
         Ok(())
@@ -132,13 +129,14 @@ impl<T: Config> Pallet<T> {
 
     pub fn get_department_reputation_score(
         address: T::AccountId,
-        department: Department,
+        department_id: u64,
     ) -> Option<i64> {
-        ReputationScoreOfAccount::<T>::get(address)
-            .and_then(|reputation_score| reputation_score.get_department_score(department.clone()))
+        ReputationScoreOfAccount::<T>::get(address).and_then(|reputation_score| {
+            reputation_score.get_department_score(department_id.clone())
+        })
     }
 
-    pub fn get_all_department_reputation_scores(address: T::AccountId) -> Vec<(Department, i64)> {
+    pub fn get_all_department_reputation_scores(address: T::AccountId) -> Vec<(u64, i64)> {
         ReputationScoreOfAccount::<T>::get(address)
             .map(|reputation_score| {
                 reputation_score
@@ -186,5 +184,26 @@ impl<T: Config> Pallet<T> {
         }
 
         Ok(false)
+    }
+
+    pub fn is_member_and_score_in_group_specialization(
+        group_id: u64,
+        member: &T::AccountId,
+    ) -> Result<(bool, i64), Error<T>> {
+        let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
+
+        for dept_id in group.specialization_departments.iter() {
+            let members = DepartmentMembers::<T>::get(dept_id);
+            if members.contains(member) {
+                let score = ReputationScoreOfAccount::<T>::get(member)
+                    .and_then(|reputation_score| {
+                        reputation_score.get_department_score(dept_id.clone())
+                    })
+                    .unwrap_or_default();
+                return Ok((true, score));
+            }
+        }
+
+        Ok((false, 0))
     }
 }

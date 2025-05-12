@@ -8,7 +8,7 @@ use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub struct ReputationScore {
-    pub departments: BTreeMap<Department, i64>,
+    pub departments: BTreeMap<u64, i64>, // Department Id, Score
     pub total_score: i64,
 }
 
@@ -41,13 +41,13 @@ impl ReputationScore {
         }
     }
 
-    pub fn add_department(&mut self, department: Department, score: i64) {
-        self.departments.insert(department, score);
+    pub fn add_department(&mut self, department_id: u64, score: i64) {
+        self.departments.insert(department_id, score);
         self.total_score = self.total_score.checked_add(score).unwrap_or(i64::MAX);
     }
 
-    pub fn update_department(&mut self, department: Department, score: i64) {
-        if let Some(existing_score) = self.departments.get_mut(&department) {
+    pub fn update_department(&mut self, department_id: u64, score: i64) {
+        if let Some(existing_score) = self.departments.get_mut(&department_id) {
             self.total_score = self
                 .total_score
                 .checked_sub(*existing_score)
@@ -55,23 +55,23 @@ impl ReputationScore {
             *existing_score = score;
             self.total_score = self.total_score.checked_add(score).unwrap_or(i64::MAX);
         } else {
-            self.add_department(department, score);
+            self.add_department(department_id, score);
         }
     }
 
-    pub fn get_department_score(&self, department: Department) -> Option<i64> {
-        self.departments.get(&department).copied()
+    pub fn get_department_score(&self, department_id: u64) -> Option<i64> {
+        self.departments.get(&department_id).copied()
     }
 
-    pub fn get_all_departments(&self) -> Vec<(Department, i64)> {
+    pub fn get_all_departments(&self) -> Vec<(u64, i64)> {
         self.departments
             .iter()
             .map(|(v, i)| (v.clone(), i.clone()))
             .collect()
     }
 
-    pub fn add_score(&mut self, department: Department, amount: i64) {
-        if let Some(score) = self.departments.get_mut(&department) {
+    pub fn add_score(&mut self, department_id: u64, amount: i64) {
+        if let Some(score) = self.departments.get_mut(&department_id) {
             // Update department score with overflow check
             match score.checked_add(amount) {
                 Some(new_score) => *score = new_score,
