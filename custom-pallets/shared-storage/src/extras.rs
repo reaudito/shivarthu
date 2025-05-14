@@ -1,12 +1,10 @@
 use crate::*;
 
-use crate::types::Department;
 use frame_support::pallet_prelude::DispatchResult;
 use trait_shared_storage::SharedStorageLink;
 
 impl<T: Config> SharedStorageLink for Pallet<T> {
     type AccountId = AccountIdOf<T>;
-    type Department = Department;
 
     fn add_approved_citizen_address(new_member: Self::AccountId) -> DispatchResult {
         Self::add_approved_citizen_address(new_member)
