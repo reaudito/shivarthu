@@ -34,6 +34,40 @@ impl<T: Config> SharedStorageLink for Pallet<T> {
     fn get_total_reputation_score(address: T::AccountId) -> i64 {
         Self::get_total_reputation_score(address)
     }
+    fn is_member_in_group_district(
+        group_id: u64,
+        member: Self::AccountId,
+    ) -> Result<bool, DispatchError> {
+        Self::is_member_in_group_district(group_id, member)
+    }
+
+    fn is_member_in_group_specialization(
+        group_id: u64,
+        member: Self::AccountId,
+    ) -> Result<bool, DispatchError> {
+        Self::is_member_in_group_specialization(group_id, member)
+    }
+
+    fn is_member_and_score_in_group_specialization(
+        group_id: u64,
+        member: Self::AccountId,
+    ) -> Result<(bool, i64), DispatchError> {
+        Self::is_member_and_score_in_group_specialization(group_id, member)
+    }
+
+    fn are_district_departments_empty(group_id: u64) -> Result<bool, DispatchError> {
+        Self::are_district_departments_empty(group_id)
+    }
+    fn are_specialization_departments_empty(group_id: u64) -> Result<bool, DispatchError> {
+        Self::are_specialization_departments_empty(group_id)
+    }
+
+    fn is_member_in_group_district_and_specialization(
+        group_id: u64,
+        member: Self::AccountId,
+    ) -> Result<bool, DispatchError> {
+        Self::is_member_in_group_district_and_specialization(group_id, member)
+    }
 }
 
 impl<T: Config> Pallet<T> {
@@ -154,13 +188,13 @@ impl<T: Config> Pallet<T> {
 impl<T: Config> Pallet<T> {
     pub fn is_member_in_group_district(
         group_id: u64,
-        member: &T::AccountId,
-    ) -> Result<bool, Error<T>> {
+        member: T::AccountId,
+    ) -> Result<bool, DispatchError> {
         let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
 
         for dept_id in group.district_departments.iter() {
             let members = DepartmentMembers::<T>::get(dept_id);
-            if members.contains(member) {
+            if members.contains(&member) {
                 return Ok(true);
             }
         }
@@ -170,13 +204,13 @@ impl<T: Config> Pallet<T> {
 
     pub fn is_member_in_group_specialization(
         group_id: u64,
-        member: &T::AccountId,
-    ) -> Result<bool, Error<T>> {
+        member: T::AccountId,
+    ) -> Result<bool, DispatchError> {
         let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
 
         for dept_id in group.specialization_departments.iter() {
             let members = DepartmentMembers::<T>::get(dept_id);
-            if members.contains(member) {
+            if members.contains(&member) {
                 return Ok(true);
             }
         }
@@ -186,13 +220,13 @@ impl<T: Config> Pallet<T> {
 
     pub fn is_member_and_score_in_group_specialization(
         group_id: u64,
-        member: &T::AccountId,
-    ) -> Result<(bool, i64), Error<T>> {
+        member: T::AccountId,
+    ) -> Result<(bool, i64), DispatchError> {
         let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
 
         for dept_id in group.specialization_departments.iter() {
             let members = DepartmentMembers::<T>::get(dept_id);
-            if members.contains(member) {
+            if members.contains(&member) {
                 let score = ReputationScoreOfAccount::<T>::get(member)
                     .and_then(|reputation_score| {
                         reputation_score.get_department_score(dept_id.clone())
@@ -203,5 +237,68 @@ impl<T: Config> Pallet<T> {
         }
 
         Ok((false, 0))
+    }
+
+    pub fn are_district_departments_empty(group_id: u64) -> Result<bool, DispatchError> {
+        let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
+
+        Ok(group.district_departments.is_empty())
+    }
+
+    pub fn are_specialization_departments_empty(group_id: u64) -> Result<bool, DispatchError> {
+        let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
+
+        Ok(group.specialization_departments.is_empty())
+    }
+
+    pub fn is_member_in_group_district_and_specialization(
+        group_id: u64,
+        member: T::AccountId,
+    ) -> Result<bool, DispatchError> {
+        let group = Groups::<T>::get(group_id).ok_or(Error::<T>::GroupNotFound)?;
+
+        let has_districts = !group.district_departments.is_empty();
+        let has_specializations = !group.specialization_departments.is_empty();
+
+        // Case: No districts and no specializations
+        if !has_districts && !has_specializations {
+            return Err(Error::<T>::GroupHasNoDepartments.into());
+        }
+
+        let mut in_district = false;
+        let mut in_specialization = false;
+
+        // Check district membership if districts exist
+        if has_districts {
+            for dept_id in &group.district_departments {
+                let members = DepartmentMembers::<T>::get(dept_id);
+                if members.contains(&member) {
+                    in_district = true;
+                    break;
+                }
+            }
+        }
+
+        // Check specialization membership if specializations exist
+        if has_specializations {
+            for dept_id in &group.specialization_departments {
+                let members = DepartmentMembers::<T>::get(dept_id);
+                if members.contains(&member) {
+                    in_specialization = true;
+                    break;
+                }
+            }
+        }
+
+        // Fallback logic based on emptiness
+        if !has_districts {
+            return Ok(in_specialization);
+        }
+        if !has_specializations {
+            return Ok(in_district);
+        }
+
+        // Both have departments, so require presence in both
+        Ok(in_district && in_specialization)
     }
 }

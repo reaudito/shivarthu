@@ -144,6 +144,7 @@ pub mod pallet {
         InvalidDepartmentType,
         GroupNotFound,
         TooManyDepartments,
+        GroupHasNoDepartments,
     }
 
     #[pallet::call]
