@@ -16,6 +16,8 @@ mod benchmarking;
 pub mod weights;
 use trait_shared_storage::SharedStorageLink;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
+use frame_support::sp_runtime::SaturatedConversion;
+use frame_support::sp_runtime::Saturating;
 
 pub use weights::*;
 
@@ -31,7 +33,9 @@ pub mod pallet {
 
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
-    pub trait Config: frame_system::Config + pallet_shared_storage::Config {
+    pub trait Config:
+        frame_system::Config + pallet_timestamp::Config + pallet_shared_storage::Config
+    {
         /// Because this pallet emits events, it depends on the runtime's definition of an event.
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
         /// Type representing the weight of this pallet
@@ -63,6 +67,18 @@ pub mod pallet {
     #[pallet::getter(fn total_votes_by_group)]
     pub type TotalVotesByGroup<T: Config> =
         StorageMap<_, Twox64Concat, u64, BTreeMap<T::AccountId, u32>, ValueQuery>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn vote_timestamps)]
+    pub type VoteTimestamps<T: Config> = StorageDoubleMap<
+        _,
+        Twox64Concat,
+        u64, // group_id
+        Twox64Concat,
+        T::AccountId,
+        T::Moment,
+        OptionQuery,
+    >;
 
     // Pallets use events to inform users when important changes are made.
     // https://docs.substrate.io/main-docs/build/events-errors/
@@ -142,18 +158,6 @@ pub mod pallet {
             candidates: Vec<T::AccountId>,
         ) -> DispatchResult {
             let voter = ensure_signed(origin)?;
-            ensure!(
-                !VotesByGroup::<T>::contains_key(group_id, &voter),
-                Error::<T>::AlreadyVoted
-            );
-
-            // ensure!(
-            //     T::SharedStorageSource::is_member_in_group_district_and_specialization(
-            //         group_id,
-            //         voter.clone()
-            //     )?,
-            //     Error::<T>::NotMemberOfRequiredDepartments
-            // );
 
             let candidate_list = CandidatesByGroup::<T>::get(group_id);
             ensure!(
@@ -163,6 +167,18 @@ pub mod pallet {
 
             let mut total_votes = TotalVotesByGroup::<T>::get(group_id);
 
+            // Subtract previous votes if any
+            let old_votes = VotesByGroup::<T>::get(group_id, &voter);
+            for old_candidate in old_votes {
+                if let Some(count) = total_votes.get_mut(&old_candidate) {
+                    *count = count.saturating_sub(1);
+                    if *count == 0 {
+                        total_votes.remove(&old_candidate);
+                    }
+                }
+            }
+
+            // Add new votes
             for candidate in &candidates {
                 match candidate_list.binary_search(candidate) {
                     Ok(_) => {
@@ -175,8 +191,19 @@ pub mod pallet {
             TotalVotesByGroup::<T>::insert(group_id, total_votes);
             VotesByGroup::<T>::insert(group_id, &voter, candidates);
 
+            let now = <pallet_timestamp::Pallet<T>>::get();
+            VoteTimestamps::<T>::insert(group_id, &voter, now);
+
             Self::deposit_event(Event::VoteCast { user: voter });
 
+            Ok(())
+        }
+
+        #[pallet::call_index(2)]
+        #[pallet::weight(0)]
+        pub fn cleanup_old_votes(origin: OriginFor<T>, group_id: u64) -> DispatchResult {
+            let _ = ensure_signed(origin)?; // Only root/admin can trigger
+            Self::remove_stale_votes(group_id);
             Ok(())
         }
     }
@@ -188,5 +215,40 @@ impl<T: Config> Pallet<T> {
             .into_iter()
             .take(n)
             .collect()
+    }
+
+    pub fn remove_stale_votes(group_id: u64) {
+        let now = <pallet_timestamp::Pallet<T>>::get();
+        let three_months = T::Moment::saturated_from(1000u64 * 60 * 60 * 24 * 90);
+        let mut to_remove = vec![];
+
+        for (voter, timestamp) in VoteTimestamps::<T>::iter_prefix(group_id) {
+            if now.saturating_sub(timestamp) > three_months {
+                to_remove.push(voter);
+            }
+        }
+
+        if to_remove.is_empty() {
+            return;
+        }
+
+        let mut total_votes = TotalVotesByGroup::<T>::get(group_id);
+
+        for voter in &to_remove {
+            let voted_candidates = VotesByGroup::<T>::get(group_id, voter);
+            for candidate in voted_candidates {
+                if let Some(count) = total_votes.get_mut(&candidate) {
+                    *count = count.saturating_sub(1);
+                    if *count == 0 {
+                        total_votes.remove(&candidate);
+                    }
+                }
+            }
+
+            VotesByGroup::<T>::remove(group_id, voter);
+            VoteTimestamps::<T>::remove(group_id, voter);
+        }
+
+        TotalVotesByGroup::<T>::insert(group_id, total_votes);
     }
 }
