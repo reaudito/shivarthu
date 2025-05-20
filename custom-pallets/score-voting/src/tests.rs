@@ -6,7 +6,7 @@ use sp_std::collections::btree_map::BTreeMap;
 fn add_candidate_works() {
     new_test_ext().execute_with(|| {
         System::set_block_number(1);
-
+        initialize_mock_members();
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(2), 1));
         assert_eq!(TemplateModule::candidates_by_group(1), vec![2]);
         System::assert_last_event(Event::CandidateAdded { candidate: 2 }.into());
@@ -16,6 +16,8 @@ fn add_candidate_works() {
 #[test]
 fn add_candidate_fails_if_already_exists() {
     new_test_ext().execute_with(|| {
+        initialize_mock_members();
+
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(1), 1));
         assert_noop!(
             TemplateModule::add_candidate(RuntimeOrigin::signed(1), 1),
@@ -28,6 +30,7 @@ fn add_candidate_fails_if_already_exists() {
 fn vote_works() {
     new_test_ext().execute_with(|| {
         System::set_block_number(1);
+        initialize_mock_members();
 
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(2), 1));
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(3), 1));
@@ -52,6 +55,8 @@ fn vote_works() {
 fn vote_fails_if_candidate_does_not_exist_in_group() {
     new_test_ext().execute_with(|| {
         System::set_block_number(1);
+        initialize_mock_members();
+
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(1), 1));
         let bad_vote = BTreeMap::from([(99, 4u8)]);
         assert_noop!(
@@ -64,6 +69,8 @@ fn vote_fails_if_candidate_does_not_exist_in_group() {
 #[test]
 fn get_top_n_winners_works() {
     new_test_ext().execute_with(|| {
+        initialize_mock_members();
+
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(2), 1));
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(3), 1));
 
@@ -91,6 +98,8 @@ fn get_top_n_winners_works() {
 #[test]
 fn clean_up_votes_works() {
     new_test_ext().execute_with(|| {
+        initialize_mock_members();
+
         use pallet_timestamp as timestamp;
 
         System::set_block_number(1);
@@ -122,6 +131,8 @@ fn clean_up_votes_works() {
 #[test]
 fn vote_allows_second_vote_and_updates_top_winners() {
     new_test_ext().execute_with(|| {
+        initialize_mock_members();
+
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(2), 1));
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(3), 1));
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(8), 1));
@@ -156,6 +167,8 @@ fn vote_allows_second_vote_and_updates_top_winners() {
 #[test]
 fn vote_with_zero_score_is_ignored() {
     new_test_ext().execute_with(|| {
+        initialize_mock_members();
+
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(1), 1));
 
         assert_noop!(
@@ -168,6 +181,8 @@ fn vote_with_zero_score_is_ignored() {
 #[test]
 fn vote_fails_if_score_exceeds_max() {
     new_test_ext().execute_with(|| {
+        initialize_mock_members();
+
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(1), 1));
         let invalid_vote = BTreeMap::from([(1, 255u8)]); // assuming max score is 10
         assert_noop!(
@@ -180,6 +195,8 @@ fn vote_fails_if_score_exceeds_max() {
 #[test]
 fn votes_are_isolated_by_group() {
     new_test_ext().execute_with(|| {
+        initialize_mock_members();
+
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(1), 1));
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(2), 2));
 
@@ -208,6 +225,8 @@ fn votes_are_isolated_by_group() {
 #[test]
 fn overwrite_vote_only_updates_user_contribution() {
     new_test_ext().execute_with(|| {
+        initialize_mock_members();
+
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(1), 1));
         assert_ok!(TemplateModule::add_candidate(RuntimeOrigin::signed(2), 1));
 

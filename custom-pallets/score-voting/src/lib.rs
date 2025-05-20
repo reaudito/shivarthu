@@ -131,13 +131,13 @@ pub mod pallet {
         pub fn add_candidate(origin: OriginFor<T>, group_id: u64) -> DispatchResult {
             let who = ensure_signed(origin)?;
 
-            // ensure!(
-            //     T::SharedStorageSource::is_member_in_group_district_and_specialization(
-            //         group_id,
-            //         who.clone()
-            //     )?,
-            //     Error::<T>::NotMemberOfRequiredDepartments
-            // );
+            ensure!(
+                T::SharedStorageSource::is_member_in_group_district_and_specialization(
+                    group_id,
+                    who.clone()
+                )?,
+                Error::<T>::NotMemberOfRequiredDepartments
+            );
 
             // Ensure the candidate is not already added for this group
             let mut candidates = CandidatesByGroup::<T>::get(group_id);
@@ -160,6 +160,14 @@ pub mod pallet {
             scores: BTreeMap<T::AccountId, u8>,
         ) -> DispatchResult {
             let voter = ensure_signed(origin)?;
+
+            ensure!(
+                T::SharedStorageSource::is_member_in_group_district_and_specialization(
+                    group_id,
+                    voter.clone()
+                )?,
+                Error::<T>::NotMemberOfRequiredDepartments
+            );
 
             let candidate_list = CandidatesByGroup::<T>::get(group_id);
             ensure!(

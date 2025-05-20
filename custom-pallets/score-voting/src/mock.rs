@@ -1,14 +1,24 @@
 use crate as pallet_template;
+use frame_support::pallet_prelude::*;
 use frame_support::{
     derive_impl, parameter_types,
     traits::{ConstU16, ConstU64},
 };
+use frame_system::pallet_prelude::*;
+use std::collections::HashMap;
+use trait_shared_storage::SharedStorageLink;
+
 use sp_runtime::{
     traits::{BlakeTwo256, IdentityLookup},
     BuildStorage,
 };
 
 type Block = frame_system::mocking::MockBlock<Test>;
+
+use std::cell::RefCell;
+thread_local! {
+    static MOCK_MEMBERSHIP: RefCell<HashMap<(u64, u64), bool>> = RefCell::new(HashMap::new());
+}
 
 #[frame_support::runtime]
 mod runtime {
@@ -50,10 +60,113 @@ impl frame_system::Config for Test {
     type AccountData = pallet_balances::AccountData<u64>;
 }
 
+pub struct MockSharedStorage;
+
+impl SharedStorageLink for MockSharedStorage {
+    type AccountId = u64;
+
+    fn add_approved_citizen_address(_new_member: Self::AccountId) -> DispatchResult {
+        unimplemented!("add_approved_citizen_address is not mocked")
+    }
+
+    fn check_citizen_is_approved_link(_address: Self::AccountId) -> DispatchResult {
+        unimplemented!("check_citizen_is_approved_link is not mocked")
+    }
+
+    fn get_approved_citizen_count_link() -> u64 {
+        unimplemented!("get_approved_citizen_count_link is not mocked")
+    }
+
+    fn set_positive_externality_link(_address: Self::AccountId, _score: i64) -> DispatchResult {
+        unimplemented!("set_positive_externality_link is not mocked")
+    }
+
+    fn add_reputation_score_to_department(
+        _address: Self::AccountId,
+        _department_id: u64,
+        _amount: i64,
+    ) -> DispatchResult {
+        unimplemented!("add_reputation_score_to_department is not mocked")
+    }
+
+    fn get_department_reputation_score(
+        _address: Self::AccountId,
+        _department_id: u64,
+    ) -> Option<i64> {
+        unimplemented!("get_department_reputation_score is not mocked")
+    }
+
+    fn get_total_reputation_score(_address: Self::AccountId) -> i64 {
+        unimplemented!("get_total_reputation_score is not mocked")
+    }
+
+    fn is_member_in_group_district(
+        _group_id: u64,
+        _member: Self::AccountId,
+    ) -> Result<bool, DispatchError> {
+        unimplemented!("is_member_in_group_district is not mocked")
+    }
+
+    fn is_member_in_group_specialization(
+        _group_id: u64,
+        _member: Self::AccountId,
+    ) -> Result<bool, DispatchError> {
+        unimplemented!("is_member_in_group_specialization is not mocked")
+    }
+
+    fn is_member_and_score_in_group_specialization(
+        _group_id: u64,
+        _member: Self::AccountId,
+    ) -> Result<(bool, i64), DispatchError> {
+        unimplemented!("is_member_and_score_in_group_specialization is not mocked")
+    }
+
+    fn are_district_departments_empty(_group_id: u64) -> Result<bool, DispatchError> {
+        unimplemented!("are_district_departments_empty is not mocked")
+    }
+
+    fn are_specialization_departments_empty(_group_id: u64) -> Result<bool, DispatchError> {
+        unimplemented!("are_specialization_departments_empty is not mocked")
+    }
+
+    fn is_member_in_group_district_and_specialization(
+        group_id: u64,
+        member: Self::AccountId,
+    ) -> Result<bool, DispatchError> {
+        Ok(MOCK_MEMBERSHIP.with(|m| *m.borrow().get(&(group_id, member)).unwrap_or(&false)))
+    }
+}
+
+pub fn set_mock_membership(group_id: u64, member: u64, value: bool) {
+    MOCK_MEMBERSHIP.with(|m| {
+        m.borrow_mut().insert((group_id, member), value);
+    });
+}
+
+pub fn initialize_mock_members() {
+    set_mock_membership(1, 1, true);
+    set_mock_membership(1, 2, true);
+    set_mock_membership(1, 3, true);
+    set_mock_membership(1, 4, true);
+    set_mock_membership(1, 5, true);
+    set_mock_membership(1, 6, true);
+    set_mock_membership(1, 7, true);
+    set_mock_membership(1, 8, true);
+
+    set_mock_membership(2, 1, true);
+    set_mock_membership(2, 2, true);
+    set_mock_membership(2, 3, true);
+    set_mock_membership(2, 4, true);
+    set_mock_membership(2, 5, true);
+    set_mock_membership(2, 6, true);
+    set_mock_membership(2, 7, true);
+    set_mock_membership(2, 8, true);
+}
+
 impl pallet_template::Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type WeightInfo = ();
-    type SharedStorageSource = SharedStorage;
+    type SharedStorageSource = MockSharedStorage;
 }
 
 parameter_types! {
