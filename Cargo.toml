@@ -20,6 +20,7 @@ members = [
     # "custom-pallets/conviction-voting",
     "custom-pallets/profile-validation",
     "custom-pallets/conviction-approve",
+    "custom-pallets/score-voting",
 ]
 resolver = "2"
 

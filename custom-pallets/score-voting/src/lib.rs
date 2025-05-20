@@ -58,7 +58,7 @@ pub mod pallet {
         u64,
         Twox64Concat,
         T::AccountId,
-        Vec<T::AccountId>,
+        BTreeMap<T::AccountId, u8>, // or u32 for a larger score range
         ValueQuery,
     >;
 
@@ -117,6 +117,8 @@ pub mod pallet {
         AlreadyVoted,
         NoCandidatesAvailable,
         NotMemberOfRequiredDepartments,
+        ScoreTooHigh,
+        ScoreZeroOrLess,
     }
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -155,7 +157,7 @@ pub mod pallet {
         pub fn vote(
             origin: OriginFor<T>,
             group_id: u64,
-            candidates: Vec<T::AccountId>,
+            scores: BTreeMap<T::AccountId, u8>,
         ) -> DispatchResult {
             let voter = ensure_signed(origin)?;
 
@@ -165,37 +167,39 @@ pub mod pallet {
                 Error::<T>::NoCandidatesAvailable
             );
 
+            // Ensure all candidates are valid and scores are in range [0, 5]
+            for (candidate, score) in &scores {
+                ensure!(
+                    candidate_list.contains(candidate),
+                    Error::<T>::NoSuchCandidate
+                );
+                ensure!(*score <= 5, Error::<T>::ScoreTooHigh);
+                ensure!(*score > 0, Error::<T>::ScoreZeroOrLess);
+            }
+
             let mut total_votes = TotalVotesByGroup::<T>::get(group_id);
 
-            // Subtract previous votes if any
-            let old_votes = VotesByGroup::<T>::get(group_id, &voter);
-            for old_candidate in old_votes {
-                if let Some(count) = total_votes.get_mut(&old_candidate) {
-                    *count = count.saturating_sub(1);
-                    if *count == 0 {
-                        total_votes.remove(&old_candidate);
+            // Subtract old scores if any
+            let old_scores = VotesByGroup::<T>::get(group_id, &voter);
+            for (candidate, old_score) in old_scores {
+                if let Some(total) = total_votes.get_mut(&candidate) {
+                    *total = total.saturating_sub(old_score as u32);
+                    if *total == 0 {
+                        total_votes.remove(&candidate);
                     }
                 }
             }
 
-            // Add new votes
-            for candidate in &candidates {
-                match candidate_list.binary_search(candidate) {
-                    Ok(_) => {
-                        *total_votes.entry(candidate.clone()).or_insert(0) += 1;
-                    }
-                    Err(_) => return Err(Error::<T>::NoSuchCandidate.into()),
-                }
+            // Apply new scores
+            for (candidate, score) in &scores {
+                *total_votes.entry(candidate.clone()).or_insert(0) += *score as u32;
             }
 
+            VotesByGroup::<T>::insert(group_id, &voter, scores);
             TotalVotesByGroup::<T>::insert(group_id, total_votes);
-            VotesByGroup::<T>::insert(group_id, &voter, candidates);
-
-            let now = <pallet_timestamp::Pallet<T>>::get();
-            VoteTimestamps::<T>::insert(group_id, &voter, now);
+            VoteTimestamps::<T>::insert(group_id, &voter, <pallet_timestamp::Pallet<T>>::get());
 
             Self::deposit_event(Event::VoteCast { user: voter });
-
             Ok(())
         }
 
@@ -235,10 +239,10 @@ impl<T: Config> Pallet<T> {
         let mut total_votes = TotalVotesByGroup::<T>::get(group_id);
 
         for voter in &to_remove {
-            let voted_candidates = VotesByGroup::<T>::get(group_id, voter);
-            for candidate in voted_candidates {
+            let voted_scores = VotesByGroup::<T>::get(group_id, voter);
+            for (candidate, score) in voted_scores {
                 if let Some(count) = total_votes.get_mut(&candidate) {
-                    *count = count.saturating_sub(1);
+                    *count = count.saturating_sub(score as u32);
                     if *count == 0 {
                         total_votes.remove(&candidate);
                     }
