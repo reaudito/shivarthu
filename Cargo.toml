@@ -21,6 +21,7 @@ members = [
     "custom-pallets/profile-validation",
     "custom-pallets/conviction-approve",
     "custom-pallets/score-voting",
+    "custom-pallets/funding",
 ]
 resolver = "2"
 
