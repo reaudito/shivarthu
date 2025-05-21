@@ -6749,6 +6749,7 @@ dependencies = [
  "frame-system 39.1.0",
  "pallet-balances",
  "pallet-conviction-voting",
+ "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "sp-arithmetic",

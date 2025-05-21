@@ -1,5 +1,8 @@
 use crate as pallet_template;
-use frame_support::derive_impl;
+use frame_support::{
+    derive_impl, parameter_types,
+    traits::{ConstU16, ConstU64},
+};
 use sp_runtime::BuildStorage;
 
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -30,12 +33,26 @@ mod runtime {
 
     #[runtime::pallet_index(2)]
     pub type Balances = pallet_balances::Pallet<Test>;
+
+    #[runtime::pallet_index(3)]
+    pub type Timestamp = pallet_timestamp::Pallet<Test>;
 }
 
 #[derive_impl(frame_system::config_preludes::TestDefaultConfig)]
 impl frame_system::Config for Test {
     type Block = Block;
     type AccountData = pallet_balances::AccountData<u64>;
+}
+
+parameter_types! {
+    pub const MinimumPeriod: u64 = 5;
+}
+
+impl pallet_timestamp::Config for Test {
+    type Moment = u64;
+    type OnTimestampSet = ();
+    type MinimumPeriod = MinimumPeriod;
+    type WeightInfo = ();
 }
 
 impl pallet_template::Config for Test {

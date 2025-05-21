@@ -21,6 +21,7 @@ frame-system.workspace = true
 pallet-conviction-voting.workspace = true
 sp-arithmetic = { workspace = true }
 pallet-balances = { workspace = true }
+pallet-timestamp = { workspace = true }
 
 
 [dev-dependencies]
@@ -39,6 +40,7 @@ std = [
     "pallet-conviction-voting/std",
     "sp-arithmetic/std",
     "pallet-balances/std",
+    "pallet-timestamp/std",
 
 ]
 runtime-benchmarks = [

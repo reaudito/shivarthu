@@ -62,10 +62,14 @@ pub use weights::*;
 
 pub mod types;
 
-use crate::types::{MajorityApproval, MajorityType};
+use crate::types::{FundingProposal, MajorityApproval, MajorityType};
+use frame_support::pallet_prelude::*;
+use frame_support::sp_runtime::SaturatedConversion;
+use frame_support::sp_runtime::Saturating;
 use frame_support::traits::{
     Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
 };
+use frame_system::pallet_prelude::*;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 
 type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balance;
@@ -75,8 +79,6 @@ type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balan
 pub mod pallet {
     // Import various useful types required by all FRAME pallets.
     use super::*;
-    use frame_support::pallet_prelude::*;
-    use frame_system::pallet_prelude::*;
 
     // The `Pallet` struct serves as a placeholder to implement traits, methods and dispatchables
     // (`Call`s) in this pallet.
@@ -89,7 +91,7 @@ pub mod pallet {
     /// These types are defined generically and made concrete when the pallet is declared in the
     /// `runtime/src/lib.rs` file of your chain.
     #[pallet::config]
-    pub trait Config: frame_system::Config {
+    pub trait Config: frame_system::Config + pallet_timestamp::Config {
         /// The overarching runtime event type.
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
         /// A type representing the weights required by the dispatchables of this pallet.
@@ -102,6 +104,18 @@ pub mod pallet {
     ///
     /// In this template, we are declaring a storage item called `Something` that stores a single
     /// `u32` value. Learn more about runtime storage here: <https://docs.substrate.io/build/runtime-storage/>
+    ///
+
+    #[pallet::storage]
+    #[pallet::getter(fn funding_proposals)]
+    pub type PendingFundingProposals<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        u64, // proposal_id
+        FundingProposal<BalanceOf<T>>,
+        OptionQuery,
+    >;
+
     #[pallet::storage]
     #[pallet::getter(fn group_funding)]
     pub type GroupFunding<T: Config> =
@@ -191,10 +205,37 @@ pub mod pallet {
             // );
 
             // Transfer funds
-            GroupFunding::<T>::mutate(group_id, |f| *f -= amount);
+            // GroupFunding::<T>::mutate(group_id, |f| *f -= amount);
             T::Currency::deposit_into_existing(&beneficiary, amount)?;
 
             Ok(())
         }
+    }
+}
+
+impl<T: Config> Pallet<T> {
+    fn now() -> u64 {
+        pallet_timestamp::Pallet::<T>::get().saturated_into::<u64>()
+    }
+
+    pub fn finalize_funding_proposals() -> DispatchResult {
+        let now = Self::now();
+        let one_month_secs = 30 * 24 * 60 * 60;
+
+        // for (proposal_id, proposal) in PendingFundingProposals::<T>::iter() {
+        //     if now.saturating_sub(proposal.created_at) >= one_month_secs {
+        //         let approved = T::ConvictionVotingSource::is_proposal_approved(proposal_id)?;
+
+        //         if approved {
+        //             GroupFunding::<T>::mutate(proposal.group_id, |f| {
+        //                 *f += proposal.amount;
+        //             });
+        //         }
+
+        //         PendingFundingProposals::<T>::remove(proposal_id);
+        //     }
+        // }
+
+        Ok(())
     }
 }

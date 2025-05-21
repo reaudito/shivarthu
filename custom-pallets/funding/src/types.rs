@@ -41,3 +41,11 @@ impl MajorityApproval {
         }
     }
 }
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+pub struct FundingProposal<Balance> {
+    pub amount: Balance,
+    pub group_id: u64,
+    pub created_at: u64,
+    pub proposal_id: u64,
+}
