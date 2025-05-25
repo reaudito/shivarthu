@@ -14,6 +14,8 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 pub mod weights;
+
+pub mod types;
 use trait_shared_storage::SharedStorageLink;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 use frame_support::sp_runtime::SaturatedConversion;
