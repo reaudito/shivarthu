@@ -2,6 +2,13 @@
 #set text(size: 20pt, fill:white)
 
 
+== The Centralization of Power: A Threat to Local Democracy
+
+Many countries, including India, were originally envisioned as decentralized democracies—where local governance through institutions like sarpanches and district courts empowered communities. Over time, however, this vision has eroded. The power of the people has gradually been stripped away, while political authority has become increasingly concentrated in the hands of a few.
+
+The Shivarthu Protocol seeks to restore this lost balance by ensuring that power remains with local leaders and citizens, rather than distant centralized authorities.
+
+
 
 = Shivarthu: The Rise of Specialization-Based Decentralized Democracy
 
