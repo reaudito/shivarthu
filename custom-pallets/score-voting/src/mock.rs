@@ -167,6 +167,7 @@ impl pallet_template::Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type WeightInfo = ();
     type SharedStorageSource = MockSharedStorage;
+    type Currency = Balances; // New code
 }
 
 parameter_types! {

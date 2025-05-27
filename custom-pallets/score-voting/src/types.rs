@@ -3,6 +3,12 @@ use frame_support::pallet_prelude::*;
 use scale_info::TypeInfo;
 use sp_arithmetic::{traits::CheckedDiv, FixedU128};
 
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+pub enum BountyStatus {
+    Active,
+    Finalized,
+}
+
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub enum MajorityType {
     Simple,
