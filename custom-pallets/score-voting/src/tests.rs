@@ -1,4 +1,6 @@
+use crate::types::BountyStatus;
 use crate::{mock::*, Error, Event};
+use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{assert_noop, assert_ok};
 use sp_std::collections::btree_map::BTreeMap;
 
@@ -255,6 +257,376 @@ fn overwrite_vote_only_updates_user_contribution() {
         assert_eq!(
             TemplateModule::total_votes_by_group(1),
             BTreeMap::from([(1, 5u32), (2, 1u32)])
+        );
+    });
+}
+
+#[test]
+fn start_bounty_vote_works() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        initialize_mock_members();
+
+        let beneficiary = 1;
+        let amount = 1000 as u64;
+
+        // Start bounty vote
+        assert_ok!(TemplateModule::start_bounty_vote(
+            RuntimeOrigin::signed(beneficiary),
+            amount,
+            1 // group_id
+        ));
+
+        // Check that bounty vote start time is set
+        assert!(TemplateModule::bounty_vote_start(&beneficiary).is_some());
+
+        // Check that bounty approval structure is initialized
+        let approval = TemplateModule::bounty_approval(&beneficiary);
+        assert_eq!(approval.approvals, 0);
+        assert_eq!(approval.rejections, 0);
+
+        // Check that bounty amount is stored
+        assert_eq!(TemplateModule::bounty_amount(&beneficiary), Some(amount));
+
+        // Check that bounty status is active
+        assert_eq!(
+            TemplateModule::bounty_user_status(&beneficiary),
+            Some(BountyStatus::Active)
+        );
+
+        // Event should be emitted
+        System::assert_last_event(
+            Event::BountyVoteStarted {
+                recipient: beneficiary,
+            }
+            .into(),
+        );
+    });
+}
+
+#[test]
+fn vote_on_bounty_works() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        initialize_mock_members();
+
+        let beneficiary = 1;
+        let voter = 2;
+        let group_id = 1;
+
+        // Setup: start a bounty vote
+        assert_ok!(TemplateModule::start_bounty_vote(
+            RuntimeOrigin::signed(beneficiary),
+            1000,
+            group_id
+        ));
+
+        // Add some candidates and votes to simulate top winners
+        assert_ok!(TemplateModule::add_candidate(
+            RuntimeOrigin::signed(voter),
+            group_id
+        ));
+        let mut scores = BTreeMap::new();
+        scores.insert(voter.clone(), 5);
+        assert_ok!(TemplateModule::vote(
+            RuntimeOrigin::signed(voter),
+            group_id,
+            scores
+        ));
+
+        // Now cast a bounty vote
+        assert_ok!(TemplateModule::vote_on_bounty(
+            RuntimeOrigin::signed(voter),
+            beneficiary,
+            true // approve
+        ));
+
+        // Check that the vote is recorded
+        assert_eq!(
+            TemplateModule::bounty_votes(&beneficiary, &voter),
+            Some(true)
+        );
+
+        // Check approval counts
+        let approval = TemplateModule::bounty_approval(&beneficiary);
+        assert_eq!(approval.approvals, 1);
+        assert_eq!(approval.rejections, 0);
+
+        // Event should be emitted
+        System::assert_last_event(Event::VoteCast { user: voter }.into());
+    });
+}
+
+#[test]
+fn finalize_bounty_release_works() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        initialize_mock_members();
+
+        let beneficiary = 2;
+        let voter = 3;
+        let group_id = 1;
+        let amount = 1000u64;
+
+        // Setup: start a bounty vote
+        assert_ok!(TemplateModule::start_bounty_vote(
+            RuntimeOrigin::signed(beneficiary),
+            amount,
+            group_id
+        ));
+
+        // Add candidate and vote to get a winner
+        assert_ok!(TemplateModule::add_candidate(
+            RuntimeOrigin::signed(voter),
+            group_id
+        ));
+        let mut scores = BTreeMap::new();
+        scores.insert(voter.clone(), 5);
+        assert_ok!(TemplateModule::vote(
+            RuntimeOrigin::signed(voter),
+            group_id,
+            scores
+        ));
+
+        // Cast a bounty vote
+        assert_ok!(TemplateModule::vote_on_bounty(
+            RuntimeOrigin::signed(voter),
+            beneficiary,
+            true
+        ));
+
+        // Fast forward time (simulate 31 days passed)
+        let now = <pallet_timestamp::Pallet<Test>>::get();
+        let one_month_plus = 1000 * 60 * 60 * 24 * 31_u64; // in ms
+        <pallet_timestamp::Pallet<Test>>::set_timestamp(now + one_month_plus);
+
+        // Finalize bounty release
+        assert_ok!(TemplateModule::finalize_bounty_release(
+            RuntimeOrigin::signed(4),
+            beneficiary
+        ));
+
+        // Check event
+        System::assert_last_event(
+            Event::BountyReleased {
+                recipient: beneficiary,
+                amount,
+            }
+            .into(),
+        );
+
+        // Ensure storage cleanup
+        assert_eq!(TemplateModule::bounty_vote_start(&beneficiary), None);
+        assert_eq!(TemplateModule::bounty_user_status(&beneficiary), None);
+        assert_eq!(TemplateModule::bounty_amount(&beneficiary), None);
+        assert_eq!(TemplateModule::bounty_group(&beneficiary), None);
+        let approval = TemplateModule::bounty_approval(&beneficiary);
+        assert_eq!(approval.approvals, 0);
+        assert_eq!(approval.rejections, 0);
+        assert_eq!(TemplateModule::bounty_votes(&beneficiary, &voter), None);
+    });
+}
+
+#[test]
+fn finalize_bounty_release_fails_if_not_enough_time_passed() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        initialize_mock_members();
+
+        let beneficiary = 1;
+
+        // Setup: start a bounty vote
+        assert_ok!(TemplateModule::start_bounty_vote(
+            RuntimeOrigin::signed(beneficiary),
+            1000,
+            1
+        ));
+
+        // Try to finalize before 1 month
+        assert_noop!(
+            TemplateModule::finalize_bounty_release(RuntimeOrigin::signed(3), beneficiary),
+            Error::<Test>::InvalidBountyState
+        );
+    });
+}
+
+#[test]
+fn finalize_bounty_release_fails_without_majority() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        initialize_mock_members();
+
+        let beneficiary = 1;
+        let voter = 2;
+        let group_id = 1;
+
+        // Setup: start a bounty vote
+        assert_ok!(TemplateModule::start_bounty_vote(
+            RuntimeOrigin::signed(beneficiary),
+            1000,
+            group_id
+        ));
+
+        // Add candidate and vote to get a winner
+        assert_ok!(TemplateModule::add_candidate(
+            RuntimeOrigin::signed(voter),
+            group_id
+        ));
+        let mut scores = BTreeMap::new();
+        scores.insert(voter.clone(), 5);
+        assert_ok!(TemplateModule::vote(
+            RuntimeOrigin::signed(voter),
+            group_id,
+            scores
+        ));
+
+        // Cast a reject vote
+        assert_ok!(TemplateModule::vote_on_bounty(
+            RuntimeOrigin::signed(voter),
+            beneficiary,
+            false
+        ));
+
+        // Fast forward time (simulate 31 days passed)
+        let now = <pallet_timestamp::Pallet<Test>>::get();
+        let one_month_plus = 1000 * 60 * 60 * 24 * 31_u64; // in ms
+        <pallet_timestamp::Pallet<Test>>::set_timestamp(now + one_month_plus);
+
+        // Finalize bounty release -> should fail due to lack of majority
+        assert_noop!(
+            TemplateModule::finalize_bounty_release(RuntimeOrigin::signed(3), beneficiary),
+            Error::<Test>::NotSuperMajoriy
+        );
+    });
+}
+
+#[test]
+fn test_two_bounties_for_same_beneficiary_success() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        initialize_mock_members();
+
+        let beneficiary = 2;
+        let voter = 3;
+        let group_id = 1;
+        let amount = 1000u64;
+
+        // --- First Bounty ---
+        assert_ok!(TemplateModule::start_bounty_vote(
+            RuntimeOrigin::signed(beneficiary),
+            amount,
+            group_id
+        ));
+
+        // Add candidate and vote
+        assert_ok!(TemplateModule::add_candidate(
+            RuntimeOrigin::signed(voter),
+            group_id
+        ));
+        let mut scores = BTreeMap::new();
+        scores.insert(voter.clone(), 5);
+        assert_ok!(TemplateModule::vote(
+            RuntimeOrigin::signed(voter),
+            group_id,
+            scores
+        ));
+
+        // Cast a bounty vote
+        assert_ok!(TemplateModule::vote_on_bounty(
+            RuntimeOrigin::signed(voter),
+            beneficiary,
+            true
+        ));
+
+        // Fast forward time
+        // Fast forward time (simulate 31 days passed)
+        let now = <pallet_timestamp::Pallet<Test>>::get();
+        let one_month_plus = 1000 * 60 * 60 * 24 * 31_u64; // in ms
+        <pallet_timestamp::Pallet<Test>>::set_timestamp(now + one_month_plus);
+
+        // Finalize bounty release
+        assert_ok!(TemplateModule::finalize_bounty_release(
+            RuntimeOrigin::signed(4),
+            beneficiary
+        ));
+
+        // Check event
+        System::assert_last_event(
+            Event::BountyReleased {
+                recipient: beneficiary,
+                amount,
+            }
+            .into(),
+        );
+
+        // --- Second Bounty ---
+        assert_ok!(TemplateModule::start_bounty_vote(
+            RuntimeOrigin::signed(beneficiary),
+            amount,
+            group_id
+        ));
+
+        // Reuse the same voter and cast another vote
+        assert_ok!(TemplateModule::vote_on_bounty(
+            RuntimeOrigin::signed(voter),
+            beneficiary,
+            true
+        ));
+
+        // Fast forward again
+        // Fast forward time (simulate 31 days passed)
+        let now = <pallet_timestamp::Pallet<Test>>::get();
+        let one_month_plus = 1000 * 60 * 60 * 24 * 31_u64; // in ms
+        <pallet_timestamp::Pallet<Test>>::set_timestamp(now + one_month_plus);
+
+        // Finalize second bounty
+        assert_ok!(TemplateModule::finalize_bounty_release(
+            RuntimeOrigin::signed(4),
+            beneficiary
+        ));
+
+        // Check second event
+        System::assert_last_event(
+            Event::BountyReleased {
+                recipient: beneficiary,
+                amount,
+            }
+            .into(),
+        );
+
+        // Ensure all storage cleanup happened twice
+        assert_eq!(TemplateModule::bounty_user_status(&beneficiary), None);
+        assert_eq!(TemplateModule::bounty_vote_start(&beneficiary), None);
+        assert_eq!(TemplateModule::bounty_amount(&beneficiary), None);
+        assert_eq!(TemplateModule::bounty_group(&beneficiary), None);
+
+        let approval = TemplateModule::bounty_approval(&beneficiary);
+        assert_eq!(approval.approvals, 0);
+        assert_eq!(approval.rejections, 0);
+    });
+}
+
+#[test]
+fn test_cannot_start_second_bounty_while_first_active() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        initialize_mock_members();
+
+        let beneficiary = 2;
+        let group_id = 1;
+        let amount = 1000u64;
+
+        // Start first bounty
+        assert_ok!(TemplateModule::start_bounty_vote(
+            RuntimeOrigin::signed(beneficiary),
+            amount,
+            group_id
+        ));
+
+        // Try to start second bounty while first is active
+        assert_noop!(
+            TemplateModule::start_bounty_vote(RuntimeOrigin::signed(beneficiary), amount, group_id),
+            Error::<Test>::InvalidBountyState
         );
     });
 }

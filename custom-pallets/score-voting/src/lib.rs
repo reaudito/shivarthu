@@ -212,6 +212,7 @@ pub mod pallet {
         NoGroupId,
         NotWinner,
         AlreadyVotedOnBounty,
+        NotSuperMajoriy,
     }
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -405,7 +406,7 @@ pub mod pallet {
 
             ensure!(
                 approval.can_release(total_electorate, turnout, MajorityType::Super),
-                Error::<T>::StorageOverflow
+                Error::<T>::NotSuperMajoriy
             );
 
             // Get bounty amount
@@ -421,7 +422,7 @@ pub mod pallet {
             });
 
             // Clean up storage
-            BountyUserStatus::<T>::insert(&beneficiary, BountyStatus::Finalized);
+            BountyUserStatus::<T>::remove(&beneficiary);
             BountyGroup::<T>::remove(&beneficiary);
             BountyApproval::<T>::remove(&beneficiary);
             BountyVoteStart::<T>::remove(&beneficiary);
