@@ -16,13 +16,15 @@ mod benchmarking;
 pub mod weights;
 
 pub mod types;
-use crate::types::{BountyStatus, MajorityApproval, MajorityType};
+use crate::types::{BountyInfo, BountyStatus, MajorityApproval, MajorityType};
 
 use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::sp_runtime::Saturating;
 use frame_support::traits::{
     Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
 };
+use pallet_support::Content;
+
 use trait_shared_storage::SharedStorageLink;
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
@@ -94,70 +96,28 @@ pub mod pallet {
     >;
 
     #[pallet::storage]
-    #[pallet::getter(fn bounty_amount)]
-    /// Stores the amount of funds to be released if approved
-    pub type BountyAmount<T: Config> = StorageMap<
+    #[pallet::getter(fn bounty_info)]
+    pub type BountyInfoStore<T: Config> = StorageMap<
         _,
         Twox64Concat,
-        T::AccountId, // Recipient (beneficiary)
-        BalanceOf<T>,
+        u32, // Bounty ID
+        BountyInfo<T::AccountId, BalanceOf<T>, T::Moment>,
         OptionQuery,
     >;
 
     #[pallet::storage]
-    #[pallet::getter(fn bounty_group)]
-    /// Stores the group for which bounty is created
-    pub type BountyGroup<T: Config> = StorageMap<
-        _,
-        Twox64Concat,
-        T::AccountId, // Recipient (beneficiary)
-        u64,
-        OptionQuery,
-    >;
+    #[pallet::getter(fn next_bounty_number)]
+    pub type NextBountyNumber<T: Config> = StorageValue<_, u32, ValueQuery, ConstU32<0>>;
 
     #[pallet::storage]
     #[pallet::getter(fn bounty_votes)]
-    /// Tracks each winner's vote for a specific recipient
     pub type BountyVotes<T: Config> = StorageDoubleMap<
         _,
         Twox64Concat,
-        T::AccountId, // Beneficiary
+        u32, // Bounty ID
         Twox64Concat,
-        T::AccountId, // Voter (top 1000 winner)
+        T::AccountId, // Voter
         bool,         // Vote (true = approve, false = reject)
-        OptionQuery,
-    >;
-
-    #[pallet::storage]
-    #[pallet::getter(fn bounty_approval)]
-    /// Aggregates approvals and rejections per recipient
-    pub type BountyApproval<T: Config> = StorageMap<
-        _,
-        Twox64Concat,
-        T::AccountId, // Beneficiary
-        MajorityApproval,
-        ValueQuery,
-    >;
-
-    #[pallet::storage]
-    #[pallet::getter(fn bounty_vote_start)]
-    /// Start time of voting for a specific recipient
-    pub type BountyVoteStart<T: Config> = StorageMap<
-        _,
-        Twox64Concat,
-        T::AccountId, // Beneficiary
-        T::Moment,
-        OptionQuery,
-    >;
-
-    #[pallet::storage]
-    #[pallet::getter(fn bounty_user_status)]
-    /// Tracks whether a bounty recipient is active or finalized
-    pub type BountyUserStatus<T: Config> = StorageMap<
-        _,
-        Twox64Concat,
-        T::AccountId, // Recipient account
-        BountyStatus,
         OptionQuery,
     >;
 
@@ -190,6 +150,13 @@ pub mod pallet {
         },
         BountyVoteStarted {
             recipient: T::AccountId,
+            bounty_id: u32,
+        },
+
+        BountyVoteCast {
+            voter: T::AccountId,
+            bounty_id: u32,
+            approve: bool,
         },
     }
 
@@ -213,6 +180,7 @@ pub mod pallet {
         NotWinner,
         AlreadyVotedOnBounty,
         NotSuperMajoriy,
+        BountyNotFound,
     }
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -317,32 +285,31 @@ pub mod pallet {
         #[pallet::weight(0)]
         pub fn start_bounty_vote(
             origin: OriginFor<T>,
-            amount: BalanceOf<T>, // Bounty amount passed in
+            amount: Option<BalanceOf<T>>,
             group_id: u64,
+            content: Content,
         ) -> DispatchResult {
-            let beneficiary = ensure_signed(origin)?;
-
-            // Ensure no ongoing vote for this recipient
-            ensure!(
-                !BountyVoteStart::<T>::contains_key(&beneficiary),
-                Error::<T>::InvalidBountyState
-            );
+            let recipient = ensure_signed(origin)?;
 
             let now = <pallet_timestamp::Pallet<T>>::get();
-            BountyVoteStart::<T>::insert(&beneficiary, now);
-            BountyApproval::<T>::insert(&beneficiary, MajorityApproval::new());
+            let bounty_id = NextBountyNumber::<T>::get();
 
-            // Store bounty amount
-            BountyAmount::<T>::insert(&beneficiary, amount);
+            let bounty_info = BountyInfo::<T::AccountId, BalanceOf<T>, T::Moment> {
+                recipient: recipient.clone(),
+                amount,
+                group_id,
+                vote_start: now,
+                approval: MajorityApproval::new(),
+                status: BountyStatus::Active,
+                content,
+            };
 
-            // Store Group
-            BountyGroup::<T>::insert(&beneficiary, group_id);
-
-            // Set status to Active
-            BountyUserStatus::<T>::insert(&beneficiary, BountyStatus::Active);
+            BountyInfoStore::<T>::insert(bounty_id, &bounty_info);
+            NextBountyNumber::<T>::put(bounty_id + 1);
 
             Self::deposit_event(Event::BountyVoteStarted {
-                recipient: beneficiary,
+                recipient,
+                bounty_id,
             });
 
             Ok(())
@@ -351,83 +318,81 @@ pub mod pallet {
         #[pallet::weight(0)]
         pub fn vote_on_bounty(
             origin: OriginFor<T>,
-            beneficiary: T::AccountId,
+            bounty_id: u32,
             approve: bool,
         ) -> DispatchResult {
             let voter = ensure_signed(origin)?;
+
+            let mut bounty_info =
+                BountyInfoStore::<T>::get(bounty_id).ok_or(Error::<T>::BountyNotFound)?;
             ensure!(
-                BountyUserStatus::<T>::get(&beneficiary) == Some(BountyStatus::Active),
+                bounty_info.status == BountyStatus::Active,
                 Error::<T>::InvalidBountyState
             );
-            // Only top 1000 winners can vote
-            let group_id = BountyGroup::<T>::get(&beneficiary).ok_or(Error::<T>::NoGroupId)?; // Define which group defines "winners"
+
+            let group_id = bounty_info.group_id;
+
             let top_winners = Self::get_top_n_winners(group_id, WINNER_NUMBER as usize);
             let is_winner = top_winners.iter().any(|(who, _)| *who == voter);
             ensure!(is_winner, Error::<T>::NotWinner);
 
-            // Prevent double voting
             ensure!(
-                BountyVotes::<T>::get(&beneficiary, &voter).is_none(),
+                BountyVotes::<T>::get(bounty_id, &voter).is_none(),
                 Error::<T>::AlreadyVotedOnBounty
             );
 
-            BountyVotes::<T>::insert(&beneficiary, &voter, approve);
-            BountyApproval::<T>::mutate(&beneficiary, |votes| votes.vote(approve));
+            BountyVotes::<T>::insert(bounty_id, &voter, approve);
+            bounty_info.approval.vote(approve);
+            BountyInfoStore::<T>::insert(bounty_id, bounty_info);
 
-            Self::deposit_event(Event::VoteCast { user: voter });
+            Self::deposit_event(Event::BountyVoteCast {
+                voter,
+                bounty_id,
+                approve,
+            });
+
             Ok(())
         }
 
         #[pallet::call_index(5)]
         #[pallet::weight(0)]
-        pub fn finalize_bounty_release(
-            origin: OriginFor<T>,
-            beneficiary: T::AccountId,
-        ) -> DispatchResult {
+        pub fn finalize_bounty_release(origin: OriginFor<T>, bounty_id: u32) -> DispatchResult {
             let _ = ensure_signed(origin)?;
 
+            let mut bounty_info =
+                BountyInfoStore::<T>::get(bounty_id).ok_or(Error::<T>::BountyNotFound)?;
             ensure!(
-                BountyUserStatus::<T>::get(&beneficiary) == Some(BountyStatus::Active),
+                bounty_info.status == BountyStatus::Active,
                 Error::<T>::InvalidBountyState
             );
 
-            let start_time =
-                BountyVoteStart::<T>::get(&beneficiary).ok_or(Error::<T>::NoBountyVoteOngoing)?;
             let now = <pallet_timestamp::Pallet<T>>::get();
             let one_month = T::Moment::saturated_from(1000u64 * 60 * 60 * 24 * 30); // 30 days
             ensure!(
-                now.saturating_sub(start_time) > one_month,
+                now.saturating_sub(bounty_info.vote_start) > one_month,
                 Error::<T>::InvalidBountyState
             );
 
-            let approval = BountyApproval::<T>::get(&beneficiary);
             let total_electorate = WINNER_NUMBER;
-            let turnout = approval.approvals + approval.rejections;
+            let turnout = bounty_info.approval.approvals + bounty_info.approval.rejections;
 
             ensure!(
-                approval.can_release(total_electorate, turnout, MajorityType::Super),
+                bounty_info
+                    .approval
+                    .can_release(total_electorate, turnout, MajorityType::Super),
                 Error::<T>::NotSuperMajoriy
             );
 
-            // Get bounty amount
-            let amount = BountyAmount::<T>::get(&beneficiary).ok_or(Error::<T>::StorageOverflow)?;
+            if let Some(amount) = bounty_info.amount {
+                // TODO: transfer funds here
+                Self::deposit_event(Event::BountyReleased {
+                    recipient: bounty_info.recipient.clone(),
+                    amount: amount.clone(),
+                });
+            }
 
-            // To Do: Transfer or release funds here
-            // e.g., transfer(&beneficiary, &amount)?;
-
-            // Emit event
-            Self::deposit_event(Event::BountyReleased {
-                recipient: beneficiary.clone(),
-                amount: amount.clone(),
-            });
-
-            // Clean up storage
-            BountyUserStatus::<T>::remove(&beneficiary);
-            BountyGroup::<T>::remove(&beneficiary);
-            BountyApproval::<T>::remove(&beneficiary);
-            BountyVoteStart::<T>::remove(&beneficiary);
-            BountyVotes::<T>::remove_prefix(&beneficiary, None);
-            BountyAmount::<T>::remove(&beneficiary);
+            bounty_info.status = BountyStatus::Finalized;
+            BountyInfoStore::<T>::insert(bounty_id, bounty_info);
 
             Ok(())
         }

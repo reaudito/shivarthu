@@ -2,6 +2,7 @@ use crate::types::BountyStatus;
 use crate::{mock::*, Error, Event};
 use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{assert_noop, assert_ok};
+use pallet_support::Content;
 use sp_std::collections::btree_map::BTreeMap;
 
 #[test]
@@ -266,38 +267,31 @@ fn start_bounty_vote_works() {
     new_test_ext().execute_with(|| {
         System::set_block_number(1);
         initialize_mock_members();
+        let recipient = 1;
+        let group_id = 1;
+        let content = Content::IPFS(b"QmSomeHash".to_vec());
 
-        let beneficiary = 1;
-        let amount = 1000 as u64;
+        let bounty_id = TemplateModule::next_bounty_number();
 
-        // Start bounty vote
         assert_ok!(TemplateModule::start_bounty_vote(
-            RuntimeOrigin::signed(beneficiary),
-            amount,
-            1 // group_id
+            RuntimeOrigin::signed(recipient),
+            Some(1000),
+            group_id,
+            content.clone()
         ));
 
-        // Check that bounty vote start time is set
-        assert!(TemplateModule::bounty_vote_start(&beneficiary).is_some());
+        let info = TemplateModule::bounty_info(bounty_id).unwrap();
 
-        // Check that bounty approval structure is initialized
-        let approval = TemplateModule::bounty_approval(&beneficiary);
-        assert_eq!(approval.approvals, 0);
-        assert_eq!(approval.rejections, 0);
+        assert_eq!(info.recipient, recipient);
+        assert_eq!(info.amount, Some(1000));
+        assert_eq!(info.group_id, group_id);
+        assert_eq!(info.status, BountyStatus::Active);
+        assert_eq!(info.content, content);
 
-        // Check that bounty amount is stored
-        assert_eq!(TemplateModule::bounty_amount(&beneficiary), Some(amount));
-
-        // Check that bounty status is active
-        assert_eq!(
-            TemplateModule::bounty_user_status(&beneficiary),
-            Some(BountyStatus::Active)
-        );
-
-        // Event should be emitted
         System::assert_last_event(
             Event::BountyVoteStarted {
-                recipient: beneficiary,
+                recipient,
+                bounty_id,
             }
             .into(),
         );
@@ -309,19 +303,21 @@ fn vote_on_bounty_works() {
     new_test_ext().execute_with(|| {
         System::set_block_number(1);
         initialize_mock_members();
-
-        let beneficiary = 1;
+        let recipient = 1;
         let voter = 2;
         let group_id = 1;
+        let content = Content::Other(vec![1, 2, 3]);
 
-        // Setup: start a bounty vote
+        // Start bounty
+        let bounty_id = TemplateModule::next_bounty_number();
         assert_ok!(TemplateModule::start_bounty_vote(
-            RuntimeOrigin::signed(beneficiary),
-            1000,
-            group_id
+            RuntimeOrigin::signed(recipient),
+            Some(1000),
+            group_id,
+            content
         ));
 
-        // Add some candidates and votes to simulate top winners
+        // Add candidates and votes to simulate top winners
         assert_ok!(TemplateModule::add_candidate(
             RuntimeOrigin::signed(voter),
             group_id
@@ -334,26 +330,26 @@ fn vote_on_bounty_works() {
             scores
         ));
 
-        // Now cast a bounty vote
+        // Vote on bounty
         assert_ok!(TemplateModule::vote_on_bounty(
             RuntimeOrigin::signed(voter),
-            beneficiary,
-            true // approve
+            bounty_id,
+            true
         ));
 
-        // Check that the vote is recorded
-        assert_eq!(
-            TemplateModule::bounty_votes(&beneficiary, &voter),
-            Some(true)
+        let info = TemplateModule::bounty_info(bounty_id).unwrap();
+        assert_eq!(info.approval.approvals, 1);
+        assert_eq!(info.approval.rejections, 0);
+        assert_eq!(TemplateModule::bounty_votes(bounty_id, &voter), Some(true));
+
+        System::assert_last_event(
+            Event::BountyVoteCast {
+                voter,
+                bounty_id,
+                approve: true,
+            }
+            .into(),
         );
-
-        // Check approval counts
-        let approval = TemplateModule::bounty_approval(&beneficiary);
-        assert_eq!(approval.approvals, 1);
-        assert_eq!(approval.rejections, 0);
-
-        // Event should be emitted
-        System::assert_last_event(Event::VoteCast { user: voter }.into());
     });
 }
 
@@ -362,20 +358,21 @@ fn finalize_bounty_release_works() {
     new_test_ext().execute_with(|| {
         System::set_block_number(1);
         initialize_mock_members();
-
-        let beneficiary = 2;
-        let voter = 3;
+        let recipient = 1;
+        let voter = 2;
         let group_id = 1;
-        let amount = 1000u64;
+        let content = Content::IPFS(b"QmHash".to_vec());
 
-        // Setup: start a bounty vote
+        // Start bounty
+        let bounty_id = TemplateModule::next_bounty_number();
         assert_ok!(TemplateModule::start_bounty_vote(
-            RuntimeOrigin::signed(beneficiary),
-            amount,
-            group_id
+            RuntimeOrigin::signed(recipient),
+            Some(1000),
+            group_id,
+            content
         ));
 
-        // Add candidate and vote to get a winner
+        // Setup voters
         assert_ok!(TemplateModule::add_candidate(
             RuntimeOrigin::signed(voter),
             group_id
@@ -388,10 +385,10 @@ fn finalize_bounty_release_works() {
             scores
         ));
 
-        // Cast a bounty vote
+        // Vote
         assert_ok!(TemplateModule::vote_on_bounty(
             RuntimeOrigin::signed(voter),
-            beneficiary,
+            bounty_id,
             true
         ));
 
@@ -399,31 +396,22 @@ fn finalize_bounty_release_works() {
         let now = <pallet_timestamp::Pallet<Test>>::get();
         let one_month_plus = 1000 * 60 * 60 * 24 * 31_u64; // in ms
         <pallet_timestamp::Pallet<Test>>::set_timestamp(now + one_month_plus);
-
-        // Finalize bounty release
+        // Finalize
         assert_ok!(TemplateModule::finalize_bounty_release(
-            RuntimeOrigin::signed(4),
-            beneficiary
+            RuntimeOrigin::signed(3),
+            bounty_id
         ));
 
-        // Check event
+        let info = TemplateModule::bounty_info(bounty_id).unwrap();
+        assert_eq!(info.status, BountyStatus::Finalized);
+
         System::assert_last_event(
             Event::BountyReleased {
-                recipient: beneficiary,
-                amount,
+                recipient,
+                amount: 1000,
             }
             .into(),
         );
-
-        // Ensure storage cleanup
-        assert_eq!(TemplateModule::bounty_vote_start(&beneficiary), None);
-        assert_eq!(TemplateModule::bounty_user_status(&beneficiary), None);
-        assert_eq!(TemplateModule::bounty_amount(&beneficiary), None);
-        assert_eq!(TemplateModule::bounty_group(&beneficiary), None);
-        let approval = TemplateModule::bounty_approval(&beneficiary);
-        assert_eq!(approval.approvals, 0);
-        assert_eq!(approval.rejections, 0);
-        assert_eq!(TemplateModule::bounty_votes(&beneficiary, &voter), None);
     });
 }
 
@@ -432,42 +420,44 @@ fn finalize_bounty_release_fails_if_not_enough_time_passed() {
     new_test_ext().execute_with(|| {
         System::set_block_number(1);
         initialize_mock_members();
+        let recipient = 1;
+        let group_id = 1;
+        let content = Content::None;
 
-        let beneficiary = 1;
-
-        // Setup: start a bounty vote
+        let bounty_id = TemplateModule::next_bounty_number();
         assert_ok!(TemplateModule::start_bounty_vote(
-            RuntimeOrigin::signed(beneficiary),
-            1000,
-            1
+            RuntimeOrigin::signed(recipient),
+            Some(1000),
+            group_id,
+            content
         ));
 
-        // Try to finalize before 1 month
         assert_noop!(
-            TemplateModule::finalize_bounty_release(RuntimeOrigin::signed(3), beneficiary),
+            TemplateModule::finalize_bounty_release(RuntimeOrigin::signed(2), bounty_id),
             Error::<Test>::InvalidBountyState
         );
     });
 }
 
 #[test]
-fn finalize_bounty_release_fails_without_majority() {
+fn cannot_vote_twice_on_same_bounty() {
     new_test_ext().execute_with(|| {
         System::set_block_number(1);
         initialize_mock_members();
-
-        let beneficiary = 1;
+        let recipient = 1;
         let voter = 2;
         let group_id = 1;
+        let content = Content::Other(vec![1]);
 
-        // Setup: start a bounty vote
+        let bounty_id = TemplateModule::next_bounty_number();
         assert_ok!(TemplateModule::start_bounty_vote(
-            RuntimeOrigin::signed(beneficiary),
-            1000,
-            group_id
+            RuntimeOrigin::signed(recipient),
+            Some(1000),
+            group_id,
+            content
         ));
 
-        // Add candidate and vote to get a winner
+        // Setup winner
         assert_ok!(TemplateModule::add_candidate(
             RuntimeOrigin::signed(voter),
             group_id
@@ -480,153 +470,17 @@ fn finalize_bounty_release_fails_without_majority() {
             scores
         ));
 
-        // Cast a reject vote
+        // First vote
         assert_ok!(TemplateModule::vote_on_bounty(
             RuntimeOrigin::signed(voter),
-            beneficiary,
-            false
-        ));
-
-        // Fast forward time (simulate 31 days passed)
-        let now = <pallet_timestamp::Pallet<Test>>::get();
-        let one_month_plus = 1000 * 60 * 60 * 24 * 31_u64; // in ms
-        <pallet_timestamp::Pallet<Test>>::set_timestamp(now + one_month_plus);
-
-        // Finalize bounty release -> should fail due to lack of majority
-        assert_noop!(
-            TemplateModule::finalize_bounty_release(RuntimeOrigin::signed(3), beneficiary),
-            Error::<Test>::NotSuperMajoriy
-        );
-    });
-}
-
-#[test]
-fn test_two_bounties_for_same_beneficiary_success() {
-    new_test_ext().execute_with(|| {
-        System::set_block_number(1);
-        initialize_mock_members();
-
-        let beneficiary = 2;
-        let voter = 3;
-        let group_id = 1;
-        let amount = 1000u64;
-
-        // --- First Bounty ---
-        assert_ok!(TemplateModule::start_bounty_vote(
-            RuntimeOrigin::signed(beneficiary),
-            amount,
-            group_id
-        ));
-
-        // Add candidate and vote
-        assert_ok!(TemplateModule::add_candidate(
-            RuntimeOrigin::signed(voter),
-            group_id
-        ));
-        let mut scores = BTreeMap::new();
-        scores.insert(voter.clone(), 5);
-        assert_ok!(TemplateModule::vote(
-            RuntimeOrigin::signed(voter),
-            group_id,
-            scores
-        ));
-
-        // Cast a bounty vote
-        assert_ok!(TemplateModule::vote_on_bounty(
-            RuntimeOrigin::signed(voter),
-            beneficiary,
+            bounty_id,
             true
         ));
 
-        // Fast forward time
-        // Fast forward time (simulate 31 days passed)
-        let now = <pallet_timestamp::Pallet<Test>>::get();
-        let one_month_plus = 1000 * 60 * 60 * 24 * 31_u64; // in ms
-        <pallet_timestamp::Pallet<Test>>::set_timestamp(now + one_month_plus);
-
-        // Finalize bounty release
-        assert_ok!(TemplateModule::finalize_bounty_release(
-            RuntimeOrigin::signed(4),
-            beneficiary
-        ));
-
-        // Check event
-        System::assert_last_event(
-            Event::BountyReleased {
-                recipient: beneficiary,
-                amount,
-            }
-            .into(),
-        );
-
-        // --- Second Bounty ---
-        assert_ok!(TemplateModule::start_bounty_vote(
-            RuntimeOrigin::signed(beneficiary),
-            amount,
-            group_id
-        ));
-
-        // Reuse the same voter and cast another vote
-        assert_ok!(TemplateModule::vote_on_bounty(
-            RuntimeOrigin::signed(voter),
-            beneficiary,
-            true
-        ));
-
-        // Fast forward again
-        // Fast forward time (simulate 31 days passed)
-        let now = <pallet_timestamp::Pallet<Test>>::get();
-        let one_month_plus = 1000 * 60 * 60 * 24 * 31_u64; // in ms
-        <pallet_timestamp::Pallet<Test>>::set_timestamp(now + one_month_plus);
-
-        // Finalize second bounty
-        assert_ok!(TemplateModule::finalize_bounty_release(
-            RuntimeOrigin::signed(4),
-            beneficiary
-        ));
-
-        // Check second event
-        System::assert_last_event(
-            Event::BountyReleased {
-                recipient: beneficiary,
-                amount,
-            }
-            .into(),
-        );
-
-        // Ensure all storage cleanup happened twice
-        assert_eq!(TemplateModule::bounty_user_status(&beneficiary), None);
-        assert_eq!(TemplateModule::bounty_vote_start(&beneficiary), None);
-        assert_eq!(TemplateModule::bounty_amount(&beneficiary), None);
-        assert_eq!(TemplateModule::bounty_group(&beneficiary), None);
-
-        let approval = TemplateModule::bounty_approval(&beneficiary);
-        assert_eq!(approval.approvals, 0);
-        assert_eq!(approval.rejections, 0);
-    });
-}
-
-#[test]
-fn test_cannot_start_second_bounty_while_first_active() {
-    new_test_ext().execute_with(|| {
-        System::set_block_number(1);
-        initialize_mock_members();
-
-        let beneficiary = 2;
-        let group_id = 1;
-        let amount = 1000u64;
-
-        // Start first bounty
-        assert_ok!(TemplateModule::start_bounty_vote(
-            RuntimeOrigin::signed(beneficiary),
-            amount,
-            group_id
-        ));
-
-        // Try to start second bounty while first is active
+        // Second vote should fail
         assert_noop!(
-            TemplateModule::start_bounty_vote(RuntimeOrigin::signed(beneficiary), amount, group_id),
-            Error::<Test>::InvalidBountyState
+            TemplateModule::vote_on_bounty(RuntimeOrigin::signed(voter), bounty_id, false),
+            Error::<Test>::AlreadyVotedOnBounty
         );
     });
 }

@@ -24,6 +24,7 @@ trait-shared-storage = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-balances = { workspace = true }
 sp-arithmetic = { workspace = true }
+pallet-support = { workspace = true }
 
 
 [dev-dependencies]
@@ -43,6 +44,7 @@ std = [
     "pallet-timestamp/std",
     "pallet-balances/std",
     "sp-arithmetic/std",
+    "pallet-support/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]

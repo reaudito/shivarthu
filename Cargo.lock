@@ -6870,6 +6870,7 @@ dependencies = [
  "frame-system 39.1.0",
  "pallet-balances",
  "pallet-shared-storage",
+ "pallet-support",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",

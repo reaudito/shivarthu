@@ -1,5 +1,6 @@
 use codec::{Decode, Encode};
 use frame_support::pallet_prelude::*;
+use pallet_support::Content;
 use scale_info::TypeInfo;
 use sp_arithmetic::{traits::CheckedDiv, FixedU128};
 
@@ -7,6 +8,30 @@ use sp_arithmetic::{traits::CheckedDiv, FixedU128};
 pub enum BountyStatus {
     Active,
     Finalized,
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
+pub struct BountyInfo<AccountId, Balance, Moment> {
+    /// Recipient of the bounty
+    pub recipient: AccountId,
+
+    /// Optional amount to be released if approved
+    pub amount: Option<Balance>,
+
+    /// The group this bounty belongs to
+    pub group_id: u64,
+
+    /// Start time of the vote
+    pub vote_start: Moment,
+
+    /// Approval statistics
+    pub approval: MajorityApproval,
+
+    /// Status of the bounty
+    pub status: BountyStatus,
+
+    /// Content associated with the bounty proposal
+    pub content: Content,
 }
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
