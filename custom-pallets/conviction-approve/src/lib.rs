@@ -113,7 +113,7 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn spendable_balance)]
     pub type SpendableBalance<T: Config> =
-        StorageMap<_, Blake2_128Concat, u64, BalanceOf<T>, ValueQuery>;
+        StorageMap<_, Blake2_128Concat, u64, BalanceOf<T>, ValueQuery>; // group_id, balance
 
     #[pallet::storage]
     #[pallet::getter(fn next_funding_number)]
