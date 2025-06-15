@@ -2,6 +2,7 @@ use crate::conviction::Conviction;
 use codec::Decode;
 use codec::Encode;
 use codec::MaxEncodedLen;
+use pallet_support::Content;
 use scale_info::TypeInfo;
 use sp_runtime::RuntimeDebug;
 
@@ -27,4 +28,43 @@ pub struct Vote<Balance> {
 pub struct VoteRecord<Balance, BlockNumber> {
     pub vote: Vote<Balance>,
     pub expiry: BlockNumber, // expiry block for lock
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+pub enum SpenderCategory {
+    BigSpender,
+    MediumSpender,
+    SmallSpender,
+    BigTipper,
+    SmallTipper,
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+pub enum FundingStatus {
+    Active,
+    Finalized,
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
+pub struct FundingInfo<Balance, Moment> {
+    /// Optional amount to be released if approved
+    pub amount: Option<Balance>,
+
+    /// The group this funding belongs to
+    pub group_id: u64,
+
+    /// Start time of the vote
+    pub vote_start: Moment,
+
+    /// Status of the funding
+    pub status: FundingStatus,
+
+    /// Content associated with the proposal
+    pub content: Content,
+
+    /// Stake required from proposer based on their category
+    pub stake_amount: Balance,
+
+    /// Conviction-based tally for approval
+    pub conviction_tally: (Balance, Balance), // (aye_total, nay_total)
 }

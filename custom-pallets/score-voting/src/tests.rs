@@ -1,6 +1,5 @@
 use crate::types::BountyStatus;
 use crate::{mock::*, Error, Event};
-use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::{assert_noop, assert_ok};
 use pallet_support::Content;
 use sp_std::collections::btree_map::BTreeMap;

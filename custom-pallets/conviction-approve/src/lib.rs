@@ -64,26 +64,29 @@ pub mod conviction;
 pub mod types;
 
 use crate::conviction::Conviction;
-use crate::types::Vote;
-use crate::types::VoteRecord;
+use crate::types::{FundingInfo, FundingStatus, SpenderCategory, Vote, VoteRecord};
+use frame_support::sp_runtime::SaturatedConversion;
 use frame_support::traits::LockIdentifier;
-use frame_support::traits::LockableCurrency;
-use frame_support::traits::{
-    Currency, ExistenceRequirement, Get, OnUnbalanced, ReservableCurrency, WithdrawReasons,
-};
+use frame_support::traits::{LockableCurrency, ReservableCurrency};
+
+use frame_support::traits::{Currency, ExistenceRequirement, Get, OnUnbalanced, WithdrawReasons};
+
+use pallet_support::Content;
+
+use frame_support::pallet_prelude::*;
+use frame_system::pallet_prelude::*;
 use sp_runtime::Saturating;
 use sp_std::collections::btree_map::BTreeMap;
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<AccountIdOf<T>>>::Balance;
+pub const UNITS: u64 = 1_000_000_000_000;
 
 // All pallet logic is defined in its own module and must be annotated by the `pallet` attribute.
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
     // Import various useful types required by all FRAME pallets.
     use super::*;
-    use frame_support::pallet_prelude::*;
-    use frame_system::pallet_prelude::*;
     use sp_runtime::print;
 
     // The `Pallet` struct serves as a placeholder to implement traits, methods and dispatchables
@@ -100,35 +103,48 @@ pub mod pallet {
     pub trait Config: frame_system::Config {
         /// The overarching runtime event type.
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-        type Currency: LockableCurrency<Self::AccountId, Moment = BlockNumberFor<Self>>;
+        type Currency: LockableCurrency<Self::AccountId, Moment = BlockNumberFor<Self>>
+            + ReservableCurrency<Self::AccountId>;
         type MaxLockId: Get<LockIdentifier>;
         /// A type representing the weights required by the dispatchables of this pallet.
         type WeightInfo: WeightInfo;
     }
 
-    /// A storage item for this pallet.
-    ///
-    /// In this template, we are declaring a storage item called `Something` that stores a single
-    /// `u32` value. Learn more about runtime storage here: <https://docs.substrate.io/build/runtime-storage/>
     #[pallet::storage]
-    pub type Something<T> = StorageValue<_, u32>;
+    #[pallet::getter(fn spendable_balance)]
+    pub type SpendableBalance<T: Config> =
+        StorageMap<_, Blake2_128Concat, u64, BalanceOf<T>, ValueQuery>;
 
     #[pallet::storage]
-    #[pallet::getter(fn group_votes)]
-    pub type GroupVotes<T: Config> = StorageMap<
+    #[pallet::getter(fn next_funding_number)]
+    pub type NextFundingNumber<T: Config> = StorageValue<_, u32, ValueQuery, ConstU32<0>>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn funding_info)]
+    pub type FundingInfoStorage<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
-        u64, // group_id
+        u32, // funding_id
+        FundingInfo<BalanceOf<T>, BlockNumberFor<T>>,
+        OptionQuery,
+    >;
+
+    #[pallet::storage]
+    #[pallet::getter(fn funding_votes)]
+    pub type FundingVotes<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        u32, // funding_id
         BTreeMap<T::AccountId, VoteRecord<BalanceOf<T>, BlockNumberFor<T>>>,
         ValueQuery,
     >;
 
     #[pallet::storage]
-    #[pallet::getter(fn vote_tally)]
-    pub type VoteTally<T: Config> = StorageMap<
+    #[pallet::getter(fn funding_tally)]
+    pub type FundingTally<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
-        u64,                          // group_id
+        u32,                          // funding_id
         (BalanceOf<T>, BalanceOf<T>), // (aye_total, nay_total)
         ValueQuery,
     >;
@@ -165,6 +181,21 @@ pub mod pallet {
             group_id: u64,
             voter: T::AccountId,
         },
+        FundingProposed {
+            funding_id: u32,
+            proposer: T::AccountId,
+            group_id: u64,
+            amount: BalanceOf<T>,
+            stake: BalanceOf<T>,
+            category: SpenderCategory,
+        },
+        FundingFinalized {
+            funding_id: u32,
+            group_id: u64,
+            approved: bool,
+            total_ayes: BalanceOf<T>,
+            total_nays: BalanceOf<T>,
+        },
     }
 
     /// Errors that can be returned by this pallet.
@@ -184,6 +215,7 @@ pub mod pallet {
         ZeroBalance,
         NoVoteFound,
         VoteStillLocked,
+        FundingAskedMore,
     }
 
     /// The pallet's dispatchable functions ([`Call`]s).
@@ -205,17 +237,76 @@ pub mod pallet {
         ///
         /// It checks that the _origin_ for this call is _Signed_ and returns a dispatch
         /// error if it isn't. Learn more about origins here: <https://docs.substrate.io/build/origins/>
+
         #[pallet::call_index(0)]
+        #[pallet::weight(0)]
+        pub fn propose_funding(
+            origin: OriginFor<T>,
+            group_id: u64,
+            amount: BalanceOf<T>,
+            content: Content,
+            category: SpenderCategory,
+        ) -> DispatchResult {
+            let proposer = ensure_signed(origin)?;
+
+            let min_stake = Self::min_stake(&category);
+            ensure!(
+                T::Currency::free_balance(&proposer) >= min_stake,
+                Error::<T>::ZeroBalance
+            );
+
+            // Reserve stake
+            T::Currency::reserve(&proposer, min_stake)?;
+
+            let max_funding = Self::max_funding(&category);
+
+            ensure!(amount <= max_funding, Error::<T>::FundingAskedMore);
+
+            let now = <frame_system::Pallet<T>>::block_number();
+            let funding_id = NextFundingNumber::<T>::get();
+
+            let info = FundingInfo {
+                amount: Some(amount),
+                group_id,
+                vote_start: now,
+                status: FundingStatus::Active,
+                content,
+                stake_amount: min_stake,
+                conviction_tally: (Zero::zero(), Zero::zero()),
+            };
+
+            FundingInfoStorage::<T>::insert(funding_id, &info);
+            NextFundingNumber::<T>::put(funding_id + 1);
+
+            Self::deposit_event(Event::FundingProposed {
+                funding_id,
+                proposer,
+                group_id,
+                amount,
+                stake: min_stake,
+                category,
+            });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(1)]
         #[pallet::weight(0)]
         pub fn vote(
             origin: OriginFor<T>,
-            group_id: u64,
+            funding_id: u32,
             aye: bool,
             conviction: Conviction,
             balance: BalanceOf<T>,
         ) -> DispatchResult {
             let who = ensure_signed(origin)?;
             ensure!(!balance.is_zero(), Error::<T>::ZeroBalance);
+
+            let info = FundingInfoStorage::<T>::get(funding_id).ok_or(Error::<T>::NoVoteFound)?;
+            ensure!(
+                info.status == FundingStatus::Active,
+                Error::<T>::VoteStillLocked
+            );
 
             let new_vote = Vote {
                 aye,
@@ -224,12 +315,13 @@ pub mod pallet {
             };
             let new_weighted = conviction.votes(balance).votes;
 
-            // Remove previous vote if exists
-            let mut group_votes = GroupVotes::<T>::get(group_id);
-            if let Some(prev_record) = group_votes.get(&who) {
+            let mut votes = FundingVotes::<T>::get(funding_id);
+
+            if let Some(prev_record) = votes.get(&who) {
                 let prev = &prev_record.vote;
                 let prev_weight = prev.conviction.votes(prev.balance).votes;
-                VoteTally::<T>::mutate(group_id, |(ayes, nays)| {
+
+                FundingTally::<T>::mutate(funding_id, |(ayes, nays)| {
                     if prev.aye {
                         *ayes = ayes.saturating_sub(prev_weight);
                     } else {
@@ -238,27 +330,21 @@ pub mod pallet {
                 });
             }
 
-            // Apply lock
             T::Currency::set_lock(T::MaxLockId::get(), &who, balance, WithdrawReasons::all());
 
-            // Store vote record
             let expiry = <frame_system::Pallet<T>>::block_number()
                 + BlockNumberFor::<T>::from(conviction.lock_periods());
-            // println!("expiry: {:?}", expiry.clone());
 
-            // println!("Conviction lock period: {}", conviction.lock_periods());
-
-            group_votes.insert(
+            votes.insert(
                 who.clone(),
                 VoteRecord {
-                    vote: new_vote.clone(),
+                    vote: new_vote,
                     expiry,
                 },
             );
-            GroupVotes::<T>::insert(group_id, group_votes);
+            FundingVotes::<T>::insert(funding_id, votes);
 
-            // Update tally
-            VoteTally::<T>::mutate(group_id, |(ayes, nays)| {
+            FundingTally::<T>::mutate(funding_id, |(ayes, nays)| {
                 if aye {
                     *ayes += new_weighted;
                 } else {
@@ -266,9 +352,8 @@ pub mod pallet {
                 }
             });
 
-            // Emit vote event
             Self::deposit_event(Event::Voted {
-                group_id,
+                group_id: info.group_id,
                 voter: who,
                 conviction,
                 aye,
@@ -279,83 +364,103 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::call_index(1)]
+        #[pallet::call_index(2)]
         #[pallet::weight(0)]
-        pub fn unlock(origin: OriginFor<T>, group_id: u64) -> DispatchResult {
+        pub fn unlock(origin: OriginFor<T>, funding_id: u32) -> DispatchResult {
             let who = ensure_signed(origin)?;
-
-            // Get group votes
-            let mut group_votes = GroupVotes::<T>::get(group_id);
-
-            let vote_record = group_votes.get(&who).ok_or(Error::<T>::NoVoteFound)?;
-
-            // Ensure expiry block has passed
+            let votes = FundingVotes::<T>::get(funding_id);
+            let vote_record = votes.get(&who).ok_or(Error::<T>::NoVoteFound)?;
             let now = <frame_system::Pallet<T>>::block_number();
             ensure!(now >= vote_record.expiry, Error::<T>::VoteStillLocked);
 
-            // Remove lock
             T::Currency::remove_lock(T::MaxLockId::get(), &who);
 
-            // Remove vote record
-            group_votes.remove(&who);
-            GroupVotes::<T>::insert(group_id, group_votes);
+            let mut updated_votes = votes;
+            updated_votes.remove(&who);
+            FundingVotes::<T>::insert(funding_id, updated_votes);
 
-            // Emit event
             Self::deposit_event(Event::Unlocked {
-                group_id,
+                group_id: FundingInfoStorage::<T>::get(funding_id)
+                    .map(|i| i.group_id)
+                    .unwrap_or_default(),
                 voter: who,
             });
 
             Ok(())
         }
 
-        #[pallet::call_index(10)]
-        #[pallet::weight(T::WeightInfo::do_something())]
-        pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
-            // Check that the extrinsic was signed and get the signer.
-            let who = ensure_signed(origin)?;
+        #[pallet::call_index(3)]
+        #[pallet::weight(0)]
+        pub fn finalize_vote(origin: OriginFor<T>, funding_id: u32) -> DispatchResult {
+            let who = ensure_signed(origin)?; // Optionally use `who`, or omit if not needed
 
-            // Update storage.
-            Something::<T>::put(something);
+            let mut info =
+                FundingInfoStorage::<T>::get(funding_id).ok_or(Error::<T>::NoVoteFound)?;
+            ensure!(
+                info.status == FundingStatus::Active,
+                Error::<T>::VoteStillLocked
+            );
 
-            // Emit an event.
-            Self::deposit_event(Event::SomethingStored { something, who });
+            let now = <frame_system::Pallet<T>>::block_number();
+            let duration: BlockNumberFor<T> = Self::u64_to_block_saturated(30 * 24 * 60 * 60 / 6);
+            let end_block = info.vote_start + duration;
 
-            // Return a successful `DispatchResult`
-            Ok(())
-        }
+            ensure!(now >= end_block, Error::<T>::VoteStillLocked);
 
-        /// An example dispatchable that may throw a custom error.
-        ///
-        /// It checks that the caller is a signed origin and reads the current value from the
-        /// `Something` storage item. If a current value exists, it is incremented by 1 and then
-        /// written back to storage.
-        ///
-        /// ## Errors
-        ///
-        /// The function will return an error under the following conditions:
-        ///
-        /// - If no value has been set ([`Error::NoneValue`])
-        /// - If incrementing the value in storage causes an arithmetic overflow
-        ///   ([`Error::StorageOverflow`])
-        #[pallet::call_index(11)]
-        #[pallet::weight(T::WeightInfo::cause_error())]
-        pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
-            let _who = ensure_signed(origin)?;
+            let (ayes, nays) = FundingTally::<T>::get(funding_id);
+            let total_votes = ayes + nays;
 
-            // Read a value from storage.
-            match Something::<T>::get() {
-                // Return an error if the value has not been set.
-                None => Err(Error::<T>::NoneValue.into()),
-                Some(old) => {
-                    // Increment the value read from storage. This will cause an error in the event
-                    // of overflow.
-                    let new = old.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
-                    // Update the value in storage with the incremented result.
-                    Something::<T>::put(new);
-                    Ok(())
+            let group_id = info.group_id;
+            let approved = ayes > nays && !total_votes.is_zero();
+
+            if approved {
+                if let Some(amount) = info.amount {
+                    SpendableBalance::<T>::mutate(group_id, |balance| *balance += amount);
                 }
             }
+
+            info.status = FundingStatus::Finalized;
+            FundingInfoStorage::<T>::insert(funding_id, info);
+
+            Self::deposit_event(Event::FundingFinalized {
+                funding_id,
+                group_id,
+                approved,
+                total_ayes: ayes,
+                total_nays: nays,
+            });
+
+            Ok(())
         }
+    }
+}
+
+impl<T: Config> Pallet<T> {
+    pub fn min_stake(category: &SpenderCategory) -> BalanceOf<T> {
+        match category {
+            SpenderCategory::BigSpender => Self::u64_to_balance_saturated(100 * UNITS),
+            SpenderCategory::MediumSpender => Self::u64_to_balance_saturated(50 * UNITS),
+            SpenderCategory::SmallSpender => Self::u64_to_balance_saturated(25 * UNITS),
+            SpenderCategory::BigTipper => Self::u64_to_balance_saturated(20 * UNITS),
+            SpenderCategory::SmallTipper => Self::u64_to_balance_saturated(10 * UNITS),
+        }
+    }
+
+    pub fn max_funding(category: &SpenderCategory) -> BalanceOf<T> {
+        match category {
+            SpenderCategory::BigSpender => Self::u64_to_balance_saturated(100_000 * UNITS),
+            SpenderCategory::MediumSpender => Self::u64_to_balance_saturated(50_000 * UNITS),
+            SpenderCategory::SmallSpender => Self::u64_to_balance_saturated(25_000 * UNITS),
+            SpenderCategory::BigTipper => Self::u64_to_balance_saturated(75_000 * UNITS),
+            SpenderCategory::SmallTipper => Self::u64_to_balance_saturated(10_000 * UNITS),
+        }
+    }
+
+    pub fn u64_to_balance_saturated(input: u64) -> BalanceOf<T> {
+        input.saturated_into::<BalanceOf<T>>()
+    }
+
+    pub fn u64_to_block_saturated(input: u64) -> BlockNumberFor<T> {
+        input.saturated_into::<BlockNumberFor<T>>()
     }
 }
