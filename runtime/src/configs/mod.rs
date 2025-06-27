@@ -187,6 +187,24 @@ parameter_types! {
 }
 
 parameter_types! {
+    pub const EvidenceLengthProfileValidation: u64 = 50;
+    pub const EndOfStakingTimeProfileValidation: u64 = 50;
+    pub const StakingLengthProfileValidation: u64 = 50;
+    pub const DrawingLengthProfileValidation: u64 = 50;
+    pub const CommitLengthProfileValidation: u64 = 50;
+    pub const VoteLengthProfileValidation: u64 = 50;
+    pub const AppealLengthProfileValidation: u64 = 50 ;
+    pub const MaxDrawsProfileValidation: u64 = 5;
+    pub const MinNumberJurorStakedProfileValidation: u64 = 3;
+    pub const MinJurorStakeProfileValidation: u64 = 100;
+    pub const JurorIncentivesProfileValidation: (u64, u64) = (100, 100);
+    pub const TotalNumbersGamesForIncentivesProfileValidation: u64 = 20;
+    pub const JurorWinMultiplierProfileValidation: u64 = 10 * 100;
+    pub const JurorLossMultiplierProfileValidation: u64 = 15 * 100;
+    pub const JurorIncentivesTotalBlockProfileValidation: u64 = 432000; // 30 days = (24*60*60)/6 * 30
+}
+
+parameter_types! {
     pub const MaxDepartmentsPerGroup: u32 = 3;
     pub const MaxMembersPerDepartment: u32 = 1000;
     pub const MaxMembersPerGroup: u32 = 10000;
@@ -215,13 +233,21 @@ impl pallet_profile_validation::Config for Runtime {
     type SharedStorageSource = SharedStorage;
     type Slash = ();
     type Reward = ();
+    type EvidenceLength = EvidenceLengthProfileValidation;
+    type EndOfStakingTime = EndOfStakingTimeProfileValidation;
+    type StakingLength = StakingLengthProfileValidation;
+    type DrawingLength = DrawingLengthProfileValidation;
+    type CommitLength = CommitLengthProfileValidation;
+    type VoteLength = VoteLengthProfileValidation;
+    type AppealLength = AppealLengthProfileValidation;
+    type MaxDraws = MaxDrawsProfileValidation;
+    type MinNumberJurorStaked = MinNumberJurorStakedProfileValidation;
+    type MinJurorStake = MinJurorStakeProfileValidation;
+    type JurorIncentives = JurorIncentivesProfileValidation;
 }
 
 impl pallet_shared_storage::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type MaxDepartmentsPerGroup = MaxDepartmentsPerGroup;
-    type MaxMembersPerDepartment = MaxMembersPerDepartment;
-    type MaxMembersPerGroup = MaxMembersPerGroup;
 }
 
 impl pallet_positive_externality::Config for Runtime {
