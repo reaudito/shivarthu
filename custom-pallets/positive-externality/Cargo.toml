@@ -28,6 +28,8 @@ pallet-schelling-game-shared = { workspace = true }
 trait-schelling-game-shared = { workspace = true }
 pallet-sortition-sum-game = { workspace = true }
 sp-io = { workspace = true }
+borsh = { version = "1.5", default-features = false, features = ["std"] }
+risc0-zkvm = {version = "=3.0.0-rc.1", default-features = false}
 
 
 [dev-dependencies]
@@ -48,6 +50,7 @@ std = [
     "pallet-shared-storage/std",
     "pallet-schelling-game-shared/std",
     "pallet-sortition-sum-game/std",
+    "risc0-zkvm/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]

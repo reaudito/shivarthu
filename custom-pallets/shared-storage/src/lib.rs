@@ -21,12 +21,13 @@ use frame_support::BoundedVec;
 use frame_system::ensure_root;
 use frame_system::pallet_prelude::*;
 use sp_std::prelude::*;
-use types::ReputationScore;
+use types::{Address, GpsCoordinate, ReputationScore};
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type Score = i64;
 type DepartmentId = u64;
 pub type MaxNameLength = ConstU32<64>;
+pub type AddressNameLength = ConstU32<200>;
 pub type MaxDepartmentsPerGroup = ConstU32<50>;
 pub type MaxMembersPerDepartment = ConstU32<100000>;
 use crate::types::DepartmentType;
@@ -86,6 +87,11 @@ pub mod pallet {
     >;
 
     #[pallet::storage]
+    #[pallet::getter(fn addresses)]
+    pub type Addresses<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::AccountId, Address, OptionQuery>;
+
+    #[pallet::storage]
     #[pallet::getter(fn groups)]
     pub type Groups<T: Config> = StorageMap<_, Blake2_128Concat, u64, Group, OptionQuery>;
 
@@ -116,7 +122,10 @@ pub mod pallet {
     pub enum Event<T: Config> {
         /// Event documentation should end with an array that provides descriptive names for event
         /// parameters. [something, who]
-        SomethingStored { something: u32, who: T::AccountId },
+        SomethingStored {
+            something: u32,
+            who: T::AccountId,
+        },
         MemberAddedToDepartment {
             member: T::AccountId,
             department_id: u64,
@@ -124,6 +133,9 @@ pub mod pallet {
         DepartmentGroupCreated {
             group_id: u64,
             departments: Vec<u64>,
+        },
+        AddressSaved {
+            who: T::AccountId,
         },
     }
 
@@ -145,6 +157,11 @@ pub mod pallet {
         GroupNotFound,
         TooManyDepartments,
         GroupHasNoDepartments,
+        DistrictTooLong,
+        CountryTooLong,
+        CityTooLong,
+        InvalidLatitude,
+        InvalidLongitude,
     }
 
     #[pallet::call]
@@ -323,6 +340,62 @@ pub mod pallet {
                 group.district_departments.retain(|&id| id != department_id);
                 Ok(())
             })
+        }
+
+        #[pallet::call_index(7)]
+        #[pallet::weight(0)]
+        pub fn save_address(
+            origin: OriginFor<T>,
+            district: Vec<u8>,
+            country: Vec<u8>,
+            city: Vec<u8>,
+            latitude: Option<i32>,  // microdegrees
+            longitude: Option<i32>, // microdegrees
+        ) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+
+            // Validate and convert to bounded vectors
+            let bounded_district = BoundedVec::<u8, AddressNameLength>::try_from(district)
+                .map_err(|_| Error::<T>::DistrictTooLong)?;
+
+            let bounded_country = BoundedVec::<u8, AddressNameLength>::try_from(country)
+                .map_err(|_| Error::<T>::CountryTooLong)?;
+
+            let bounded_city = BoundedVec::<u8, AddressNameLength>::try_from(city)
+                .map_err(|_| Error::<T>::CityTooLong)?;
+
+            // Validate coordinates if provided
+            let location = if let (Some(lat), Some(lon)) = (latitude, longitude) {
+                ensure!(
+                    lat >= -90_000_000 && lat <= 90_000_000,
+                    Error::<T>::InvalidLatitude
+                );
+                ensure!(
+                    lon >= -180_000_000 && lon <= 180_000_000,
+                    Error::<T>::InvalidLongitude
+                );
+                Some(GpsCoordinate {
+                    latitude: lat,
+                    longitude: lon,
+                })
+            } else {
+                None
+            };
+
+            let address = Address {
+                district: bounded_district,
+                country: bounded_country,
+                city: bounded_city,
+                location,
+            };
+
+            // Store in map
+            <Addresses<T>>::insert(&sender, address);
+
+            // Emit event
+            Self::deposit_event(Event::AddressSaved { who: sender });
+
+            Ok(()) // This returns DispatchResult
         }
     }
 }

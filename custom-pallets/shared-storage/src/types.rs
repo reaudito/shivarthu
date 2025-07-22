@@ -4,6 +4,20 @@ use frame_support::pallet_prelude::*;
 use scale_info::TypeInfo;
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
+pub struct GpsCoordinate {
+    pub latitude: i32,  // Degrees * 1_000_000 (microdegrees)
+    pub longitude: i32, // Degrees * 1_000_000
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
+pub struct Address {
+    pub district: BoundedVec<u8, AddressNameLength>, // Department Id, Score
+    pub country: BoundedVec<u8, AddressNameLength>,
+    pub city: BoundedVec<u8, AddressNameLength>,
+    pub location: Option<GpsCoordinate>, // Optional GPS
+}
+
 /// Reputation scores that can be used for schelling game.
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo)]
