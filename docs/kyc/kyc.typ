@@ -2,7 +2,7 @@
 #import "@preview/codly-languages:0.1.1": *
 #show: codly-init.with()
 
-= Anonymous KYC But not possible to remove duplicates
+= Anonymous KYC
 
 
 About 100 validators are selected through conviction voting to perform KYC. For each user, 5 validators are randomly chosen as jurors. KYC is conducted via end-to-end encrypted P2P chat and video conferencing by selected jurors.
