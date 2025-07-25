@@ -27,7 +27,7 @@ type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type Score = i64;
 type DepartmentId = u64;
 pub type MaxNameLength = ConstU32<64>;
-pub type AddressNameLength = ConstU32<200>;
+pub type AddressNameLength = ConstU32<64>;
 pub type MaxDepartmentsPerGroup = ConstU32<50>;
 pub type MaxMembersPerDepartment = ConstU32<100000>;
 use crate::types::DepartmentType;
